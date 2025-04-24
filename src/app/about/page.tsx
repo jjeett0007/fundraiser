@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 md:px-10 lg:px-14 py-12">
         <h1 className="text-4xl font-bold text-center mb-12 text-gray-800">
           About EmergFund
         </h1>

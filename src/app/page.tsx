@@ -96,7 +96,7 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-[#29339B] to-[#3a44b5] text-white py-16 md:py-24">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 md:px-10 lg:px-14">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-3xl md:text-5xl font-bold mb-6">
               Fast Emergency Fundraising
@@ -124,7 +124,7 @@ export default function HomePage() {
 
       {/* How It Works Section */}
       <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 md:px-10 lg:px-14">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             How It Works
           </h2>
@@ -169,7 +169,7 @@ export default function HomePage() {
 
       {/* Active Fundraisers Section */}
       <section className="py-16">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 md:px-10 lg:px-14">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
               Active Fundraisers
@@ -181,9 +181,9 @@ export default function HomePage() {
               View all <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 gap-6 lg:flex container justify-center lg:gap-8 flex-wrap mx-auto items-center">
             {activeFundraisers.map((fundraiser) => (
-              <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
+              <FundraiserCard key={fundraiser.id} {...fundraiser} createdAt={fundraiser.createdAt.toISOString()} />
             ))}
           </div>
         </div>
@@ -191,7 +191,7 @@ export default function HomePage() {
 
       {/* CTA Section */}
       <section className="py-16 bg-[#FEC601]">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-4 md:px-10 lg:px-14 text-center">
           <h2 className="text-3xl font-bold mb-6 text-gray-900">
             Ready to Make a Difference?
           </h2>

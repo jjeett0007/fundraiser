@@ -98,7 +98,7 @@ export default function ManageFundraiserPage() {
   const progressPercentage =
     (fundraiser.raisedAmount / fundraiser.goalAmount) * 100;
 
-  const getRelativeTime = (dateString) => {
+  const getRelativeTime = (dateString: string | number | Date) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
@@ -115,11 +115,12 @@ export default function ManageFundraiserPage() {
     return `${Math.floor(diffInSeconds / 31536000)} years ago`;
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
+  const formatCurrency = (amount: string | number | bigint) => {
+      const numericAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(numericAmount);
   };
 
   const handleWithdrawFunds = () => {
@@ -142,7 +143,7 @@ export default function ManageFundraiserPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-background">
+    <div className="container mx-auto px-4 md:px-10 lg:px-14 py-8 bg-background">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Manage Fundraiser</h1>
         <Button
