@@ -140,7 +140,7 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 md:px-10 lg:px-14 py-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-8">
           Explore Fundraisers
         </h1>
@@ -170,9 +170,9 @@ export default function ExplorePage() {
         </div>
 
         {/* Fundraisers Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 gap-6 lg:flex container justify-center lg:gap-8 flex-wrap mx-auto items-center">
           {fundraisers.map((fundraiser) => (
-            <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
+            <FundraiserCard key={fundraiser.id} {...fundraiser} createdAt={fundraiser.createdAt.toISOString()} />
           ))}
         </div>
 
