@@ -6,6 +6,7 @@ import HeaderComp from "@/components/useables/header";
 import FooterComp from "@/components/useables/footer";
 import { baloo_init } from "@/utils/font";
 import { Wallet } from "@/walletAdapter/walletAdapterLib";
+import { Analytics } from "@vercel/analytics/react"
 
 export const metadata: Metadata = {
   title: "Emerg Fund Raising",
@@ -26,6 +27,7 @@ export default function RootLayout({
           {children}
           <FooterComp />
         </Wallet>
+        <Analytics />
         <TempoInit />
       </body>
     </html>
