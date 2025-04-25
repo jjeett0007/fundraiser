@@ -11,7 +11,7 @@ function FooterComp() {
                 EmergFund
               </h3>
               <p className="text-gray-600 mb-4">
-                Fast emergency fundraising on the Solana blockchain.
+                Fast emergency fundraising on Solana.
               </p>
             </div>
             <div>
