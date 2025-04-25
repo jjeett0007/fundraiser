@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import {
   Card,
   CardContent,
@@ -24,16 +25,35 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 export default function CreateFundraiserPage() {
   const router = useRouter();
+  const { publicKey, sendTransaction } = useWallet();
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     goalAmount: "",
-    walletAddress: "",
+    walletAddress: publicKey ? publicKey.toString() : "",
     category: "Medical",
   });
+
+  useEffect(() => {
+    if (!publicKey) {
+      setFormData((prevData) => ({
+        ...prevData,
+        walletAddress: "",
+      }));
+    }
+    
+    if (publicKey) {
+      setFormData((prevData) => ({
+        ...prevData,
+        walletAddress: publicKey.toString(),
+      }));
+    }
+  }, [publicKey]);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -181,6 +201,7 @@ export default function CreateFundraiserPage() {
                   placeholder="Explain your situation and why you need help..."
                   value={formData.description}
                   onChange={handleInputChange}
+                  disabled
                   className={`min-h-[120px] ${errors.description ? "border-red-500" : ""}`}
                 />
                 {errors.description && (
@@ -219,7 +240,7 @@ export default function CreateFundraiserPage() {
                 >
                   Recipient Wallet Address
                 </Label>
-                <div className="flex">
+                <div className="flex gap-2">
                   <Input
                     id="walletAddress"
                     name="walletAddress"
@@ -229,13 +250,14 @@ export default function CreateFundraiserPage() {
                     className={`h-12 flex-1 ${errors.walletAddress ? "border-red-500" : ""}`}
                     readOnly={!!formData.walletAddress}
                   />
-                  <Button
+                  {/* <Button
                     type="button"
                     onClick={connectWallet}
                     className="ml-2 bg-[#29339B] hover:bg-[#1e2575]"
                   >
                     Connect
-                  </Button>
+                  </Button> */}
+                  <WalletMultiButton />
                 </div>
                 {errors.walletAddress && (
                   <p className="text-red-500 text-sm mt-1">
