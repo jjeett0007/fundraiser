@@ -108,7 +108,7 @@ export default function FundraiserPage({ params }: { params: { id: string } }) {
   const [showUserInfoDialog, setShowUserInfoDialog] = React.useState(false);
 
   const fundraiser = {
-    id: params.id,
+    id: "fund_00001",
     title: "Medical Emergency Support for Sarah",
     description:
       "Sarah was recently diagnosed with a rare condition requiring immediate treatment. The medical costs are overwhelming for her family, and they need our support during this difficult time. Any contribution, no matter how small, will make a significant difference in helping Sarah receive the care she needs.",

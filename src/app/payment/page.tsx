@@ -14,9 +14,31 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Copy, ExternalLink } from "lucide-react";
 import WalletConnect from "@/components/wallet/WalletConnect";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  SystemProgram,
+  clusterApiUrl,
+  sendAndConfirmTransaction
+} from "@solana/web3.js";
+import {
+  getAssociatedTokenAddress,
+  createTransferInstruction,
+} from "@solana/spl-token";
+
+const connection = new Connection(clusterApiUrl("devnet"));
+
+// USDC mint address on Solana mainnet
+const USDC_DEVNET_MINT = new PublicKey("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr");
+
 
 export default function PaymentPage() {
   const router = useRouter();
+  const { publicKey, wallet, connected, sendTransaction } = useWallet();
+  const { connection } = useConnection();
   const searchParams = useSearchParams();
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletType, setWalletType] = useState("");
@@ -34,10 +56,26 @@ export default function PaymentPage() {
   // Mock fundraiser data - in a real app, you would fetch this based on fundraiserId
   const fundraiser = {
     title: "Medical Emergency Support for Sarah",
-    walletAddress: "8xj7dkE9JDkf82jS6Qgp2H7K5uyJM9N1X2L",
+    walletAddress: "H1pyQiBHh34PxpcKqtHV5MbJkfgx31Uj9bEsFp6Js2Bz",
     imageUrl:
       "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=800&q=80",
   };
+
+  useEffect(() => {
+    if (!publicKey) {
+      setWalletConnected(false);
+      setWalletType("");
+      setWalletAddress("");
+
+    }
+
+    if (publicKey) {
+      setWalletConnected(true);
+      setWalletType("phantom");
+      setWalletAddress(publicKey.toString());
+
+    }
+  }, [publicKey]);
 
   const handleWalletConnect = (type: string, address: string) => {
     setWalletConnected(true);
@@ -54,6 +92,88 @@ export default function PaymentPage() {
     setTimeout(() => {
       router.push(`/fundraiser/${fundraiserId}`);
     }, 2000);
+  };
+
+
+  const sendSolFun = async () => {
+    try {
+      if (!publicKey) {
+        console.error("Wallet not connected");
+        return;
+      }
+
+      const recipientPubKey = new PublicKey(fundraiser.walletAddress);
+      const senderPublicKey = publicKey;
+
+      const senderATA = await getAssociatedTokenAddress(USDC_DEVNET_MINT, senderPublicKey);
+      const recipientATA = await getAssociatedTokenAddress(USDC_DEVNET_MINT, recipientPubKey);
+
+      const transferIx = createTransferInstruction(
+        senderATA,
+        recipientATA,
+        senderPublicKey,
+        50 * 1_000_000
+      );
+
+      const transaction = new Transaction().add(transferIx);
+
+      const signature = await sendTransaction(transaction, connection);
+      console.log(`Transaction signature: ${signature}`);
+
+
+      // const transaction = new Transaction();
+      // const sendSolInstruction = SystemProgram.transfer({
+      //   fromPubkey: publicKey,
+      //   toPubkey: recipientPubKey,
+      //   lamports: 0.1 * 100000000,
+      // });
+
+
+
+      // transaction.add(sendSolInstruction);
+      // const signature = await sendTransaction(transaction, connection);
+      console.log(`Transaction signature: ${signature}`);
+    } catch (error) {
+      console.error("Transaction failed", error);
+    }
+  }
+
+  const sendUSDC = async (
+    recipientAddress: string,
+    amount: number = 50 // USDC
+  ) => {
+    const wallet = useWallet();
+
+    if (!wallet.connected || !wallet.publicKey || !wallet.signTransaction) {
+      throw new Error("Wallet not connected");
+    }
+
+    const senderPublicKey = wallet.publicKey;
+    const recipientPublicKey = new PublicKey(recipientAddress);
+
+    const senderATA = await getAssociatedTokenAddress(USDC_DEVNET_MINT, senderPublicKey);
+    const recipientATA = await getAssociatedTokenAddress(USDC_DEVNET_MINT, recipientPublicKey);
+
+    const transferIx = createTransferInstruction(
+      senderATA,
+      recipientATA,
+      senderPublicKey,
+      amount * 1_000_000 // USDC has 6 decimals
+    );
+
+    const latestBlockhash = await connection.getLatestBlockhash();
+    const tx = new Transaction({
+      feePayer: senderPublicKey,
+      recentBlockhash: latestBlockhash.blockhash
+    }).add(transferIx);
+
+    const signedTx = await wallet.signTransaction(tx);
+    const txid = await connection.sendRawTransaction(signedTx.serialize());
+    await connection.confirmTransaction(txid, "confirmed");
+
+    console.log("✅ Sent USDC on devnet! Tx ID:", txid);
+    return txid;
+
   };
 
   return (
@@ -145,12 +265,13 @@ export default function PaymentPage() {
 
                 <Separator />
 
-                {!walletConnected ? (
+                {!connected ? (
                   <div>
                     <p className="text-sm mb-2">
                       Connect your wallet to make the payment:
                     </p>
-                    <WalletConnect onConnect={handleWalletConnect} />
+                    <WalletMultiButton />
+                    {/* <WalletConnect onConnect={handleWalletConnect} /> */}
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -158,11 +279,19 @@ export default function PaymentPage() {
                       <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
                       <p className="text-sm">
                         Connected to{" "}
-                        {walletType.charAt(0).toUpperCase() +
-                          walletType.slice(1)}{" "}
+                        {wallet?.adapter.name}{" "}
                         wallet
                       </p>
                     </div>
+
+                    <div className="flex items-center gap-2">
+                      <WalletMultiButton />
+
+                      <button className="border rounded-md p-3" onClick={() => sendSolFun()}>
+                        Send 50 USDC on Devnet
+                      </button>
+                    </div>
+
 
                     {!paymentCompleted ? (
                       <div className="space-y-4">

@@ -22,7 +22,7 @@ interface WalletConnectProps {
 export default function WalletConnect({
   onConnect = () => {},
   onClose = () => {},
-  isOpen = true,
+  isOpen = false,
 }: WalletConnectProps) {
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
