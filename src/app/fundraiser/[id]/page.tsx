@@ -101,7 +101,7 @@ const UserInfoDialog = ({
   );
 };
 
-export default function FundraiserPage({ params }: { params: { id: string } }) {
+export default function FundraiserPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [selectedAmount, setSelectedAmount] = React.useState(0);
   const [customAmount, setCustomAmount] = React.useState("");
@@ -192,7 +192,7 @@ export default function FundraiserPage({ params }: { params: { id: string } }) {
     }).format(amount);
   };
 
-  const handleUserInfoSubmit = (userInfo: {
+  const handleUserInfoSubmit = async (userInfo: {
     name: string;
     email: string;
     note: string;
@@ -204,7 +204,7 @@ export default function FundraiserPage({ params }: { params: { id: string } }) {
 
     // Navigate to payment page with user info and fundraiser details
     router.push(
-      `/payment?amount=${amount}&fundraiserId=${params.id}&name=${encodeURIComponent(userInfo.name)}&email=${encodeURIComponent(userInfo.email)}&note=${encodeURIComponent(userInfo.note)}&isAnonymous=${userInfo.isAnonymous}`,
+      `/payment?amount=${amount}&fundraiserId=${(await params).id}&name=${encodeURIComponent(userInfo.name)}&email=${encodeURIComponent(userInfo.email)}&note=${encodeURIComponent(userInfo.note)}&isAnonymous=${userInfo.isAnonymous}`,
     );
   };
 
