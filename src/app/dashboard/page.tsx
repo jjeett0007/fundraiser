@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import UserFundraiserCard from "@/components/fundraiser/UserFundraiserCard";
 
+
 export default function DashboardPage() {
   const [userFundraisers, setUserFundraisers] = useState([
     {
