@@ -257,8 +257,8 @@ export default function FundraiserPage({ params }: { params: Promise<{ id: strin
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {fundraiser.donors.map((donor) => (
-                      <div key={donor.id} className="flex items-start gap-4">
+                    {fundraiser.donors.map((donor, index) => (
+                      <div key={index} className="flex items-start gap-4">
                         <Avatar>
                           <AvatarImage
                             src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${donor.id}`}
@@ -300,7 +300,7 @@ export default function FundraiserPage({ params }: { params: Promise<{ id: strin
         </div>
 
         <div className="lg:col-span-1">
-          <Card className="sticky top-4">
+          <Card className="sticky top-4 md:top-[6rem]">
             <CardHeader>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">

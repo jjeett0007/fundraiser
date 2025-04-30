@@ -10,6 +10,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CalendarDays, Clock, Users } from "lucide-react";
+import { Button } from "../ui/button";
+import Link from "next/link";
 
 interface FundraiserCardProps {
   id?: string;
@@ -37,7 +39,7 @@ const FundraiserCard = ({
   // Calculate progress percentage
   const progressPercentage = Math.min(
     Math.round((amountRaised / goalAmount) * 100),
-    100,
+    100
   );
 
   // Format currency
@@ -79,7 +81,7 @@ const FundraiserCard = ({
   };
 
   return (
-    <Card className="w-full max-w-[350px] h-[400px] overflow-hidden flex flex-col bg-white hover:shadow-lg transition-shadow duration-300">
+    <Card className="w-full  h-[400px] overflow-hidden flex flex-col bg-white hover:shadow-lg transition-shadow duration-300">
       <div className="h-40 overflow-hidden">
         <img
           src={imageUrl}
@@ -128,12 +130,9 @@ const FundraiserCard = ({
       </CardContent>
 
       <CardFooter className="pt-0">
-        <a
-          href={`/fundraiser/${id}`}
-          className="w-full py-2 px-4 bg-[#29339B] hover:bg-[#222d8a] text-white rounded-lg text-center text-sm font-medium transition-colors"
-        >
-          View Fundraiser
-        </a>
+        <Button asChild className="w-full">
+          <Link href={`/fundraiser/${id}`}>View Fundraiser</Link>
+        </Button>
       </CardFooter>
     </Card>
   );

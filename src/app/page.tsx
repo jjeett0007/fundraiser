@@ -181,9 +181,13 @@ export default function HomePage() {
               View all <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </div>
-          <div className="grid sm:grid-cols-2 gap-6 lg:flex container justify-center lg:gap-8 flex-wrap mx-auto items-center">
-            {activeFundraisers.map((fundraiser) => (
-              <FundraiserCard key={fundraiser.id} {...fundraiser} createdAt={fundraiser.createdAt.toISOString()} />
+          <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3  justify-center lg:gap-8 flex-wrap mx-auto items-center">
+            {activeFundraisers.map((fundraiser, index) => (
+              <FundraiserCard
+                key={index}
+                {...fundraiser}
+                createdAt={fundraiser.createdAt.toISOString()}
+              />
             ))}
           </div>
         </div>

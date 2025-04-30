@@ -149,16 +149,16 @@ export default function ExplorePage() {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search size={18} className="absolute left-3 top-[40%] transform -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Search fundraisers..."
                 className="pl-10 bg-white"
               />
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2">
-              {categories.map((category) => (
+              {categories.map((category, index) => (
                 <Button
-                  key={category}
+                  key={index}
                   variant={category === "All" ? "default" : "outline"}
                   className={category === "All" ? "bg-[#29339B]" : ""}
                 >
@@ -170,9 +170,9 @@ export default function ExplorePage() {
         </div>
 
         {/* Fundraisers Grid */}
-        <div className="grid sm:grid-cols-2 gap-6 lg:flex container justify-center lg:gap-8 flex-wrap mx-auto items-center">
-          {fundraisers.map((fundraiser) => (
-            <FundraiserCard key={fundraiser.id} {...fundraiser} createdAt={fundraiser.createdAt.toISOString()} />
+        <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3  justify-center lg:gap-8 flex-wrap mx-auto items-center">
+          {fundraisers.map((fundraiser, index) => (
+            <FundraiserCard key={index} {...fundraiser} createdAt={fundraiser.createdAt.toISOString()} />
           ))}
         </div>
 

@@ -218,8 +218,8 @@ export default function ManageFundraiserPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {fundraiser.donors.map((donor) => (
-                      <div key={donor.id} className="flex items-start gap-4">
+                    {fundraiser.donors.map((donor, index) => (
+                      <div key={index} className="flex items-start gap-4">
                         <Avatar>
                           <AvatarImage
                             src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${donor.id}`}
@@ -296,7 +296,7 @@ export default function ManageFundraiserPage() {
         </div>
 
         <div className="lg:col-span-1">
-          <Card className="sticky top-4">
+          <Card className="sticky top-4 md:top-[6rem]">
             <CardHeader>
               <CardTitle>Actions</CardTitle>
               <CardDescription>
@@ -319,7 +319,7 @@ export default function ManageFundraiserPage() {
               </div>
 
               <Button
-                className="w-full bg-[#29339B] hover:bg-[#29339B]/90"
+                className="w-full"
                 onClick={handleWithdrawFunds}
                 disabled={isWithdrawing || fundraiser.raisedAmount === 0}
               >

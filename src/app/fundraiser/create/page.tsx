@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
   Card,
   CardContent,
@@ -16,7 +16,8 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Upload, X } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
+import { FiUploadCloud } from "react-icons/fi";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
@@ -46,7 +47,7 @@ export default function CreateFundraiserPage() {
         walletAddress: "",
       }));
     }
-    
+
     if (publicKey) {
       setFormData((prevData) => ({
         ...prevData,
@@ -70,7 +71,7 @@ export default function CreateFundraiserPage() {
   ];
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -158,7 +159,7 @@ export default function CreateFundraiserPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gray-50 px-4 md:px-10 lg:px-14">
+    <div className="container mx-auto px-4 py-8 bg-gray-50 md:px-10 lg:px-14">
       <Card className="max-w-2xl mx-auto shadow-lg">
         <CardHeader className="bg-[#29339B] text-white rounded-t-xl">
           <CardTitle className="text-2xl font-bold">
@@ -175,7 +176,7 @@ export default function CreateFundraiserPage() {
               {/* Title Input */}
               <div className="space-y-2">
                 <Label htmlFor="title" className="text-base font-medium">
-                  Fundraiser Title
+                  Title
                 </Label>
                 <Input
                   id="title"
@@ -193,7 +194,7 @@ export default function CreateFundraiserPage() {
               {/* Description Textarea */}
               <div className="space-y-2">
                 <Label htmlFor="description" className="text-base font-medium">
-                  Description
+                  Story
                 </Label>
                 <Textarea
                   id="description"
@@ -201,7 +202,6 @@ export default function CreateFundraiserPage() {
                   placeholder="Explain your situation and why you need help..."
                   value={formData.description}
                   onChange={handleInputChange}
-                  disabled
                   className={`min-h-[120px] ${errors.description ? "border-red-500" : ""}`}
                 />
                 {errors.description && (
@@ -244,19 +244,13 @@ export default function CreateFundraiserPage() {
                   <Input
                     id="walletAddress"
                     name="walletAddress"
-                    placeholder="Solana wallet address"
+                    placeholder="Connect solana wallet address"
                     value={formData.walletAddress}
                     onChange={handleInputChange}
                     className={`h-12 flex-1 ${errors.walletAddress ? "border-red-500" : ""}`}
                     readOnly={!!formData.walletAddress}
+                    disabled
                   />
-                  {/* <Button
-                    type="button"
-                    onClick={connectWallet}
-                    className="ml-2 bg-[#29339B] hover:bg-[#1e2575]"
-                  >
-                    Connect
-                  </Button> */}
                   <WalletMultiButton />
                 </div>
                 {errors.walletAddress && (
@@ -284,7 +278,7 @@ export default function CreateFundraiserPage() {
                       htmlFor="image-upload"
                       className="cursor-pointer flex flex-col items-center"
                     >
-                      <Upload className="h-10 w-10 text-gray-400 mb-2" />
+                      <FiUploadCloud className="h-10 w-10 text-gray-400 mb-2" />
                       <span className="text-sm text-gray-500">
                         Click to upload an image
                       </span>
@@ -312,9 +306,9 @@ export default function CreateFundraiserPage() {
               <div className="space-y-2">
                 <Label className="text-base font-medium">Category</Label>
                 <div className="flex flex-wrap gap-2">
-                  {categories.map((category) => (
+                  {categories.map((category, index) => (
                     <Badge
-                      key={category.id}
+                      key={index}
                       variant={
                         formData.category === category.name
                           ? "default"
@@ -330,21 +324,21 @@ export default function CreateFundraiserPage() {
               </div>
 
               {/* Important Notice */}
-              <Alert className="bg-yellow-50 border-yellow-200">
+              <div className="bg-yellow-50 items-center p-2 gap-2 flex border border-yellow-500 rounded-md">
                 <AlertCircle className="h-4 w-4 text-yellow-600" />
-                <AlertDescription className="text-yellow-800">
-                  Your fundraiser will be public and visible to everyone. Make
-                  sure all information is accurate.
-                </AlertDescription>
-              </Alert>
+                <div className="text-yellow-800 text-sm">
+                  Your fundraiser will be set up and available on your
+                  dashboard, where you can launch it.
+                </div>
+              </div>
             </div>
 
             <CardFooter className="flex justify-center pt-6 pb-2 px-0">
               <Button
                 type="submit"
-                className="w-full md:w-auto px-8 py-6 text-lg font-semibold bg-[#FF3A20] hover:bg-[#e02e17] text-white rounded-xl"
+                className="w-full md:w-auto px-8 py-6 text-lg font-semibold bg-[#29339B] hover:bg-[#29339B/80] text-white rounded-xl"
               >
-                Launch Now
+                Create Fundraiser
               </Button>
             </CardFooter>
           </form>

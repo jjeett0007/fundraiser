@@ -1,28 +1,40 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+.env
+.env
+.env
 
 # dependencies
 /node_modules
 /.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
+.pnp.js
+.yarn/install-state.gz
+.env
+.env
+.env
+.env
 # testing
 /coverage
 
 # next.js
 /.next/
 /out/
+.env
+.env
+.env
+.env
+.env
 
 # production
 /build
-
+.env
 # misc
 .DS_Store
 *.pem
+.env
+.env
+.env
+.env
+.env
 
 # debug
 npm-debug.log*
@@ -32,6 +44,9 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env
+.env
+.env
 
 # vercel
 .vercel
@@ -39,14 +54,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# Tempo
-
-node_modules/
-**/tempobook/dynamic/
-**/tempobook/storyboards/
-
-# remove git history
-.git
-
-.github/
+.env
+.env
+.env
+.env
