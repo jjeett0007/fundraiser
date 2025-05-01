@@ -251,7 +251,15 @@ export default function CreateFundraiserPage() {
                     readOnly={!!formData.walletAddress}
                     disabled
                   />
-                  <WalletMultiButton />
+                  <WalletMultiButton
+                    style={{
+                      padding: "15px",
+                      paddingTop: "1px",
+                      paddingBottom: "1px",
+                      fontSize: "12px",
+                      margin: 0,
+                    }}
+                  />
                 </div>
                 {errors.walletAddress && (
                   <p className="text-red-500 text-sm mt-1">

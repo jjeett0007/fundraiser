@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FiMenu, FiX } from "react-icons/fi";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { Button } from "../ui/button";
 
 interface PathValidator {
   (path: string): boolean;
@@ -70,9 +71,37 @@ function HeaderComp() {
             >
               My Dashboard
             </Link>
+
+            <div className="flex md:hidden gap-2 items-center">
+              <Button variant={"outline"}>
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button>
+                <Link href="/signup">SignUp</Link>
+              </Button>
+            </div>
           </nav>
 
-          <WalletMultiButton />
+          <div className="flex border gap-4 rounded-md pr-2 items-center">
+            <WalletMultiButton
+              style={{
+                padding: "15px",
+                paddingTop: "1px",
+                paddingBottom: "1px",
+                fontSize: "12px",
+                margin: 0,
+              }}
+            />
+
+            <div className="md:flex gap-2 hidden items-center">
+              <Button variant={"outline"}>
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button>
+                <Link href="/signup">SignUp</Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </header>
     </>
