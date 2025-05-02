@@ -23,8 +23,21 @@ export default function LandingPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="container mx-auto px-4 py-20 ">
-          <div className="max-w-4xl mx-auto text-center">
+        <section className="container mx-auto px-4 py-20 md:py-32 relative overflow-hidden ">
+          <div className="absolute inset-0 w-full h-full opacity-[0.08] pointer-events-none">
+            <div className="absolute inset-0 flex flex-col justify-between">
+              {[...Array(10)].map((_, i) => (
+                <div key={`h-${i}`} className="w-full h-px bg-primary"></div>
+              ))}
+            </div>
+
+            <div className="absolute inset-0 flex flex-row justify-between">
+              {[...Array(10)].map((_, i) => (
+                <div key={`v-${i}`} className="h-full w-px bg-primary"></div>
+              ))}
+            </div>
+          </div>
+          <div className="max-w-4xl mx-auto text-center relative z-10">
             <div className="inline-block px-4 py-1 mb-6 rounded-full bg-purple-100 border border-purple-200">
               <span className="text-primary text-sm">Powered by Solana</span>
             </div>
