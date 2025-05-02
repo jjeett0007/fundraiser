@@ -149,7 +149,10 @@ export default function ExplorePage() {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             <div className="relative flex-grow">
-              <Search size={18} className="absolute left-3 top-[40%] transform -translate-y-1/2 text-gray-400" />
+              <Search
+                size={18}
+                className="absolute left-3 top-[40%] transform -translate-y-1/2 text-gray-400"
+              />
               <Input
                 placeholder="Search fundraisers..."
                 className="pl-10 bg-white"
@@ -172,12 +175,16 @@ export default function ExplorePage() {
         {/* Fundraisers Grid */}
         <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3  justify-center lg:gap-8 flex-wrap mx-auto items-center">
           {fundraisers.map((fundraiser, index) => (
-            <FundraiserCard key={index} {...fundraiser} createdAt={fundraiser.createdAt.toISOString()} />
+            <FundraiserCard
+              key={index}
+              {...fundraiser}
+              createdAt={fundraiser.createdAt.toISOString()}
+            />
           ))}
         </div>
 
         {/* Start Your Own Fundraiser CTA */}
-        <div className="mt-16 bg-[#FEC601] rounded-xl p-8 text-center">
+        <div className="mt-16  bg-gradient-to-r from-[#29339B]/5 to-[#FF3A20]/5 border border-gray-100 rounded-xl p-8 text-center">
           <h2 className="text-2xl font-bold mb-4 text-gray-900">
             Need Help With an Emergency?
           </h2>
@@ -185,9 +192,7 @@ export default function ExplorePage() {
             Start your own fundraiser and get the support you need in minutes.
           </p>
           <Link href="/fundraiser/create">
-            <Button className="bg-[#FF3A20] hover:bg-[#e02e17] text-white text-lg py-6 px-8 rounded-xl">
-              Start Your Fundraiser
-            </Button>
+            <Button size={"lg"}>Start Your Fundraiser</Button>
           </Link>
         </div>
       </div>

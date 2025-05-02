@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense } from "react";
-import PaymentPageComponent from "./payment-component/index-xomp";
+import PaymentPageComponent from "./payment-component/index-comp";
 
 export default function PaymentPage() {
   return (

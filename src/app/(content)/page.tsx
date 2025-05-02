@@ -1,20 +1,9 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Clock, Users, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import FundraiserCard from "@/components/fundraiser/FundraiserCard";
 
 export default function HomePage() {
-  // Mock data for active fundraisers
   const activeFundraisers = [
     {
       id: "1",
@@ -194,7 +183,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-[#FEC601]">
+      <section className="py-16  bg-gradient-to-r from-[#29339B]/5 to-[#FF3A20]/5 border border-gray-100">
         <div className="container mx-auto px-4 md:px-10 lg:px-14 text-center">
           <h2 className="text-3xl font-bold mb-6 text-gray-900">
             Ready to Make a Difference?
@@ -205,12 +194,12 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link href="/fundraiser/create">
-              <Button className="w-full sm:w-auto bg-[#FF3A20] hover:bg-[#e02e17] text-white text-lg py-6 px-8 rounded-xl">
+              <Button size={"lg"} variant={"outline"} className="w-full">
                 Start Fundraiser
               </Button>
             </Link>
             <Link href="/explore">
-              <Button className="w-full sm:w-auto bg-[#29339B] hover:bg-[#1e2575] text-white text-lg py-6 px-8 rounded-xl">
+              <Button size={"lg"} className="w-full ">
                 Explore Fundraisers
               </Button>
             </Link>

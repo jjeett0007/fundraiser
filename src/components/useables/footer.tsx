@@ -3,7 +3,9 @@ import Link from "next/link";
 function FooterComp() {
   return (
     <>
-      <footer className="bg-gray-100 py-12">
+      <footer className="bg-gray-100 py-12 relative">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#29339B] via-[#D72483] to-[#FF3A20] opacity-30"></div>
+
         <div className="container mx-auto px-4 md:px-10 lg:px-14">
           <div className="grid md:grid-cols-4 gap-8">
             <div>

@@ -27,9 +27,28 @@ function HeaderComp() {
     return false;
   };
 
+  const navLink = [
+    {
+      link: "/",
+      name: "Home",
+    },
+    {
+      link: "/explore",
+      name: "Explore",
+    },
+    {
+      link: "/about",
+      name: "About",
+    },
+    {
+      link: "/dashboard",
+      name: "My Dashboard",
+    },
+  ];
+
   return (
     <>
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
+      <header className="sticky top-0 z-[20] bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 md:px-10 lg:px-14 py-4 flex justify-between items-center">
           <div className="flex gap-2 items-center">
             <button
@@ -47,30 +66,19 @@ function HeaderComp() {
           <nav
             className={`flex flex-col md:flex-row gap-6 items-start md:items-center absolute md:static top-16 md:top-0 left-0 md:left-auto bg-white md:bg-transparent w-full md:w-auto p-4 md:p-0 shadow-md md:shadow-none transition-all duration-300 ease-in-out ${isMenuOpen ? "block" : "hidden md:flex"}`}
           >
-            <Link
-              href="/"
-              className={`${isLinkActive("/") ? "text-primary font-semibold" : "text-gray-700"} w-full md:w-fit  font-medium`}
-            >
-              Home
-            </Link>
-            <Link
-              href="/explore"
-              className={`${isLinkActive("/explore") ? "text-primary font-semibold" : "text-gray-700"} w-full md:w-fit  font-medium`}
-            >
-              Explore
-            </Link>
-            <Link
-              href="/about"
-              className={`${isLinkActive("/about") ? "text-primary font-semibold" : "text-gray-700"} w-full md:w-fit  font-medium`}
-            >
-              About
-            </Link>
-            <Link
-              href="/dashboard"
-              className={`${isLinkActive("/dashboard") ? "text-primary font-semibold" : "text-gray-700"} w-full md:w-fit  font-medium`}
-            >
-              My Dashboard
-            </Link>
+            {navLink.map((item) => (
+              <Link
+                key={item.name}
+                href={item.link}
+                className={`${
+                  isLinkActive(item.link)
+                    ? "text-primary font-semibold"
+                    : "text-gray-700"
+                } w-full md:w-fit font-medium`}
+              >
+                {item.name}
+              </Link>
+            ))}
 
             <div className="flex md:hidden gap-2 items-center">
               <Button variant={"outline"}>
