@@ -121,7 +121,6 @@ export default function PaymentPageComponent() {
       const signature = await sendTransaction(transaction, connection);
       console.log(`Transaction signature: ${signature}`);
 
-      console.log(`Transaction signature: ${signature}`);
     } catch (error) {
       console.error("Transaction failed", error);
     }

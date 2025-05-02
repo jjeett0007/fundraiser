@@ -90,25 +90,13 @@ function HeaderComp() {
             </div>
           </nav>
 
-          <div className="flex border gap-4 rounded-md pr-2 items-center">
-            <WalletMultiButton
-              style={{
-                padding: "15px",
-                paddingTop: "1px",
-                paddingBottom: "1px",
-                fontSize: "12px",
-                margin: 0,
-              }}
-            />
-
-            <div className="md:flex gap-2 hidden items-center">
-              <Button variant={"outline"}>
-                <Link href="/login">Login</Link>
-              </Button>
-              <Button>
-                <Link href="/signup">SignUp</Link>
-              </Button>
-            </div>
+          <div className="md:flex gap-2 hidden items-center">
+            <Button variant={"outline"}>
+              <Link href="/login">Login</Link>
+            </Button>
+            <Button>
+              <Link href="/signup">SignUp</Link>
+            </Button>
           </div>
         </div>
       </header>

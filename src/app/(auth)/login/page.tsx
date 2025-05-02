@@ -96,7 +96,6 @@ export default function LoginPage() {
           const expirationInSeconds =
             Math.floor(Date.now() / 1000) + response.data.token.expiresIn;
           document.cookie = `expiresIn=${expirationInSeconds}; path=/; secure; max-age=${response.data.token.expiresIn}; samesite=strict`;
-          console.log(response);
 
           router.push("/dashboard");
 
@@ -113,7 +112,6 @@ export default function LoginPage() {
           //   })
           // );
         } else {
-          console.log(response);
 
           setError(response.message || "Invalid credentials");
         }

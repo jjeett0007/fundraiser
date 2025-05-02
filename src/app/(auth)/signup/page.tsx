@@ -154,7 +154,6 @@ export default function SignupPage() {
           Math.floor(Date.now() / 1000) + response.data.token.expiresIn;
         document.cookie = `expiresIn=${expirationInSeconds}; path=/; secure; max-age=${response.data.token.expiresIn}; samesite=strict`;
 
-        console.log(response);
         router.push("/verify-account");
         localStorage.setItem("verificationEmail", email.trim());
       } else {
