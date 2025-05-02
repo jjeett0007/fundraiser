@@ -349,10 +349,12 @@ export default function LandingPage() {
 
             <div className="flex gap-6">
               <a
-                href="#"
+                href="https://x.com/EmergeFunds_"
                 className="text-gray-600 hover:text-primary transition-colors"
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                Twitter
+                <s>Twitter</s> X
               </a>
               <a
                 href="#"
