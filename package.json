@@ -52,7 +52,8 @@
     "redux-persist": "^6.0.0",
     "stripe": "^17.6.0",
     "tempo-devtools": "^2.0.102",
-    "vaul": "^1.1.2"
+    "vaul": "^1.1.2",
+    "ws": "^8.18.1"
   },
   "devDependencies": {
     "@types/node": "^20",
