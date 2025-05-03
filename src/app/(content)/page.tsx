@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Router } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import FundraiserCard from "@/components/fundraiser/FundraiserCard";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const router = useRouter();
