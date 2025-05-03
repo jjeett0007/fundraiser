@@ -52,12 +52,16 @@ export default function PaymentPageComponent() {
   const isAnonymous = searchParams.get("isAnonymous") === "true";
 
   // Mock fundraiser data - in a real app, you would fetch this based on fundraiserId
-  const fundraiser = {
+  const [fundraiser, setFundraiser] = useState({
     title: "Medical Emergency Support for Sarah",
     walletAddress: "H1pyQiBHh34PxpcKqtHV5MbJkfgx31Uj9bEsFp6Js2Bz",
     imageUrl:
       "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=800&q=80",
-  };
+  });
+
+  useEffect(() => {
+    
+  })
 
   useEffect(() => {
     if (!publicKey) {
