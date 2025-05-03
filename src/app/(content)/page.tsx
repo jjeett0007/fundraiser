@@ -84,7 +84,7 @@ export default function HomePage() {
     },
   ];
 
-  const [disable, setDisable] = useState(true);
+  const [disable, setDisable] = useState(false);
 
   useEffect(() => {
     router.push("/wait-list");
