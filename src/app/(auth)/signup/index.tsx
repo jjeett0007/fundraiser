@@ -112,7 +112,7 @@ export default function SignupPage() {
 
   const signInWithGoogle = () => {
     setGoogleLoading(true);
-    window.location.href = '/api/google';
+    window.location.href = "/api/google";
   };
   
   return (
