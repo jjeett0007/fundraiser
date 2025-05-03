@@ -3,6 +3,7 @@ name: Redeploy to Vercel on Main Merge
 on:
   push:
     branches:
+      - staging
       - main
 
 jobs:
