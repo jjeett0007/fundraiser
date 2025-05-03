@@ -45,6 +45,11 @@ export default function SignupPage() {
         lastName,
         confirmPassword,
       });
+
+      if (password !== confirmPassword) {
+        errors.confirmPassword = "Passwords do not match";
+      }
+
       const requiredFields = [
         "email",
         "password",

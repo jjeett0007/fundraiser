@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,16 +11,64 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2 } from "lucide-react";
+import AppInput from "@/components/customs/AppInput";
+import { useToast } from "@/hooks/use-toast";
+import apiRequest from "@/utils/apiRequest";
+import { ValidationErrors } from "@/utils/type";
+import { isValidInput, validateInputs } from "@/utils/formValidation";
+import Link from "next/link";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<ValidationErrors>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [emailError, setEmailError] = useState("");
 
-  const handleForgotPassword = () => {};
+  const { toast } = useToast();
+
+  const handleForgotPassword = async () => {
+    try {
+      const errors = validateInputs({
+        email,
+      });
+      const requiredFields = ["email"];
+      if (!isValidInput(errors, requiredFields)) {
+        setError(errors);
+        return;
+      }
+
+      setError({});
+      setIsLoading(true);
+
+      const payload = {
+        email: email.trim(),
+      };
+
+      const response = await apiRequest("POST", "/password/forgot", payload);
+
+      if (response.status === 201 || response.status === 200) {
+        toast({
+          title: "Success",
+          description: response.message,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.message,
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      setIsLoading(false);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -31,15 +78,10 @@ const ForgotPassword = () => {
             Forgot your password?
           </CardTitle>
           <CardDescription className="text-center">
-            Enter your email to reset your password
+            Enter your email to receive reset password link.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
           <div className="space-y-4">
             <div className="space-y-2">
               <Label
@@ -47,34 +89,35 @@ const ForgotPassword = () => {
                 className="flex items-center justify-between"
               >
                 <span>Email</span>
-                {email && !emailError && (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                )}
+                {email && <CheckCircle2 className="h-4 w-4 text-green-500" />}
               </Label>
-              <Input
+              <AppInput
                 id="email"
                 type="email"
                 placeholder="your.email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                className={emailError ? "border-red-500" : ""}
+                error={error.email}
               />
-              {emailError && (
-                <p className="text-xs text-red-500">{emailError}</p>
-              )}
             </div>
 
             <Button
               onClick={handleForgotPassword}
               className="w-full"
-              disabled={isLoading || !!emailError || !email}
+              disabled={isLoading}
             >
               {isLoading ? "Loading..." : "Continue"}
             </Button>
           </div>
         </CardContent>
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-gray-500">
+            Remembered your password?{" "}
+            <Link href="/login" className="text-primary hover:underline">
+              Login
+            </Link>
+          </p>
+        </CardFooter>
       </Card>
     </div>
   );
