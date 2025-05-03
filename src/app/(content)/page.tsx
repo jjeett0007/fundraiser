@@ -1,9 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Router } from "lucide-react";
 import FundraiserCard from "@/components/fundraiser/FundraiserCard";
+import { useRouter } from "next/router";
 
 export default function HomePage() {
+  const router = useRouter();
   const activeFundraisers = [
     {
       id: "1",
@@ -79,133 +84,147 @@ export default function HomePage() {
     },
   ];
 
+  const [disable, setDisable] = useState(true);
+
+  useEffect(() => {
+    router.push("/wait-list");
+  });
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
+    <>
+      {disable && (
+        <>
+          <div className="min-h-screen bg-white">
+            {/* Header */}
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-[#29339B] to-[#3a44b5] text-white py-16 md:py-24">
-        <div className="container mx-auto px-4 md:px-10 lg:px-14">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl md:text-5xl font-bold mb-6">
-              Fast Emergency Fundraising
-            </h1>
-            <p className="text-lg md:text-xl mb-8">
-              Raise and receive emergency funds instantly through small, direct
-              contributions. When every minute counts, we make it simple to get
-              the help you need.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="/fundraiser/create">
-                <Button className="w-full sm:w-auto bg-[#FF3A20] hover:bg-[#e02e17] text-white text-lg py-6 px-8 rounded-xl">
-                  Start Fundraiser
-                </Button>
-              </Link>
-              <Link href="/explore">
-                <Button className="w-full sm:w-auto bg-white hover:bg-gray-100 text-[#29339B] text-lg py-6 px-8 rounded-xl">
-                  Give Help
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4 md:px-10 lg:px-14">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-            How It Works
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-2xl shadow-md text-center">
-              <div className="w-16 h-16 bg-[#FEC601] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold">1</span>
+            {/* Hero Section */}
+            <section className="bg-gradient-to-r from-[#29339B] to-[#3a44b5] text-white py-16 md:py-24">
+              <div className="container mx-auto px-4 md:px-10 lg:px-14">
+                <div className="max-w-3xl mx-auto text-center">
+                  <h1 className="text-3xl md:text-5xl font-bold mb-6">
+                    Fast Emergency Fundraising
+                  </h1>
+                  <p className="text-lg md:text-xl mb-8">
+                    Raise and receive emergency funds instantly through small,
+                    direct contributions. When every minute counts, we make it
+                    simple to get the help you need.
+                  </p>
+                  <div className="flex flex-col sm:flex-row justify-center gap-4">
+                    <Link href="/fundraiser/create">
+                      <Button className="w-full sm:w-auto bg-[#FF3A20] hover:bg-[#e02e17] text-white text-lg py-6 px-8 rounded-xl">
+                        Start Fundraiser
+                      </Button>
+                    </Link>
+                    <Link href="/explore">
+                      <Button className="w-full sm:w-auto bg-white hover:bg-gray-100 text-[#29339B] text-lg py-6 px-8 rounded-xl">
+                        Give Help
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold mb-3">
-                Create a Fundraiser
-              </h3>
-              <p className="text-gray-600">
-                Set up your emergency fundraiser in less than 2 minutes with
-                just a few details.
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-2xl shadow-md text-center">
-              <div className="w-16 h-16 bg-[#D72483] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-white">2</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Share Your Link</h3>
-              <p className="text-gray-600">
-                Share your fundraiser link or QR code with friends, family, and
-                social networks.
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-2xl shadow-md text-center">
-              <div className="w-16 h-16 bg-[#29339B] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-white">3</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">
-                Receive Funds Instantly
-              </h3>
-              <p className="text-gray-600">
-                Get USDC and SOL contributions directly to your Solana wallet
-                with no delays.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+            </section>
 
-      {/* Active Fundraisers Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4 md:px-10 lg:px-14">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-              Active Fundraisers
-            </h2>
-            <Link
-              href="/explore"
-              className="text-[#29339B] hover:text-[#1e2575] font-medium flex items-center"
-            >
-              View all <ArrowRight className="ml-1 h-4 w-4" />
-            </Link>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3  justify-center lg:gap-8 flex-wrap mx-auto items-center">
-            {activeFundraisers.map((fundraiser, index) => (
-              <FundraiserCard
-                key={index}
-                {...fundraiser}
-                createdAt={fundraiser.createdAt.toISOString()}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
+            {/* How It Works Section */}
+            <section className="py-16 bg-gray-50">
+              <div className="container mx-auto px-4 md:px-10 lg:px-14">
+                <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
+                  How It Works
+                </h2>
+                <div className="grid md:grid-cols-3 gap-8">
+                  <div className="bg-white p-6 rounded-2xl shadow-md text-center">
+                    <div className="w-16 h-16 bg-[#FEC601] rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-2xl font-bold">1</span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">
+                      Create a Fundraiser
+                    </h3>
+                    <p className="text-gray-600">
+                      Set up your emergency fundraiser in less than 2 minutes
+                      with just a few details.
+                    </p>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl shadow-md text-center">
+                    <div className="w-16 h-16 bg-[#D72483] rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-2xl font-bold text-white">2</span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">
+                      Share Your Link
+                    </h3>
+                    <p className="text-gray-600">
+                      Share your fundraiser link or QR code with friends,
+                      family, and social networks.
+                    </p>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl shadow-md text-center">
+                    <div className="w-16 h-16 bg-[#29339B] rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-2xl font-bold text-white">3</span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">
+                      Receive Funds Instantly
+                    </h3>
+                    <p className="text-gray-600">
+                      Get USDC and SOL contributions directly to your Solana
+                      wallet with no delays.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-      {/* CTA Section */}
-      <section className="py-16  bg-gradient-to-r from-[#29339B]/5 to-[#FF3A20]/5 border border-gray-100">
-        <div className="container mx-auto px-4 md:px-10 lg:px-14 text-center">
-          <h2 className="text-3xl font-bold mb-6 text-gray-900">
-            Ready to Make a Difference?
-          </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-800">
-            Whether you need help or want to give help, you can make an impact
-            in just a few minutes.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/fundraiser/create">
-              <Button size={"lg"} variant={"outline"} className="w-full">
-                Start Fundraiser
-              </Button>
-            </Link>
-            <Link href="/explore">
-              <Button size={"lg"} className="w-full ">
-                Explore Fundraisers
-              </Button>
-            </Link>
+            {/* Active Fundraisers Section */}
+            <section className="py-16">
+              <div className="container mx-auto px-4 md:px-10 lg:px-14">
+                <div className="flex justify-between items-center mb-8">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+                    Active Fundraisers
+                  </h2>
+                  <Link
+                    href="/explore"
+                    className="text-[#29339B] hover:text-[#1e2575] font-medium flex items-center"
+                  >
+                    View all <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3  justify-center lg:gap-8 flex-wrap mx-auto items-center">
+                  {activeFundraisers.map((fundraiser, index) => (
+                    <FundraiserCard
+                      key={index}
+                      {...fundraiser}
+                      createdAt={fundraiser.createdAt.toISOString()}
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* CTA Section */}
+            <section className="py-16  bg-gradient-to-r from-[#29339B]/5 to-[#FF3A20]/5 border border-gray-100">
+              <div className="container mx-auto px-4 md:px-10 lg:px-14 text-center">
+                <h2 className="text-3xl font-bold mb-6 text-gray-900">
+                  Ready to Make a Difference?
+                </h2>
+                <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-800">
+                  Whether you need help or want to give help, you can make an
+                  impact in just a few minutes.
+                </p>
+                <div className="flex flex-col sm:flex-row justify-center gap-4">
+                  <Link href="/fundraiser/create">
+                    <Button size={"lg"} variant={"outline"} className="w-full">
+                      Start Fundraiser
+                    </Button>
+                  </Link>
+                  <Link href="/explore">
+                    <Button size={"lg"} className="w-full ">
+                      Explore Fundraisers
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </section>
           </div>
-        </div>
-      </section>
-    </div>
+        </>
+      )}
+    </>
   );
 }

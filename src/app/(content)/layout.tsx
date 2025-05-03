@@ -4,9 +4,9 @@ import HeaderComp from "@/components/useables/header";
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <HeaderComp />
+      {/* <HeaderComp /> */}
       {children}
-      <FooterComp />
+      {/* <FooterComp /> */}
     </div>
   );
 }
