@@ -17,43 +17,31 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import apiRequest from "@/utils/apiRequest";
-import { validateOTP } from "@/utils/formValidation";
-import { CheckCircle2 } from "lucide-react";
+import { isValidInput, validateInputs } from "@/utils/formValidation";
+import { ValidationErrors } from "@/utils/type";
+import { useToast } from "@/hooks/use-toast";
 
 export default function VerifyAccount() {
   const router = useRouter();
   const [code, setCode] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<ValidationErrors>({});
+
   const [isLoading, setIsLoading] = useState(false);
   const [resendDisabled, setResendDisabled] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const [otpError, setOtpError] = useState("");
-  const [isValid, setIsValid] = useState(false);
   const [email, setEmail] = useState("");
 
+  const { toast } = useToast();
+
   useEffect(() => {
-    // Get email from localStorage when component mounts
     const storedEmail = localStorage.getItem("verificationEmail");
     if (!storedEmail) {
-      // If no email found, redirect back to signup
       router.push("/signup");
       return;
     }
     setEmail(storedEmail);
   }, [router]);
-
-  useEffect(() => {
-    if (code) {
-      const validation = validateOTP(code);
-      setOtpError(validation.isValid ? "" : validation.message || "");
-      setIsValid(validation.isValid);
-    } else {
-      setOtpError("");
-      setIsValid(false);
-    }
-  }, [code]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -64,23 +52,20 @@ export default function VerifyAccount() {
     }
   }, [countdown, resendDisabled]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    const otpValidation = validateOTP(code);
-
-    if (!otpValidation.isValid) {
-      setOtpError(otpValidation.message || "Invalid verification code");
-      setError(
-        otpValidation.message || "Please enter a valid verification code"
-      );
-      return;
-    }
-
-    setIsLoading(true);
-
+  const handleVerifyAccount = async () => {
     try {
+      const errors = validateInputs({
+        code,
+      });
+      const requiredFields = ["code"];
+      if (!isValidInput(errors, requiredFields)) {
+        setError(errors);
+        return;
+      }
+
+      setError({});
+      setIsLoading(true);
+
       const payload = {
         otpCode: code,
       };
@@ -90,20 +75,30 @@ export default function VerifyAccount() {
       if (response.status === 200) {
         localStorage.removeItem("verificationEmail");
         router.push("/dashboard");
+        toast({
+          title: "success",
+          description: response.message,
+        });
       } else {
-        setError(response.message || "Invalid verification code");
+        toast({
+          title: "Error",
+          description: response.message,
+          variant: "destructive",
+        });
       }
     } catch (err: any) {
-      setError(
-        err.response.message || "Failed to verify account. Please try again."
-      );
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleResendCode = async () => {
-    setError("");
+    setError({});
     setResendDisabled(true);
     setCountdown(60);
 
@@ -116,22 +111,29 @@ export default function VerifyAccount() {
 
       if (response.status === 200) {
         setCode("");
-        setOtpError("");
-        setIsValid(false);
+        toast({
+          title: "success",
+          description: response.message,
+        });
       } else {
-        setError(response.message || "Failed to resend verification code");
+        toast({
+          title: "Error",
+          description: response.message,
+          variant: "destructive",
+        });
       }
-    } catch (err: any) {
-      setError(
-        err.response.message ||
-          "Failed to resend verification code. Please try again later."
-      );
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleOTPChange = (value: string) => {
     setCode(value);
-    setError("");
+    setError({});
   };
 
   return (
@@ -146,12 +148,7 @@ export default function VerifyAccount() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
             <div className="space-y-2 items-center flex flex-col gap-2 justify-center">
               <div className="flex items-center justify-center gap-2 w-full">
                 <InputOTP
@@ -159,7 +156,6 @@ export default function VerifyAccount() {
                   value={code}
                   onChange={handleOTPChange}
                   id="otp-input"
-                  className={otpError ? "border-red-500" : ""}
                 >
                   <InputOTPGroup>
                     <InputOTPSlot index={0} />
@@ -173,21 +169,22 @@ export default function VerifyAccount() {
                     <InputOTPSlot index={5} />
                   </InputOTPGroup>
                 </InputOTP>
-                {isValid && <CheckCircle2 className="h-4 w-4 text-green-500" />}
               </div>
 
-              {otpError && (
-                <p className="text-xs text-center text-red-500 w-full">{otpError}</p>
+              {error && (
+                <p className="text-xs text-center text-red-500 w-full">
+                  {error.code}
+                </p>
               )}
             </div>
             <Button
-              type="submit"
+              onClick={handleVerifyAccount}
               className="w-full"
-              disabled={isLoading || !isValid}
+              disabled={isLoading}
             >
               {isLoading ? "Verifying..." : "Verify Account"}
             </Button>
-          </form>
+          </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <p className="text-sm text-gray-600">

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -14,66 +13,40 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import apiRequest from "@/utils/apiRequest";
-import { EyeIcon, EyeOffIcon, CheckCircle2 } from "lucide-react";
-import {
-  validateEmail,
-  validateRequired,
-  validateForm,
-} from "@/utils/formValidation";
+import { CheckCircle2, LoaderCircle } from "lucide-react";
+import Image from "next/image";
+import google_logo from "@/assets/google_icon.svg";
+import AppInput from "@/components/customs/AppInput";
+import { ValidationErrors } from "@/utils/type";
+import { useToast } from "@/hooks/use-toast";
+import { isValidInput, validateInputs } from "@/utils/formValidation";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<ValidationErrors>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const { toast } = useToast();
 
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-
-  useEffect(() => {
-    if (email) {
-      const timer = setTimeout(() => {
-        const validation = validateEmail(email);
-        setEmailError(validation.isValid ? "" : validation.message || "");
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [email]);
-
-  useEffect(() => {
-    if (password) {
-      const validation = validateRequired(password, "Password");
-      setPasswordError(validation.isValid ? "" : validation.message || "");
-    }
-  }, [password]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    const emailValidation = validateEmail(email);
-    const passwordValidation = validateRequired(password, "Password");
-
-    const formValidation = validateForm({
-      email: emailValidation,
-      password: passwordValidation,
-    });
-
-    if (!formValidation.isValid) {
-      setEmailError(formValidation.errors.email || "");
-      setPasswordError(formValidation.errors.password || "");
-
-      setError(Object.values(formValidation.errors)[0]);
-      return;
-    }
-
-    setIsLoading(true);
-
+  const handleLogin = async () => {
     try {
+      const errors = validateInputs({
+        email,
+        password,
+      });
+      const requiredFields = ["email", "password"];
+      if (!isValidInput(errors, requiredFields)) {
+        setError(errors);
+        return;
+      }
+
+      setError({});
+      setIsLoading(true);
+
       const payload = {
         email: email.trim(),
         password: password,
@@ -98,37 +71,29 @@ export default function LoginPage() {
           document.cookie = `expiresIn=${expirationInSeconds}; path=/; secure; max-age=${response.data.token.expiresIn}; samesite=strict`;
 
           router.push("/dashboard");
-
-          // dispatch(
-          //   setUser({
-          //     id: res.data.id,
-          //     email: res.data.email,
-          //   })
-          // );
-          // dispatch(
-          //   setToken({
-          //     token: res.data.token?.access,
-          //     expiresIn: res.data.token?.expiresIn,
-          //   })
-          // );
         } else {
-
-          setError(response.message || "Invalid credentials");
+          toast({
+            title: "Error",
+            description: response.message,
+            variant: "destructive",
+          });
         }
       }
-    } catch (err: any) {
-      setError(
-        err?.response?.message ||
-          err?.message ||
-          "Failed to login. Please try again."
-      );
+    } catch (err) {
+      setIsLoading(false);
+
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+  const signInWithGoogle = () => {
+    setGoogleLoading(true);
   };
 
   return (
@@ -143,41 +108,29 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label
                 htmlFor="email"
                 className="flex items-center justify-between"
               >
                 <span>Email</span>
-                {email && !emailError && (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                )}
+                {email && <CheckCircle2 className="h-4 w-4 text-green-500" />}
               </Label>
-              <Input
+              <AppInput
                 id="email"
                 type="email"
                 placeholder="your.email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                className={emailError ? "border-red-500" : ""}
+                error={error.email}
               />
-              {emailError && (
-                <p className="text-xs text-red-500">{emailError}</p>
-              )}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="flex items-center">
                   <span>Password</span>
-                  {password && !passwordError && (
+                  {password && (
                     <CheckCircle2 className="h-4 w-4 text-green-500 ml-2" />
                   )}
                 </Label>
@@ -188,52 +141,53 @@ export default function LoginPage() {
                   Forgot password?
                 </Link>
               </div>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                  className={passwordError ? "border-red-500" : ""}
-                  placeholder="********"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
-                  onClick={togglePasswordVisibility}
-                >
-                  {showPassword ? (
-                    <EyeOffIcon className="h-4 w-4" />
-                  ) : (
-                    <EyeIcon className="h-4 w-4" />
-                  )}
-                  <span className="sr-only">
-                    {showPassword ? "Hide password" : "Show password"}
-                  </span>
-                </Button>
-              </div>
-              {passwordError && (
-                <p className="text-xs text-red-500">{passwordError}</p>
-              )}
+              <AppInput
+                id="password"
+                type={"password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                error={error.password}
+              />
             </div>
             <Button
-              type="submit"
+              onClick={handleLogin}
               className="w-full"
-              disabled={
-                isLoading ||
-                !!emailError ||
-                !!passwordError ||
-                !email ||
-                !password
-              }
+              disabled={isLoading}
             >
               {isLoading ? "Logging in..." : "Login"}
             </Button>
-          </form>
+
+            <div className="relative w-full flex items-center justify-center py-4">
+              <div className="border-b w-full border-[#ccc]"></div>
+              <div className="absolute px-[1rem] bg-white text-[14px] w-fit font-medium text-[#888]">
+                OR
+              </div>
+            </div>
+            <Button
+              onClick={signInWithGoogle}
+              disabled={googleLoading}
+              variant="outline"
+              className="py-5 hover:bg-[#e6c0ff4a] border-[#888] cursor-pointer w-full flex gap-2 items-center"
+            >
+              <div className="flex items-center gap-2">
+                <Image
+                  src={google_logo}
+                  height={1000}
+                  width={1000}
+                  className="w-8 object-cover"
+                  alt="google"
+                />
+                {googleLoading ? (
+                  <>
+                    <LoaderCircle className="animate-spin" /> Redirecting...
+                  </>
+                ) : (
+                  <>Continue with Google</>
+                )}
+              </div>
+            </Button>
+          </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <p className="text-sm text-gray-600">

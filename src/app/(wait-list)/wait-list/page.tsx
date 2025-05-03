@@ -1,5 +1,15 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import apiRequest from "@/utils/apiRequest";
 import {
   ArrowRight,
   CheckCircle,
@@ -8,21 +18,102 @@ import {
   Wallet,
   Zap,
 } from "lucide-react";
-import Image from "next/image";
+import React, { useState, useEffect } from "react";
+import AppInput from "@/components/customs/AppInput";
+import { useToast } from "@/hooks/use-toast";
+import { ValidationErrors } from "@/utils/type";
+import { isValidInput, validateInputs } from "@/utils/formValidation";
+import { Label } from "@/components/ui/label";
 
-export default function LandingPage() {
+export default function WaitListPage() {
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<ValidationErrors>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const { toast } = useToast();
+
+  const handleWaitList = async () => {
+    try {
+      const errors = validateInputs({
+        email,
+      });
+      const requiredFields = ["email"];
+      if (!isValidInput(errors, requiredFields)) {
+        setError(errors);
+        return;
+      }
+
+      setError({});
+      setIsLoading(true);
+
+      const response = await apiRequest("POST", "/waitlist/join", {
+        email: email.trim(),
+      });
+
+      if (!response.success) {
+        toast({
+          title: "success",
+          description: response.message,
+          variant: "destructive",
+        });
+      } else {
+        setShowSuccessModal(true);
+        setEmail("");
+        setError({});
+        toast({
+          title: "success",
+          description: response.message,
+        });
+      }
+    } catch (error) {
+      setIsLoading(false);
+
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const SuccessDialog = () => {
+    return (
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+              <CheckCircle className="text-green-600 h-8 w-8" />
+            </div>
+            <DialogTitle className="text-center text-xl">Success!</DialogTitle>
+            <DialogDescription className="text-center">
+              Thank you for joining our waitlist. We'll be in touch soon!
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-purple-50">
+      <SuccessDialog />
       <header className="container bg-white sticky top-0 z-[20] px-4 md:px-10 lg:px-14 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          {/* logo */}
           <span className="text-primary font-bold text-xl">EmergeFunds</span>
         </div>
-        <Button>Join Waitlist</Button>
+
+        <Button asChild>
+          <Label htmlFor="email" className="whitespace-nowrap">
+            Join Now
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Label>
+        </Button>
       </header>
 
       <main>
-        {/* Hero Section */}
         <section className="container mx-auto px-4 py-20 md:py-32 relative overflow-hidden ">
           <div className="absolute inset-0 w-full h-full opacity-[0.08] pointer-events-none">
             <div className="absolute inset-0 flex flex-col justify-between">
@@ -62,22 +153,31 @@ export default function LandingPage() {
                   Be the first to access instant fundraising when it matters
                   most.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    type="email"
-                    placeholder="Your email address"
-                    className="bg-white border-gray-200 text-gray-800 placeholder:text-gray-400"
-                  />
-                  <Button className="whitespace-nowrap">
-                    Join Now <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+                <div className="text-left mt-1">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <AppInput
+                      id="email"
+                      type="email"
+                      placeholder="your.email@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      error={error.email}
+                    />
+                    <Button
+                      onClick={handleWaitList}
+                      disabled={isLoading}
+                      className="whitespace-nowrap"
+                    >
+                      {isLoading ? "Joining..." : "Join Now"}{" "}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* How It Works */}
         <section className="container mx-auto px-4 py-20">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 text-center mb-16">
@@ -129,16 +229,13 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Built for Real Emergencies */}
         <section className="container overflow-hidden mx-auto px-4 py-20 relative">
           <div className="max-w-4xl mx-auto text-center relative">
-            {/* Sharp geometric patterns */}
             <div className="absolute -top-10 -left-10 w-20 h-20 border-t-4 border-l-4 border-primary opacity-30"></div>
             <div className="absolute -bottom-10 -right-10 w-20 h-20 border-b-4 border-r-4 border-primary opacity-30"></div>
             <div className="absolute top-1/4 -right-5 w-10 h-10 border-r-4 border-t-4 border-primary opacity-30 rotate-45"></div>
             <div className="absolute bottom-1/4 -left-5 w-10 h-10 border-l-4 border-b-4 border-primary opacity-30 rotate-45"></div>
 
-            {/* Diagonal lines */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
               <div className="absolute -top-10 -left-10 w-20 h-20">
                 <div className="w-full h-0.5 bg-primary opacity-20 rotate-45 origin-bottom-left transform translate-y-10"></div>
@@ -148,7 +245,6 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Zigzag pattern */}
             <div className="absolute -left-4 top-1/2 transform -translate-y-1/2 h-40 w-2 flex flex-col justify-between">
               <div className="w-2 h-2 bg-primary opacity-40"></div>
               <div className="w-2 h-2 bg-primary opacity-40"></div>
@@ -203,7 +299,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* What Makes Us Different */}
         <section className="container mx-auto px-4 py-20">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 text-center mb-16">
@@ -271,67 +366,6 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
-        {/* <section className="container mx-auto px-4 py-20">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
-              Testimonials
-            </h2>
-            <p className="text-xl text-gray-600 mb-12">
-              Coming soon: Stories from early users who received help in hours,
-              not days.
-            </p>
-
-            <div className="bg-white border border-purple-100 p-8 rounded-xl shadow-sm">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-100 to-indigo-100 flex items-center justify-center">
-                <Image
-                  src="/placeholder.svg?height=80&width=80"
-                  width={80}
-                  height={80}
-                  alt=""
-                  className="rounded-full"
-                />
-              </div>
-              <p className="text-gray-600 italic mb-4">
-                "Stories from early users who received help in hours, not days
-                will appear here."
-              </p>
-              <p className="text-gray-800 font-medium">Future User</p>
-              <p className="text-gray-500 text-sm">Early Adopter</p>
-            </div>
-          </div>
-        </section> */}
-
-        {/* Sticky Waitlist Section */}
-        <section className="container mx-auto px-4 py-20">
-          <div className="max-w-3xl mx-auto bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 p-10 rounded-2xl relative overflow-hidden shadow-sm">
-            <div className="absolute top-0 left-0 w-full h-full bg-[url('/placeholder.svg?height=600&width=1200')] opacity-5 mix-blend-overlay"></div>
-            <div className="relative z-10">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-800 text-center mb-4">
-                Join the waitlist
-              </h2>
-              <p className="text-xl text-gray-600 text-center mb-8">
-                Get early access to a better way to give and get help.
-              </p>
-
-              <div className="max-w-md mx-auto">
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    type="email"
-                    placeholder="Your email address"
-                    className="bg-white border-gray-200 text-gray-800 placeholder:text-gray-400"
-                  />
-                  <Button className="bg-primary text-white hover:bg-primary/90 whitespace-nowrap">
-                    Join Now <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-                <p className="text-gray-500 text-sm mt-3 text-center">
-                  We'll never spam you. Just an invite when we're ready.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       <footer className="container mx-auto px-4 md:px-10 lg:px-14 py-4 border-t border-purple-100">
@@ -339,7 +373,6 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div>
               <div className="flex items-center justify-center md:justify-normal gap-2 mb-4">
-                {/* logo */}
                 <span className="text-primary font-bold">EmergeFunds</span>
               </div>
               <p className="text-gray-500 text-sm">
