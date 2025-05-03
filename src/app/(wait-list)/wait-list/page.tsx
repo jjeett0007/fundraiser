@@ -102,7 +102,7 @@ export default function WaitListPage() {
       <SuccessDialog />
       <header className="container bg-white sticky top-0 z-[20] px-4 md:px-10 lg:px-14 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <span className="text-primary font-bold text-xl">EmergeFunds</span>
+          <span className="text-primary font-bold text-xl">EmergFunds</span>
         </div>
 
         <Button asChild>
@@ -139,7 +139,7 @@ export default function WaitListPage() {
               </span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto">
-              Emergencies don't give warnings. EmergeFunds makes it possible to
+              Emergencies don't give warnings. EmergFunds makes it possible to
               receive or send urgent financial support in minutes, not days.
             </p>
 
@@ -264,7 +264,7 @@ export default function WaitListPage() {
               </h2>
               <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
                 Whether it's medical bills, food insecurity, or disaster relief,
-                EmergeFunds ensures help arrives when it's needed most.
+                EmergFunds ensures help arrives when it's needed most.
               </p>
 
               <div className="grid md:grid-cols-3 gap-6 text-center">
@@ -304,7 +304,7 @@ export default function WaitListPage() {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 text-center mb-16">
               Why{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600">
-                EmergeFunds
+                EmergFunds
               </span>
               ?
             </h2>
@@ -373,7 +373,7 @@ export default function WaitListPage() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div>
               <div className="flex items-center justify-center md:justify-normal gap-2 mb-4">
-                <span className="text-primary font-bold">EmergeFunds</span>
+                <span className="text-primary font-bold">EmergFunds</span>
               </div>
               <p className="text-gray-500 text-sm">
                 Built with care. Powered by Solana.
@@ -382,7 +382,7 @@ export default function WaitListPage() {
 
             <div className="flex gap-6">
               <a
-                href="https://x.com/EmergeFunds_"
+                href="https://x.com/EmergFunds_"
                 className="text-gray-600 hover:text-primary transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"

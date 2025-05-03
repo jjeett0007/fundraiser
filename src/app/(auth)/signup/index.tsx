@@ -112,7 +112,9 @@ export default function SignupPage() {
 
   const signInWithGoogle = () => {
     setGoogleLoading(true);
+    window.location.href = '/api/google';
   };
+  
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 md:px-10 lg:px-14">
       <Card className="w-full max-w-md">

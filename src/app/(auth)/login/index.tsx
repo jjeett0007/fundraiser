@@ -28,7 +28,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<ValidationErrors>({});
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [googleLoading, setGoogleLoading] = useState(false);
   const { toast } = useToast();
 
@@ -94,6 +94,7 @@ export default function LoginPage() {
 
   const signInWithGoogle = () => {
     setGoogleLoading(true);
+    window.location.href = '/api/google';
   };
 
   return (

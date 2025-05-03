@@ -59,7 +59,7 @@ function HeaderComp() {
               {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
             </button>
             <Link href="/">
-              <h1 className="text-2xl font-bold text-primary">EmergFund</h1>
+              <h1 className="text-2xl font-bold text-primary">EmergFunds</h1>
             </Link>
           </div>
 
