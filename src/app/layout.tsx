@@ -5,20 +5,29 @@ import { baloo_init } from "@/utils/font";
 import { Wallet } from "@/walletAdapter/walletAdapterLib";
 import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "@/components/ui/toaster";
+import { Providers } from "@/components/providers/reduxProvider";
 
 export const metadata: Metadata = {
   title: "Emerg Funds Raising",
-  description: "Emerg Funds Raising - A platform to support emergency fundraisers.",
-  keywords: ["fundraising", "emergency funds", "donations", "charity", "support", "crowdfunding"],
+  description:
+    "Emerg Funds Raising - A platform to support emergency fundraisers.",
+  keywords: [
+    "fundraising",
+    "emergency funds",
+    "donations",
+    "charity",
+    "support",
+    "crowdfunding",
+  ],
   robots: {
     index: true,
     follow: true,
     googleBot: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
   icons: {
@@ -66,9 +75,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <Script src="https://api.tempo.new/proxy-asset?url=https://storage.googleapis.com/tempo-public-assets/error-handling.js" />
       <body className={baloo_init.className}>
-        <Wallet>{children}</Wallet>
-        <Toaster />
-        <Analytics />
+        <Providers>
+          <Wallet>{children}</Wallet>
+          <Toaster />
+          <Analytics />
+        </Providers>
       </body>
     </html>
   );
