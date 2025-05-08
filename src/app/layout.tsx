@@ -6,7 +6,6 @@ import { baloo_init } from "@/utils/font";
 import { Wallet } from "@/walletAdapter/walletAdapterLib";
 import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "@/components/ui/toaster";
-import { Providers } from "@/components/providers/reduxProvider";
 
 export const metadata: Metadata = {
   title: "Emerg Fund Raising",
@@ -23,12 +22,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <Script src="https://api.tempo.new/proxy-asset?url=https://storage.googleapis.com/tempo-public-assets/error-handling.js" />
       <body className={baloo_init.className}>
-        <Providers>
-          <Wallet>{children}</Wallet>
-          <Toaster />
-          <Analytics />
-          <TempoInit />
-        </Providers>
+        <Wallet>{children}</Wallet>
+        <Toaster />
+        <Analytics />
+        <TempoInit />
       </body>
     </html>
   );
