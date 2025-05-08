@@ -21,16 +21,20 @@ import AppInput from "@/components/customs/AppInput";
 import { ValidationErrors } from "@/utils/type";
 import { useToast } from "@/hooks/use-toast";
 import { isValidInput, validateInputs } from "@/utils/formValidation";
+import { setToken } from "@/store/slice/userTokenSlice";
+import { useAppDispatch } from "@/store/hooks";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<ValidationErrors>({});
-  const [isLoading, setIsLoading] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
   const { toast } = useToast();
+  const dispatch = useAppDispatch();
+  const router = useRouter();
 
   const handleLogin = async () => {
     try {
@@ -70,6 +74,13 @@ export default function LoginPage() {
             Math.floor(Date.now() / 1000) + response.data.token.expiresIn;
           document.cookie = `expiresIn=${expirationInSeconds}; path=/; secure; max-age=${response.data.token.expiresIn}; samesite=strict`;
 
+          dispatch(
+            setToken({
+              token: response.data.token.access,
+              expiresIn: response.data.token.expiresIn,
+              isAuthenticated: true,
+            })
+          );
           router.push("/dashboard");
         } else {
           toast({
@@ -94,7 +105,7 @@ export default function LoginPage() {
 
   const signInWithGoogle = () => {
     setGoogleLoading(true);
-    window.location.href = '/api/google';
+    window.location.href = "/api/google";
   };
 
   return (
