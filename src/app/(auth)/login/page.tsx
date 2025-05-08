@@ -61,14 +61,12 @@ export default function LoginPage() {
       if (response.status === 203) {
         router.push("/verify-account");
         localStorage.setItem("verificationEmail", response.data.email);
-        document.cookie = `Access=${
-          response.data.token.access
-        }; path=/; secure; max-age=${2 * 24 * 60 * 60}; samesite=strict`;
+        document.cookie = `Access=${response.data.token.access
+          }; path=/; secure; max-age=${2 * 24 * 60 * 60}; samesite=strict`;
       } else {
         if (response.status === 200) {
-          document.cookie = `Access=${
-            response.data.token.access
-          }; path=/; secure; max-age=${2 * 24 * 60 * 60}; samesite=strict`;
+          document.cookie = `Access=${response.data.token.access
+            }; path=/; secure; max-age=${2 * 24 * 60 * 60}; samesite=strict`;
 
           const expirationInSeconds =
             Math.floor(Date.now() / 1000) + response.data.token.expiresIn;
