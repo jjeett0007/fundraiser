@@ -84,11 +84,11 @@ export default function HomePage() {
     },
   ];
 
-  const [disable, setDisable] = useState(false);
+  const [disable, setDisable] = useState(true);
 
-  useEffect(() => {
-    router.push("/wait-list");
-  });
+  // useEffect(() => {
+  //   router.push("/wait-list");
+  // });
 
   return (
     <>
