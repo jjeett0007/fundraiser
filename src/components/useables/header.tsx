@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { FiMenu, FiX } from "react-icons/fi";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Button } from "../ui/button";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 interface PathValidator {
   (path: string): boolean;
@@ -12,6 +14,7 @@ interface PathValidator {
 function HeaderComp() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const userToken = useSelector((state: RootState) => state.userToken);
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -80,7 +83,30 @@ function HeaderComp() {
               </Link>
             ))}
 
-            <div className="flex md:hidden gap-2 items-center">
+            {userToken.isAuthenticated === false && (
+              <div className="flex md:hidden gap-2 items-center">
+                <Button variant={"outline"}>
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button>
+                  <Link href="/signup">SignUp</Link>
+                </Button>
+              </div>
+            )}
+          </nav>
+
+          {userToken.isAuthenticated === true ? (
+            <WalletMultiButton
+              style={{
+                padding: "15px",
+                paddingTop: "1px",
+                paddingBottom: "1px",
+                fontSize: "12px",
+                margin: 0,
+              }}
+            />
+          ) : (
+            <div className="md:flex gap-2 hidden items-center">
               <Button variant={"outline"}>
                 <Link href="/login">Login</Link>
               </Button>
@@ -88,16 +114,7 @@ function HeaderComp() {
                 <Link href="/signup">SignUp</Link>
               </Button>
             </div>
-          </nav>
-
-          <div className="md:flex gap-2 hidden items-center">
-            <Button variant={"outline"}>
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button>
-              <Link href="/signup">SignUp</Link>
-            </Button>
-          </div>
+          )}
         </div>
       </header>
     </>

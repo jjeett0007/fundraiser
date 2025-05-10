@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const router = useRouter();
+
   const activeFundraisers = [
     {
       id: "1",
@@ -18,7 +19,7 @@ export default function HomePage() {
       goalAmount: 5000,
       amountRaised: 2750,
       createdAt: new Date(Date.now() - 3600000 * 5), // 5 hours ago
-      category: "Medical",
+      category: "medical",
       imageUrl:
         "https://images.unsplash.com/photo-1584515933487-779824d29309?w=800&q=80",
     },
@@ -30,7 +31,7 @@ export default function HomePage() {
       goalAmount: 10000,
       amountRaised: 4200,
       createdAt: new Date(Date.now() - 3600000 * 12), // 12 hours ago
-      category: "Family",
+      category: "family",
       imageUrl:
         "https://images.unsplash.com/photo-1536856136534-bb679c52a9aa?w=800&q=80",
     },
@@ -42,7 +43,7 @@ export default function HomePage() {
       goalAmount: 1500,
       amountRaised: 950,
       createdAt: new Date(Date.now() - 3600000 * 24), // 24 hours ago
-      category: "Urgent Bill",
+      category: "urgent bills",
       imageUrl:
         "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80",
     },
@@ -54,7 +55,7 @@ export default function HomePage() {
       goalAmount: 25000,
       amountRaised: 15750,
       createdAt: new Date(Date.now() - 3600000 * 36), // 36 hours ago
-      category: "Crisis",
+      category: "crisis",
       imageUrl:
         "https://images.unsplash.com/photo-1498354178607-a79df2916198?w=800&q=80",
     },
@@ -66,7 +67,7 @@ export default function HomePage() {
       goalAmount: 3500,
       amountRaised: 2100,
       createdAt: new Date(Date.now() - 3600000 * 8), // 8 hours ago
-      category: "Medical",
+      category: "medical",
       imageUrl:
         "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=800&q=80",
     },
@@ -78,7 +79,7 @@ export default function HomePage() {
       goalAmount: 4500,
       amountRaised: 1800,
       createdAt: new Date(Date.now() - 3600000 * 18), // 18 hours ago
-      category: "Family",
+      category: "family",
       imageUrl:
         "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80",
     },
@@ -95,9 +96,6 @@ export default function HomePage() {
       {disable && (
         <>
           <div className="min-h-screen bg-white">
-            {/* Header */}
-
-            {/* Hero Section */}
             <section className="bg-gradient-to-r from-[#29339B] to-[#3a44b5] text-white py-16 md:py-24">
               <div className="container mx-auto px-4 md:px-10 lg:px-14">
                 <div className="max-w-3xl mx-auto text-center">
@@ -191,7 +189,6 @@ export default function HomePage() {
                     <FundraiserCard
                       key={index}
                       {...fundraiser}
-                      createdAt={fundraiser.createdAt.toISOString()}
                     />
                   ))}
                 </div>

@@ -1,58 +1,79 @@
-import { UserData, Profile, ProfileImages, Address } from "@/utils/type";
+import { Profile, ProfileImages, Address } from "@/utils/type";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface UserDataState {
-  data: UserData | null;
+interface UserDataInitialState {
+  _id: string;
+  email: string;
+  profile: Profile;
+  profileImages: ProfileImages;
+  address: Address;
 }
 
-const initialState: UserDataState = {
-  data: null,
+const initialState: UserDataInitialState = {
+  _id: "",
+  email: "",
+  profile: {
+    firstName: "",
+    lastName: "",
+    displayName: "",
+  },
+  profileImages: {
+    avatar: "",
+    backDrop: null,
+  },
+  address: {
+    city: "",
+    country: "",
+    state: "",
+  },
 };
 
 const userDataSlice = createSlice({
   name: "userData",
   initialState,
   reducers: {
-    setData(state, action: PayloadAction<Partial<UserDataState>>) {
+    setData(state, action: PayloadAction<Partial<UserDataInitialState>>) {
       return {
         ...state,
         ...action.payload,
       };
     },
-    updateProfile(state, action: PayloadAction<Partial<Profile>>) {
-      if (state.data) {
-        state.data.profile = {
-          ...state.data.profile,
-          ...action.payload,
-        };
-      }
-    },
-    updateProfileImage(state, action: PayloadAction<Partial<ProfileImages>>) {
-      if (state.data) {
-        state.data.profileImages = {
-          ...state.data.profileImages,
-          ...action.payload,
-        };
-      }
-    },
-    updateAddress(state, action: PayloadAction<Partial<Address>>) {
-      if (state.data) {
-        state.data.address = {
-          ...state.data.address,
-          ...action.payload,
-        };
-      }
+    updateUser(
+      state,
+      action: PayloadAction<{
+        firstName?: string;
+        lastName?: string;
+        displayName?: string;
+        city?: string;
+        country?: string;
+        state?: string;
+        avatar?: string;
+      }>
+    ) {
+      return {
+        ...state,
+        profile: {
+          ...state.profile,
+          firstName: action.payload.firstName || state.profile.firstName,
+          lastName: action.payload.lastName || state.profile.lastName,
+          displayName: action.payload.displayName || state.profile.displayName,
+        },
+        address: {
+          ...state.address,
+          city: action.payload.city || state.address.city,
+          country: action.payload.country || state.address.country,
+          state: action.payload.state || state.address.state,
+        },
+        profileImages: {
+          ...state.profileImages,
+          avatar: action.payload.avatar || state.profileImages.avatar,
+        },
+      };
     },
     clearData: () => initialState,
   },
 });
 
-export const {
-  setData,
-  clearData,
-  updateProfile,
-  updateProfileImage,
-  updateAddress,
-} = userDataSlice.actions;
+export const { setData, clearData, updateUser } = userDataSlice.actions;
 
 export default userDataSlice.reducer;

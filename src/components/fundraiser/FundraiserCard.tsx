@@ -12,37 +12,36 @@ import { Progress } from "@/components/ui/progress";
 import { CalendarDays, Clock, Users } from "lucide-react";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import { getCategoryByName } from "@/utils/list";
 
 interface FundraiserCardProps {
-  id?: string;
+  _id?: string;
   title?: string;
   description?: string;
   goalAmount?: number;
-  amountRaised?: number;
-  createdAt?: string;
+  currentAmount?: number;
+  isFundRaisedStartedDate?: string;
   category?: string;
-  donorCount?: number;
+  isTotalDonor?: number;
   imageUrl?: string;
 }
 
 const FundraiserCard = ({
-  id = "fundraiser-1",
-  title = "Medical Emergency Support",
-  description = "Help with urgent medical expenses for a life-saving procedure needed immediately.",
-  goalAmount = 5000,
-  amountRaised = 2750,
-  createdAt = "2023-05-15T10:30:00Z",
-  category = "Medical",
-  donorCount = 42,
-  imageUrl = "https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=800&q=80",
+  _id = "",
+  title = "",
+  description = "",
+  goalAmount = 0,
+  currentAmount = 0,
+  isFundRaisedStartedDate = "",
+  category = "",
+  isTotalDonor = 0,
+  imageUrl = "",
 }: FundraiserCardProps) => {
-  // Calculate progress percentage
   const progressPercentage = Math.min(
-    Math.round((amountRaised / goalAmount) * 100),
+    Math.round((currentAmount / goalAmount) * 100),
     100
   );
 
-  // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -52,7 +51,6 @@ const FundraiserCard = ({
     }).format(amount);
   };
 
-  // Calculate time since creation
   const getTimeSince = (dateString: string) => {
     const created = new Date(dateString);
     const now = new Date();
@@ -65,19 +63,6 @@ const FundraiserCard = ({
       const diffInDays = Math.floor(diffInHours / 24);
       return `${diffInDays} days ago`;
     }
-  };
-
-  // Get category badge color
-  const getCategoryColor = (category: string) => {
-    const categories: Record<string, string> = {
-      Medical: "bg-blue-100 text-blue-800",
-      Family: "bg-green-100 text-green-800",
-      "Urgent Bill": "bg-red-100 text-red-800",
-      Crisis: "bg-amber-100 text-amber-800",
-      Disaster: "bg-purple-100 text-purple-800",
-    };
-
-    return categories[category] || "bg-gray-100 text-gray-800";
   };
 
   return (
@@ -95,7 +80,13 @@ const FundraiserCard = ({
           <CardTitle className="text-lg font-bold line-clamp-1">
             {title}
           </CardTitle>
-          <Badge className={`${getCategoryColor(category)}`}>{category}</Badge>
+          <Badge
+            className={`capitalize ${getCategoryByName(category)?.bgColor || "bg-gray-800"} ${
+              getCategoryByName(category)?.textColor || "text-gray-800"
+            }`}
+          >
+            {category}
+          </Badge>
         </div>
         <CardDescription className="line-clamp-2 text-sm mt-1">
           {description}
@@ -107,7 +98,7 @@ const FundraiserCard = ({
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span className="font-medium">
-                {formatCurrency(amountRaised)} raised
+                {formatCurrency(currentAmount)} raised
               </span>
               <span className="text-muted-foreground">
                 of {formatCurrency(goalAmount)}
@@ -119,11 +110,11 @@ const FundraiserCard = ({
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              <span>{getTimeSince(createdAt)}</span>
+              <span>{getTimeSince(isFundRaisedStartedDate)}</span>
             </div>
             <div className="flex items-center gap-1">
               <Users className="h-3 w-3" />
-              <span>{donorCount} donors</span>
+              <span>{isTotalDonor} donors</span>
             </div>
           </div>
         </div>
@@ -131,7 +122,7 @@ const FundraiserCard = ({
 
       <CardFooter className="pt-0">
         <Button asChild className="w-full">
-          <Link href={`/fundraiser/${id}`}>View Fundraiser</Link>
+          <Link href={`/fundraiser/${_id}`}>View Fundraiser</Link>
         </Button>
       </CardFooter>
     </Card>

@@ -225,7 +225,7 @@ export default function SignupPage() {
             <Button
               onClick={handleSignup}
               className="w-full"
-              disabled={isLoading}
+              disabled={isLoading || googleLoading}
             >
               {isLoading ? "Creating account..." : "Sign Up"}
             </Button>

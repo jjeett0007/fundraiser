@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isValidInput, validateInputs } from "@/utils/formValidation";
 import { setToken } from "@/store/slice/userTokenSlice";
 import { useAppDispatch } from "@/store/hooks";
+import { setData } from "@/store/slice/userDataSlice";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -61,12 +62,14 @@ export default function LoginPage() {
       if (response.status === 203) {
         router.push("/verify-account");
         localStorage.setItem("verificationEmail", response.data.email);
-        document.cookie = `Access=${response.data.token.access
-          }; path=/; secure; max-age=${2 * 24 * 60 * 60}; samesite=strict`;
+        document.cookie = `Access=${
+          response.data.token.access
+        }; path=/; secure; max-age=${2 * 24 * 60 * 60}; samesite=strict`;
       } else {
         if (response.status === 200) {
-          document.cookie = `Access=${response.data.token.access
-            }; path=/; secure; max-age=${2 * 24 * 60 * 60}; samesite=strict`;
+          document.cookie = `Access=${
+            response.data.token.access
+          }; path=/; secure; max-age=${2 * 24 * 60 * 60}; samesite=strict`;
 
           const expirationInSeconds =
             Math.floor(Date.now() / 1000) + response.data.token.expiresIn;
@@ -79,6 +82,15 @@ export default function LoginPage() {
               isAuthenticated: true,
             })
           );
+
+          const res = await apiRequest("GET", "/user");
+
+          dispatch(
+            setData({
+              ...res.data,
+            })
+          );
+          
           router.push("/dashboard");
         } else {
           toast({
@@ -163,7 +175,7 @@ export default function LoginPage() {
             <Button
               onClick={handleLogin}
               className="w-full"
-              disabled={isLoading}
+              disabled={isLoading || googleLoading}
             >
               {isLoading ? "Logging in..." : "Login"}
             </Button>

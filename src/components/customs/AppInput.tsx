@@ -34,7 +34,7 @@ const AppInput = ({
     <div className="flex flex-col w-full items-start gap-1">
       <div
         className={`flex gap-2 items-center rounded-lg w-full border ${
-          type === "password" ? "" : "p-2 py-[5px]"
+          type === "password" ? "" : "p-2 py-[8px]"
         } ${
           error
             ? `border-red-500 ${shake ? "animate-shake" : ""}`

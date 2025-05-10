@@ -1,9 +1,104 @@
+"use client";
+
 import { Loader2, PlusIcon } from "lucide-react";
 import Image from "next/image";
 import google_logo from "@/assets/google_icon.svg";
-import React from "react";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAppDispatch } from "@/store/hooks";
+import { useToast } from "@/hooks/use-toast";
+import { setToken } from "@/store/slice/userTokenSlice";
+import apiRequest from "@/utils/apiRequest";
+import { setData } from "@/store/slice/userDataSlice";
 
 const Redirect = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const dispatch = useAppDispatch();
+  const { toast } = useToast();
+  const [authToken, setAuthToken] = useState("");
+
+  useEffect(() => {
+    const handleRedirect = async () => {
+      try {
+        const type = searchParams.get("type");
+        const token = searchParams.get("token");
+        const expiresIn = searchParams.get("expiresIn")?.replace("$", "");
+        const email = searchParams.get("email");
+        const id = searchParams.get("id");
+
+        if (!token || !expiresIn || !email || !id) {
+          throw new Error("Missing required parameters");
+        }
+
+        if (type === "login" || type === "signup") {
+          document.cookie = `Access=${token}; path=/; secure; max-age=${
+            2 * 24 * 60 * 60
+          }; samesite=strict`;
+
+          if (type === "login") {
+            try {
+              const response = await apiRequest("GET", "/user");
+              if (response.status === 200) {
+                dispatch(
+                  setData({
+                    ...response.data,
+                    email: email,
+                    id: id,
+                  })
+                );
+
+                dispatch(
+                  setToken({
+                    token: token,
+                    expiresIn: expiresIn,
+                    isAuthenticated: true,
+                  })
+                );
+
+                document.cookie = `Access=${token}; path=/; secure; max-age=${
+                  2 * 24 * 60 * 60
+                }; samesite=strict`;
+
+                const expirationInSeconds =
+                  Math.floor(Date.now() / 1000) + parseInt(expiresIn);
+                document.cookie = `expiresIn=${expirationInSeconds}; path=/; secure; max-age=${expiresIn}; samesite=strict`;
+
+                toast({
+                  title: "Success",
+                  description: `Logging in as ${email}!`,
+                });
+
+                router.push("/");
+              } else {
+                toast({
+                  title: "Error",
+                  description: response.message,
+                  variant: "destructive",
+                });
+              }
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "Failed to fetch user data. Please try again.",
+                variant: "destructive",
+              });
+            }
+          } else if (type === "signup") {
+            router.push("/signup");
+          }
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+        router.push("/login");
+      }
+    };
+    handleRedirect();
+  }, [searchParams, dispatch, router, toast]);
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-purple-200 to-indigo-200">
       <div className="flex relative items-center justify-center mb-4">

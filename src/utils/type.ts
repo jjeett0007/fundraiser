@@ -8,6 +8,16 @@ export interface ValidationErrors {
   lastName?: string;
   username?: string;
   code?: string;
+  //
+  displayName?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  //
+  goalAmount?: string;
+  title?: string;
+  description?: string;
+  walletAddress?: string;
 }
 
 export interface Profile {
@@ -35,6 +45,33 @@ export interface UserData {
   address: Address;
 }
 
-export interface ApiResponse {
-  data: UserData;
+export type PaginationData = {
+  totalItems: number;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+};
+
+
+export interface Category {
+  id: string;
+  name: string;
+  bgColor: string;
+  textColor: string;
+}
+
+export interface FundraiserData {
+  _id: string;
+  fundMetaData: {
+    title: string;
+    description: string;
+    goalAmount: number;
+    currency: string;
+    currentAmount: number;
+    category: string;
+    imageUrl: string;
+  };
+  isInitialized: boolean;
+  isFundRaisedStartedDate: string;
+  isTotalDonor: number;
 }

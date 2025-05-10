@@ -3,7 +3,6 @@ import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  console.log("is this path protected?", path);
 
   const publicPaths = [
     "/",
@@ -11,13 +10,12 @@ export function middleware(request: NextRequest) {
     "/signup",
     "/explore",
     "/about",
-    "/forgot_password",
+    "/forgot-password",
     "/reset-password",
     "/redirect",
     "/privacy",
     "/terms-and-condition",
   ];
-
 
   const isPublicPath = publicPaths.includes(path);
 
