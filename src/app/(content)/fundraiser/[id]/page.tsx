@@ -52,8 +52,15 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 
-export default function FundraiserPage({ params }: { params: { id: string } }) {
+export default async function FundraiserPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
   return (
-    <FundraiserPageComp fundraiserId={params.id} />
+    <FundraiserPageComp fundraiserId={id} />
   )
 }
+
+
