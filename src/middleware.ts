@@ -17,11 +17,12 @@ export function middleware(request: NextRequest) {
     "/privacy",
     "/terms-and-condition",
     "/help",
-    // Allow dynamic fundraiser/[id] route as public
-    /^\/fundraiser\/[^\/]+$/,
   ];
 
-  const isPublicPath = publicPaths.includes(path);
+  const isPublicPath =
+    publicPaths.includes(path) ||
+    path.startsWith("/fundraiser/") && !path.startsWith("/fundraiser/create") && !path.startsWith("/fundraiser/manage");
+
 
   const token = request.cookies.get("Access")?.value;
   const expirationDate = request.cookies.get("expiresIn")?.value;
