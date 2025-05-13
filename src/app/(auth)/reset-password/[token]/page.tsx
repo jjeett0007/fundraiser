@@ -94,15 +94,15 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       {success ? (
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md bg-primary border border-white/20">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl justify-center items-center flex flex-col gap-2 font-bold text-center text-primary">
+            <CardTitle className="text-2xl justify-center items-center flex flex-col gap-2 font-bold text-center font-rajdhani text-primaryGold">
               <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
               Password Reset Complete
             </CardTitle>
-            <CardDescription className="text-center">
+            <CardDescription className="text-center text-[#ede4d3]">
               Your password has been reset successfully. Redirecting to login...
             </CardDescription>
           </CardHeader>
@@ -115,12 +115,12 @@ const ResetPassword = () => {
           </CardContent>
         </Card>
       ) : (
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md bg-primary border border-white/20">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center text-primary">
+            <CardTitle className="text-2xl font-bold text-center font-rajdhani text-primaryGold">
               Forgot your password?
             </CardTitle>
-            <CardDescription className="text-center">
+            <CardDescription className="text-center text-[#ede4d3]">
               Enter your email to receive reset password link.
             </CardDescription>
           </CardHeader>
@@ -131,7 +131,9 @@ const ResetPassword = () => {
                   htmlFor="newPassword"
                   className="flex items-center justify-between"
                 >
-                  <span>New Password</span>
+                  <span className="block text-sm font-medium text-[#f2bd74] font-rajdhani">
+                    New Password
+                  </span>
                   {newPassword && (
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                   )}
@@ -150,7 +152,9 @@ const ResetPassword = () => {
                   htmlFor="confirmPassword"
                   className="flex items-center justify-between"
                 >
-                  <span>Confirm Password</span>
+                  <span className="block text-sm font-medium text-[#f2bd74] font-rajdhani">
+                    Confirm Password
+                  </span>
                   {confirmPassword && (
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                   )}
@@ -169,6 +173,8 @@ const ResetPassword = () => {
                 onClick={handleResetPassword}
                 className="w-full"
                 disabled={isLoading}
+              variant={"secondary"}
+
               >
                 {isLoading ? "Loading..." : "Continue"}
               </Button>

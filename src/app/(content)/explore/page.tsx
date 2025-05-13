@@ -44,9 +44,6 @@ export default function ExplorePage() {
       );
 
       if (response.success) {
-        toast({
-          description: response.message,
-        });
         setFundraisers(response.data.results);
         if (response?.data?.pagination) {
           setPaginationData(response.data.pagination);
@@ -97,28 +94,25 @@ export default function ExplorePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="container mx-auto px-4 md:px-10 lg:px-14 py-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">
+        <h2 className="text-2xl font-rajdhani font-bold mb-4 text-[#f2bd74]">
           Explore Fundraisers
-        </h1>
+        </h2>
 
         {/* Search and Filter Section */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row gap-4 mb-4">
-            <div className="relative flex-grow">
-              <Search
-                size={18}
-                className="absolute left-3 top-[40%] transform -translate-y-1/2 text-gray-400"
-              />
-              <Input
+          <div className="flex md:items-center items-start flex-col md:flex-row gap-4 mb-4">
+            <div className="flex gap-2 border border-primaryGold p-1.5 px-2 w-full md:w-auto  rounded-md items-center ">
+              <Search size={15} color={"#ede4d3"} />
+              <input
                 placeholder="Search fundraisers..."
-                className="pl-10 bg-white"
+                className="bg-transparent text-[16px] placeholder:text-sm p-0 m-0 outline-none border-0"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-2">
+            <div className="flex gap-2 items-center overflow-x-auto md:pb-0 pb-2">
               {categoryFilters.map((categoryName, index) => {
                 const isActive = categoryName === activeCategory;
 
@@ -181,18 +175,22 @@ export default function ExplorePage() {
           </div>
         )}
 
-        {/* Start Your Own Fundraiser CTA */}
-        <div className="mt-16 bg-gradient-to-r from-[#29339B]/5 to-[#FF3A20]/5 border border-gray-100 rounded-xl p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900">
+        <section className="text-center p-8 mx-4 md:mx-10 lg:mx-14 my-12 rounded-xl bg-gradient-to-r from-[#bd0e2b]/10 to-[#f2bd74]/10 border border-[#f2bd74]/20 backdrop-blur-sm relative overflow-hidden">
+          <div className="absolute -left-10 -top-10 w-40 h-40 bg-gradient-to-r from-[#bd0e2b]/20 to-[#f2bd74]/20 rounded-full blur-xl"></div>
+          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-gradient-to-r from-[#bd0e2b]/20 to-[#f2bd74]/20 rounded-full blur-xl"></div>
+
+          <h2 className="text-2xl font-rajdhani font-bold mb-6 text-[#f2bd74] relative z-10">
             Need Help With an Emergency?
           </h2>
-          <p className="text-lg mb-6 max-w-2xl mx-auto text-gray-800">
+          <p className="text-lg mb-6 max-w-2xl mx-auto text-white">
             Start your own fundraiser and get the support you need in minutes.
           </p>
-          <Link href="/fundraiser/create">
-            <Button size={"lg"}>Start Your Fundraiser</Button>
-          </Link>
-        </div>
+          <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
+            <Link href="/fundraiser/create">
+              <Button size={"lg"}>Start Your Fundraiser</Button>
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );

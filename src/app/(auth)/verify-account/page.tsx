@@ -34,14 +34,14 @@ export default function VerifyAccount() {
 
   const { toast } = useToast();
 
-  useEffect(() => {
-    const storedEmail = localStorage.getItem("verificationEmail");
-    if (!storedEmail) {
-      router.push("/signup");
-      return;
-    }
-    setEmail(storedEmail);
-  }, [router]);
+  // useEffect(() => {
+  //   const storedEmail = localStorage.getItem("verificationEmail");
+  //   if (!storedEmail) {
+  //     router.push("/signup");
+  //     return;
+  //   }
+  //   setEmail(storedEmail);
+  // }, [router]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -137,13 +137,13 @@ export default function VerifyAccount() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-primary border border-white/20">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center text-primary">
+          <CardTitle className="text-2xl font-bold text-center font-rajdhani text-primaryGold">
             Verify your account
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-[#ede4d3]">
             Enter the 6-digit code sent to your email to verify your account
           </CardDescription>
         </CardHeader>
@@ -181,17 +181,18 @@ export default function VerifyAccount() {
               onClick={handleVerifyAccount}
               className="w-full"
               disabled={isLoading}
+              variant={"secondary"}
             >
               {isLoading ? "Verifying..." : "Verify Account"}
             </Button>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[#ede4d3]">
             {`Didn't receive any code? `}
             <Button
               variant="link"
-              className="p-0"
+              className="p-0  font-rajdhani"
               disabled={resendDisabled}
               onClick={handleResendCode}
             >

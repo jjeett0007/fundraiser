@@ -60,18 +60,42 @@ export interface Category {
   textColor: string;
 }
 
+export interface FundMetaData {
+  title: string;
+  description: string;
+  goalAmount: number;
+  currency: string;
+  currentAmount: number;
+  category: string;
+  walletAddress: string;
+  imageUrl: string;
+  videoUrl: string | null;
+}
+
 export interface FundraiserData {
   _id: string;
-  fundMetaData: {
-    title: string;
-    description: string;
-    goalAmount: number;
-    currency: string;
-    currentAmount: number;
-    category: string;
-    imageUrl: string;
-  };
+  fundMetaData: FundMetaData;
   isInitialized: boolean;
+  isFundRaiseStarted: boolean;
+  isFundRaisedStopped: boolean;
+  isFundRaiseFundsComplete: boolean;
   isFundRaisedStartedDate: string;
-  isTotalDonor: number;
+  isTotalDonor?: number;
+}
+
+export interface Donor {
+  _id: string;
+  name: string;
+  email: string;
+  amount: number;
+  note?: string;
+  timestamp: string;
+  isAnonymous?: boolean;
+}
+
+export interface FundraiserDetailResponse {
+  data: FundraiserData;
+  donors?: Donor[];
+  success: boolean;
+  message: string;
 }

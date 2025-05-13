@@ -71,13 +71,13 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md  bg-primary border border-white/20">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center text-primary">
+          <CardTitle className="text-2xl font-bold text-center font-rajdhani text-primaryGold">
             Forgot your password?
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-[#ede4d3] ">
             Enter your email to receive reset password link.
           </CardDescription>
         </CardHeader>
@@ -88,7 +88,9 @@ const ForgotPassword = () => {
                 htmlFor="email"
                 className="flex items-center justify-between"
               >
-                <span>Email</span>
+                <span className="block text-sm font-medium text-[#f2bd74] font-rajdhani">
+                  Email
+                </span>
                 {email && <CheckCircle2 className="h-4 w-4 text-green-500" />}
               </Label>
               <AppInput
@@ -105,15 +107,19 @@ const ForgotPassword = () => {
               onClick={handleForgotPassword}
               className="w-full"
               disabled={isLoading}
+              variant={"secondary"}
             >
               {isLoading ? "Loading..." : "Continue"}
             </Button>
           </div>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-[#ede4d3]">
             Remembered your password?{" "}
-            <Link href="/login" className="text-primary hover:underline">
+            <Link
+              href="/login"
+              className="text-primaryGold font-rajdhani hover:underline"
+            >
               Login
             </Link>
           </p>

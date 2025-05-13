@@ -3,6 +3,7 @@
 import { Loader2, PlusIcon } from "lucide-react";
 import Image from "next/image";
 import google_logo from "@/assets/google_icon.svg";
+import app_logo from "@/assets/logo.jpg";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch } from "@/store/hooks";
@@ -100,36 +101,47 @@ const Redirect = () => {
     handleRedirect();
   }, [searchParams, dispatch, router, toast]);
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-purple-200 to-indigo-200">
-      <div className="flex relative items-center justify-center mb-4">
-        <div className="border-[#000] border rounded-full">
-          <Image
-            src={google_logo}
-            height={1000}
-            width={1000}
-            className="w-[3rem] p-2 object-cover"
-            alt={"google_logo"}
-            priority
-          />
+    <div className="min-h-screen bg-gradient-to-b from-[#0a1a2f] to-[#0c2240] text-white relative">
+      <div className="absolute inset-0 w-full h-full opacity-[0.05] pointer-events-none">
+        <div className="absolute inset-0 flex flex-col justify-between">
+          {[...Array(24)].map((_, i) => (
+            <div key={`h-${i}`} className="w-full h-px bg-white"></div>
+          ))}
         </div>
-        <div className="h-6 absolute w-6 flex items-center justify-center rounded-full bg-black text-white">
-          <PlusIcon size={13} />
-        </div>
-        <div className="border-[#000] border rounded-full">
-          <Image
-            src={google_logo}
-            height={1000}
-            width={1000}
-            className="w-[3rem] p-2 object-cover"
-            alt={"company_logo"}
-            priority
-          />
+        <div className="absolute inset-0 flex flex-row justify-between">
+          {[...Array(24)].map((_: any, i: any) => (
+            <div key={`v-${i}`} className="h-full w-px bg-white"></div>
+          ))}
         </div>
       </div>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="flex relative items-center justify-center mb-4">
+          <div className="border-primaryGold border rounded-full">
+            <Image
+              src={google_logo}
+              height={1000}
+              width={1000}
+              className="w-[3rem] p-2 object-cover"
+              alt={"google_logo"}
+              priority
+            />
+          </div>
+          <div className="h-6 absolute w-6 flex items-center justify-center rounded-full bg-black text-white">
+            <Loader2 className="w-5 h-5 text-white animate-spin" />
+          </div>
+          <div className="border-primaryGold border  rounded-full">
+            <Image
+              src={app_logo}
+              height={1000}
+              width={1000}
+              className="w-[3rem] rounded-full p-2 object-cover"
+              alt={"company_logo"}
+              priority
+            />
+          </div>
+        </div>
 
-      <div className="flex items-center gap-2 ">
-        <Loader2 className="w-5 h-5 text-primary animate-spin" />{" "}
-        <p className="text-lg text-[#333]">Redirecting...</p>
+        <p className="text-lg text-primaryGold font-rajdhani">Redirecting...</p>
       </div>
     </div>
   );

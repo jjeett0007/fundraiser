@@ -2,13 +2,19 @@
 
 import React, { useEffect, useState } from "react";
 
-interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   placeholder?: string;
   error?: string | boolean;
   disabled?: boolean;
 }
 
-const AppTextarea = ({ placeholder, error, disabled, ...props }: TextareaProps) => {
+const AppTextarea = ({
+  placeholder,
+  error,
+  disabled,
+  ...props
+}: TextareaProps) => {
   const [shake, setShake] = useState(false);
 
   useEffect(() => {
@@ -20,9 +26,9 @@ const AppTextarea = ({ placeholder, error, disabled, ...props }: TextareaProps) 
   }, [error]);
 
   return (
-    <div className="flex flex-col w-full items-start gap-1">
+    <div className="flex flex-col w-full  items-start gap-1">
       <div
-        className={`flex gap-2 items-center rounded-lg w-full border p-3 md:p-4 ${
+        className={`flex gap-2 items-center rounded-lg bg-[#0a1a2f]/50 border-[#f2bd74]/30  w-full border p-3 md:p-4 ${
           error
             ? `border-red-500 ${shake ? "animate-shake" : ""}`
             : "border-[#BCBCBC] dark:border-[#888]"
@@ -32,13 +38,13 @@ const AppTextarea = ({ placeholder, error, disabled, ...props }: TextareaProps) 
           placeholder={placeholder}
           disabled={disabled}
           {...props}
-          className={`flex-1 border-0 bg-transparent outline-none text-[16px] resize-none appearance-none ${
+          className={`flex-1 text-white border-0 bg-transparent outline-none text-[16px] resize-none appearance-none ${
             disabled ? "cursor-not-allowed text-[#999] dark:text-[#666]" : ""
           }`}
         />
       </div>
       {error && (
-        <div className="text-[#f24f3af1] w-full text-[12px] bg-[#fa8c8c28] p-1 px-2 rounded-md flex items-center gap-2">
+        <div className="text-[#f74831f1] w-full text-xs font-rajdhani bg-[#533a3a4e] p-1 px-2 rounded-md flex items-center gap-2">
           {error}
         </div>
       )}

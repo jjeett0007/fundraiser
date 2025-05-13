@@ -67,12 +67,10 @@ export default function WalletConnect({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-white">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center mb-2">
-            Connect Your Wallet
-          </DialogTitle>
-          <DialogDescription className="text-center text-gray-600">
+          <DialogTitle>Connect Your Wallet</DialogTitle>
+          <DialogDescription>
             Choose a wallet to connect to the fundraising platform
           </DialogDescription>
         </DialogHeader>

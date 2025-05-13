@@ -18,7 +18,6 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import SubHeading from "@/components/customs/SubHeading";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
@@ -121,11 +120,8 @@ const EditProfile = () => {
     <div>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger>
-          <Button
-            variant="secondary"
-            className="absolute flex m-3 gap-2 top-0 right-0"
-          >
-            <Edit className="h-4 w-4" /> Edit Profile
+          <Button>
+            <Edit className="h-4 w-4 mr-1" /> Edit Profile
           </Button>
         </DialogTrigger>
         <DialogContent className="h-[100dvh] md:max-w-[80%] lg:max-w-[60%] max-h-[100dvh] md:h-fit">
@@ -137,13 +133,15 @@ const EditProfile = () => {
           </DialogHeader>
 
           <div className="overflow-y-auto space-y-2">
-            <div className="gap-2 w-full flex flex-col md:flex-row items-center">
+            <div className="gap-4 w-full mb-2 flex flex-col md:flex-row items-center">
               <div className="space-y-2 w-full">
                 <Label
                   htmlFor="firstName"
                   className="flex items-center justify-between"
                 >
-                  <span>First Name</span>
+                  <span className="block text-sm font-medium text-[#f2bd74] font-rajdhani">
+                    First Name
+                  </span>
                   {firstName && (
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                   )}
@@ -163,7 +161,9 @@ const EditProfile = () => {
                   htmlFor="lastName"
                   className="flex items-center justify-between"
                 >
-                  <span>Last Name</span>
+                  <span className="block text-sm font-medium text-[#f2bd74] font-rajdhani">
+                    Last Name
+                  </span>
                   {lastName && (
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                   )}
@@ -180,12 +180,14 @@ const EditProfile = () => {
               </div>
             </div>
 
-            <div className="space-y-2 w-full">
+            <div className="space-y-2  w-full">
               <Label
                 htmlFor="displayName"
                 className="flex items-center justify-between"
               >
-                <span>Display Name</span>
+                <span className="block text-sm font-medium text-[#f2bd74] font-rajdhani">
+                  Display Name
+                </span>
                 {displayName && (
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
                 )}
@@ -200,15 +202,18 @@ const EditProfile = () => {
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <SubHeading label={"EDIT ADDRESS"} />
-
+            <div className="flex flex-col gap-4">
+              <h2 className="font-rajdhani mt-10 font-bold text-[#f2bd74]">
+                Address Info
+              </h2>
               <div className="space-y-2 w-full">
                 <Label
                   htmlFor="country"
                   className="flex items-center justify-between"
                 >
-                  <span>Country</span>
+                  <span className="block text-sm font-medium text-[#f2bd74] font-rajdhani">
+                    Country
+                  </span>
                   {country && (
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                   )}
@@ -222,13 +227,15 @@ const EditProfile = () => {
                   value={country}
                 />
               </div>
-              <div className="gap-2 w-full flex flex-col md:flex-row items-center">
+              <div className="gap-4 mt-2 w-full flex flex-col md:flex-row items-center">
                 <div className="space-y-2 w-full">
                   <Label
                     htmlFor="state"
                     className="flex items-center justify-between"
                   >
-                    <span>State</span>
+                    <span className="block text-sm font-medium text-[#f2bd74] font-rajdhani">
+                      State
+                    </span>
                     {state && (
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
                     )}
@@ -247,7 +254,9 @@ const EditProfile = () => {
                     htmlFor="city"
                     className="flex items-center justify-between"
                   >
-                    <span>City</span>
+                    <span className="block text-sm font-medium text-[#f2bd74] font-rajdhani">
+                      City
+                    </span>
                     {city && (
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
                     )}

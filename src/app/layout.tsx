@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
-import { baloo_init } from "@/utils/font";
+import { rajdhani, manrope } from "@/utils/font";
 import { Wallet } from "@/walletAdapter/walletAdapterLib";
 import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "@/components/ui/toaster";
@@ -74,7 +74,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <Script src="https://api.tempo.new/proxy-asset?url=https://storage.googleapis.com/tempo-public-assets/error-handling.js" />
-      <body className={baloo_init.className}>
+      <body className={`${rajdhani.variable} ${manrope.variable}`}>
         <Providers>
           <Wallet>{children}</Wallet>
           <Toaster />
