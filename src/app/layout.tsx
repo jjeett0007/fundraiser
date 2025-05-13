@@ -10,7 +10,7 @@ import { Providers } from "@/components/providers/reduxProvider";
 export const metadata: Metadata = {
   title: "Emerg Funds Raising",
   description:
-    "Emerg Funds Raising - A platform to support emergency fundraisers.",
+    "Emerg Funds Raising is a dedicated platform designed to help individuals and organizations quickly raise emergency funds for urgent needs. Easily create, share, and support fundraising campaigns for medical emergencies, disaster relief, and other critical situations.",
   keywords: [
     "fundraising",
     "emergency funds",
@@ -31,24 +31,34 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/logo.jpg", type: "image/x-icon" },
+      { url: "/logo.jpg", type: "image/jpg", sizes: "16x16" },
+      { url: "/logo.jpg", type: "image/jpg", sizes: "32x32" },
+      { url: "/logo.jpg", type: "image/jpg", sizes: "96x96" },
+    ],
+    shortcut: "/logo-16x16.png",
+    apple: [
+      { url: "/logo.jpg", sizes: "180x180" },
+      { url: "/logo.jpg", sizes: "152x152" },
+      { url: "/logo.jpg", sizes: "167x167" },
+    ],
   },
   verification: {
     google: "your-google-site-verification",
   },
   alternates: {
-    canonical: "https://emergfundraising.com",
+    canonical: "https://www.emergfunds.org",
   },
   openGraph: {
     title: "Emerg Funds Raising",
-    description: "A platform to support emergency fundraisers",
-    url: "https://emergfundraising.com",
-    siteName: "Emerg Funds Raising",
+    description:
+      "Emerg Funds Raising is a dedicated platform designed to help individuals and organizations quickly raise emergency funds for urgent needs. Easily create, share, and support fundraising campaigns for medical emergencies, disaster relief, and other critical situations.",
+    url: "https://www.emergfunds.org",
+    siteName: "Emergency Funds Raising",
     images: [
       {
-        url: "/og-image.png",
+        url: "/twitter-banner.jpeg",
         width: 1200,
         height: 630,
         alt: "Emerg Fund Raising Platform",
@@ -60,9 +70,10 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Emerg Funds Raising",
-    description: "A platform to support emergency fundraisers",
-    images: ["/twitter-image.png"],
-    creator: "@emergfunds",
+    description:
+      "Emerg Funds Raising is a dedicated platform designed to help individuals and organizations quickly raise emergency funds for urgent needs. Easily create, share, and support fundraising campaigns for medical emergencies, disaster relief, and other critical situations.",
+    images: ["/twitter-banner.jpeg"],
+    creator: "@emergfunds_",
   },
 };
 

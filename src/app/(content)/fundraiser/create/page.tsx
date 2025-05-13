@@ -47,7 +47,7 @@ export default function CreateFundraiserPage() {
   const [description, setDescription] = useState("");
   const [goalAmount, setGoalAmount] = useState("");
   const [category, setCategory] = useState("Medical");
-  const [walletAddress, setWalletAddress] = useState("");
+  const [walletAddress, setWalletAddress] = useState("DPNXPNWvWoHaZ9P3WtfGCb2ZdLihW8VW1w1Ph4KDH9iG");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,7 +61,7 @@ export default function CreateFundraiserPage() {
     if (publicKey) {
       setWalletAddress(publicKey.toString());
     } else {
-      setWalletAddress("");
+      setWalletAddress("DPNXPNWvWoHaZ9P3WtfGCb2ZdLihW8VW1w1Ph4KDH9iG");
     }
   }, [publicKey]);
 
