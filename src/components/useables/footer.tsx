@@ -4,7 +4,7 @@ function FooterComp() {
   return (
     <>
       <footer className=" py-12 relative">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primaryGold via-[#D72483] to-[#FF3A20] opacity-30"></div>
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primaryGold via-[#D72483] to-[#FF3A20] opacity-30"></div>
 
         <div className="container font-rajdhani mx-auto px-4 md:px-10 lg:px-14">
           <div className="grid md:grid-cols-4 gap-8">
@@ -20,7 +20,10 @@ function FooterComp() {
               <h4 className="font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2">
                 <li>
-                  <Link href="/" className="text-[#ede4d3] hover:text-primaryGold">
+                  <Link
+                    href="/"
+                    className="text-[#ede4d3] hover:text-primaryGold"
+                  >
                     Home
                   </Link>
                 </li>
@@ -75,17 +78,28 @@ function FooterComp() {
               <h4 className="font-semibold mb-4">Connect</h4>
               <ul className="space-y-2">
                 <li>
-                  <Link href="#" className="text-[#ede4d3] hover:text-primaryGold">
-                    Twitter
+                  <Link
+                    href="https://x.com/EmergFunds_"
+                    className="text-[#ede4d3] hover:text-primaryGold"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <s>Twitter</s> X
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-[#ede4d3] hover:text-primaryGold">
+                  <Link
+                    href="#"
+                    className="text-[#ede4d3] hover:text-primaryGold"
+                  >
                     Discord
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-[#ede4d3] hover:text-primaryGold">
+                  <Link
+                    href="#"
+                    className="text-[#ede4d3] hover:text-primaryGold"
+                  >
                     Contact Us
                   </Link>
                 </li>
