@@ -3,14 +3,11 @@ import apiRequest from "@/utils/apiRequest";
 import type { Metadata } from "next";
 import FundraiserPageComp from ".";
 
-type Props = {
-  params: {
-    id: string;
-  };
-};
+// Removed invalid import: PageProps is not exported from "next"
 
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const response = await apiRequest(
     "GET",
     `/fundraise/get-fundraise/${params.id}`
