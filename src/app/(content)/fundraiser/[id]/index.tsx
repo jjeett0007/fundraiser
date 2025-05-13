@@ -44,6 +44,7 @@ type props = {
 
 export default function FundraiserPageComp({ fundraiserId }: props) {
     const router = useRouter();
+     const params = useParams();
     const { toast } = useToast();
     const userData = useSelector((state: RootState) => state.userData);
 
