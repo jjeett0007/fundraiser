@@ -10,13 +10,15 @@ export function middleware(request: NextRequest) {
     "/signup",
     "/explore",
     "/about",
+    "/wait-list",
     "/forgot-password",
     "/reset-password",
     "/redirect",
     "/privacy",
     "/terms-and-condition",
     "/help",
-    "/fundraiser/[id]",
+    // Allow dynamic fundraiser/[id] route as public
+    /^\/fundraiser\/[^\/]+$/,
   ];
 
   const isPublicPath = publicPaths.includes(path);
