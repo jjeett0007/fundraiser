@@ -15,6 +15,8 @@ export function middleware(request: NextRequest) {
     "/redirect",
     "/privacy",
     "/terms-and-condition",
+    "/help",
+    "/fundraiser/[id]",
   ];
 
   const isPublicPath = publicPaths.includes(path);
