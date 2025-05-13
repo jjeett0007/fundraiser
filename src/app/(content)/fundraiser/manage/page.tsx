@@ -28,14 +28,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Clock, DollarSign, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  Clock,
+  DollarSign,
+  AlertCircle,
+  CheckCircle,
+  Users,
+  Zap,
+} from "lucide-react";
+import { Donor } from "@/utils/type";
 
 export default function ManageFundraiserPage() {
   const router = useRouter();
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [isStoppingFundraiser, setIsStoppingFundraiser] = useState(false);
+  const [donors, setDonors] = useState<Donor[]>([]);
 
-  // Mock fundraiser data - in a real app, this would be fetched from an API
   const fundraiser = {
     id: "123",
     title: "Medical Emergency Support for Sarah",
@@ -49,50 +57,6 @@ export default function ManageFundraiserPage() {
     imageUrl:
       "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=800&q=80",
     status: "active",
-    donors: [
-      {
-        id: "1",
-        name: "John D.",
-        amount: 250,
-        timestamp: "2023-05-15T14:30:00Z",
-        message: "Stay strong, Sarah!",
-      },
-      {
-        id: "2",
-        name: "Anonymous",
-        amount: 500,
-        timestamp: "2023-05-16T09:15:00Z",
-        message: "Wishing you a speedy recovery",
-      },
-      {
-        id: "3",
-        name: "Maria S.",
-        amount: 100,
-        timestamp: "2023-05-16T16:45:00Z",
-        message: "Sending love and support",
-      },
-      {
-        id: "4",
-        name: "Anonymous",
-        amount: 1000,
-        timestamp: "2023-05-17T11:20:00Z",
-        message: "Hope this helps",
-      },
-      {
-        id: "5",
-        name: "David R.",
-        amount: 75,
-        timestamp: "2023-05-17T19:10:00Z",
-        message: "Get well soon!",
-      },
-      {
-        id: "6",
-        name: "Emily T.",
-        amount: 825,
-        timestamp: "2023-05-18T08:30:00Z",
-        message: "We are all here for you",
-      },
-    ],
   };
 
   const progressPercentage =
@@ -116,11 +80,12 @@ export default function ManageFundraiserPage() {
   };
 
   const formatCurrency = (amount: string | number | bigint) => {
-      const numericAmount = typeof amount === "string" ? parseFloat(amount) : amount;
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(numericAmount);
+    const numericAmount =
+      typeof amount === "string" ? parseFloat(amount) : amount;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(numericAmount);
   };
 
   const handleWithdrawFunds = () => {
@@ -143,9 +108,11 @@ export default function ManageFundraiserPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 md:px-10 lg:px-14 py-8 bg-background">
+    <div className="container mx-auto px-4 md:px-10 lg:px-14 py-8 ">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Manage Fundraiser</h1>
+        <h1 className="text-3xl font-rajdhani font-bold text-[#f2bd74]">
+          Manage Fundraiser
+        </h1>
         <Button
           variant="outline"
           onClick={() => router.push(`/fundraiser/${fundraiser.id}`)}
@@ -156,30 +123,31 @@ export default function ManageFundraiserPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <Card className="mb-6">
+          <Card className="mb-6 bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
             <CardHeader>
-              <CardTitle>Fundraiser Overview</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl font-rajdhani font-bold text-[#f2bd74]">
+                Fundraiser Overview
+              </CardTitle>
+              <CardDescription className="text-[#ede4d3]">
                 Created {getRelativeTime(fundraiser.createdAt)}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="relative w-24 h-24 rounded-lg overflow-hidden">
-                  <Image
-                    src={fundraiser.imageUrl}
-                    alt={fundraiser.title}
-                    fill
-                    style={{ objectFit: "cover" }}
-                  />
-                </div>
+              <div className="flex items-start gap-4 mb-4">
+                <Image
+                  src={fundraiser.imageUrl}
+                  alt={fundraiser.title}
+                  width={1000}
+                  height={1000}
+                  className="object-cover w-24 h-24 rounded-lg"
+                />
                 <div>
-                  <Badge className="mb-2 bg-[#FEC601] text-black">
+                  <Badge className="mb-2 capitalize font-rajdhani  bg-primaryRed text-white border-0">
                     {fundraiser.category}
                   </Badge>
                   <h2 className="text-xl font-semibold">{fundraiser.title}</h2>
-                  <p className="text-muted-foreground truncate max-w-md">
-                    {fundraiser.description.substring(0, 100)}...
+                  <p className="text-[#ede4d3] line-clamp-2 max-w-md">
+                    {fundraiser.description}
                   </p>
                 </div>
               </div>
@@ -189,104 +157,139 @@ export default function ManageFundraiserPage() {
                   <h3 className="text-lg font-semibold">
                     {formatCurrency(fundraiser.raisedAmount)}
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-[ #ede4d3]">
                     raised of {formatCurrency(fundraiser.goalAmount)}
                   </p>
                 </div>
-                <Progress value={progressPercentage} className="h-2" />
+                <div className="h-2 w-full bg-gray-700/50 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] rounded-full"
+                    style={{
+                      width: `${Math.min(progressPercentage, 100)}%`,
+                    }}
+                  />
+                </div>
                 <div className="flex justify-between text-sm">
-                  <p>{fundraiser.donors.length} donors</p>
-                  <p>{Math.round(progressPercentage)}% complete</p>
+                  <p className="flex items-center text-gray-300">
+                    <Users className="h-3 w-3 mr-1 text-[#f2bd74]" />{" "}
+                    {donors.length} donors
+                  </p>
+                  <p className="flex items-center text-gray-300">
+                    <Zap className="h-3 w-3 mr-1 text-[#f2bd74]" />{" "}
+                    {Math.round(progressPercentage)}% complete
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Tabs defaultValue="donations" className="mb-6">
-            <TabsList className="w-full">
-              <TabsTrigger value="donations" className="flex-1">
-                Donations
+          <Tabs defaultValue="donors" className="mb-8">
+            <TabsList className="w-full bg-transparent border border-[#f2bd74]/20">
+              <TabsTrigger
+                value="donors"
+                className="flex-1 data-[state=active]:bg-[#0a1a2f] data-[state=active]:border data-[state=active]:border-white/20 data-[state=active]:text-[#f2bd74] text-[#ede4d3]"
+              >
+                <Users className="h-4 w-4 mr-2" /> Donors
               </TabsTrigger>
-              <TabsTrigger value="stats" className="flex-1">
-                Statistics
+              <TabsTrigger
+                value="stats"
+                className="flex-1 data-[state=active]:bg-[#0a1a2f] data-[state=active]:border data-[state=active]:border-white/20 data-[state=active]:text-[#f2bd74] text-[#ede4d3]"
+              >
+                <Zap className="h-4 w-4 mr-2" /> Stats
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="donations" className="mt-4">
-              <Card>
+            <TabsContent value="donors" className="mt-4">
+              <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
                 <CardHeader>
-                  <CardTitle>All Donations</CardTitle>
+                  <h3 className="text-xl font-semibold text-[#f2bd74]">
+                    Recent Donors
+                  </h3>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {fundraiser.donors.map((donor, index) => (
-                      <div key={index} className="flex items-start gap-4">
-                        <Avatar>
-                          <AvatarImage
-                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${donor.id}`}
-                          />
-                          <AvatarFallback>
-                            {donor.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <p className="font-medium">{donor.name}</p>
-                            <p className="text-primary font-semibold">
-                              {formatCurrency(donor.amount)}
+                  {donors.length > 0 ? (
+                    <div className="space-y-4">
+                      {donors.map((donor, index) => (
+                        <div
+                          key={index}
+                          className="flex items-start gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10"
+                        >
+                          <Avatar className="border-2 border-[#f2bd74]/20">
+                            <AvatarImage
+                              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${donor._id}`}
+                            />
+                            <AvatarFallback className="bg-[#bd0e2b]/20 text-[#f2bd74]">
+                              {donor.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex justify-between">
+                              <p className="font-medium text-white">
+                                {donor.isAnonymous ? "Anonymous" : donor.name}
+                              </p>
+                              <p className="text-[#f2bd74] font-semibold">
+                                {formatCurrency(donor.amount)}
+                              </p>
+                            </div>
+                            <p className="text-gray-400 text-sm flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {getRelativeTime(donor.timestamp)}
                             </p>
+                            {donor.note && (
+                              <p className="mt-1 text-sm text-gray-300 italic">
+                                "{donor.note}"
+                              </p>
+                            )}
                           </div>
-                          <p className="text-muted-foreground text-sm">
-                            {getRelativeTime(donor.timestamp)}
-                          </p>
-                          {donor.message && (
-                            <p className="mt-1 text-sm">"{donor.message}"</p>
-                          )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <p className="text-gray-400">
+                        No donors yet.
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
             <TabsContent value="stats" className="mt-4">
-              <Card>
+              <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
+                <CardHeader>
+                  <h3 className="text-xl font-semibold text-[#f2bd74]">
+                    Statistics
+                  </h3>
+                </CardHeader>
                 <CardContent className="pt-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border rounded-lg">
-                      <p className="text-muted-foreground text-sm">
+                    <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-start flex-col border-white/10">
+                      <p className="text-sm opacity-80 font-medium line-clamp-1">
                         Total Raised
                       </p>
                       <p className="text-2xl font-bold">
                         {formatCurrency(fundraiser.raisedAmount)}
                       </p>
                     </div>
-                    <div className="p-4 border rounded-lg">
-                      <p className="text-muted-foreground text-sm">
+
+                    <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-start flex-col border-white/10">
+                      <p className="text-sm opacity-80 font-medium line-clamp-1">
                         Total Donors
                       </p>
-                      <p className="text-2xl font-bold">
-                        {fundraiser.donors.length}
-                      </p>
+                      <p className="text-2xl font-bold">2</p>
                     </div>
-                    <div className="p-4 border rounded-lg">
-                      <p className="text-muted-foreground text-sm">
-                        Average Donation
+
+                    <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-start flex-col border-white/10">
+                      <p className="text-sm opacity-80 font-medium line-clamp-1">
+                        Average Amount
                       </p>
-                      <p className="text-2xl font-bold">
-                        {formatCurrency(
-                          fundraiser.raisedAmount / fundraiser.donors.length,
-                        )}
-                      </p>
+                      <p className="text-2xl font-bold">$100</p>
                     </div>
-                    <div className="p-4 border rounded-lg">
-                      <p className="text-muted-foreground text-sm">
-                        Largest Donation
+
+                    <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-start flex-col border-white/10">
+                      <p className="text-sm opacity-80 font-medium line-clamp-1">
+                        Largest Amount
                       </p>
-                      <p className="text-2xl font-bold">
-                        {formatCurrency(
-                          Math.max(...fundraiser.donors.map((d) => d.amount)),
-                        )}
-                      </p>
+                      <p className="text-2xl font-bold">$500</p>
                     </div>
                   </div>
                 </CardContent>
@@ -296,23 +299,30 @@ export default function ManageFundraiserPage() {
         </div>
 
         <div className="lg:col-span-1">
-          <Card className="sticky top-4 md:top-[6rem]">
+          <Card className="sticky top-4 md:top-[6rem] bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white overflow-hidden">
+            <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
+              <div className="absolute transform rotate-45 bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] w-8 h-8 -top-4 -right-4 opacity-50"></div>
+            </div>
             <CardHeader>
-              <CardTitle>Actions</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl font-bold font-rajdhani text-[#f2bd74]">
+                Actions
+              </CardTitle>
+              <CardDescription className="text-[#ede4d3] ">
                 Manage your fundraiser and funds
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-4 border rounded-lg bg-muted/50">
-                <p className="text-sm font-medium">Wallet Address</p>
-                <p className="text-xs text-muted-foreground break-all">
-                  {fundraiser.walletAddress}
+              <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-start flex-col border-white/10">
+                <p className="text-sm opacity-80 font-medium line-clamp-1">
+                  Wallet Address
                 </p>
+                <p className="text-xs ">{fundraiser.walletAddress}</p>
               </div>
 
-              <div className="p-4 border rounded-lg bg-muted/50">
-                <p className="text-sm font-medium">Available to Withdraw</p>
+              <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-start flex-col border-white/10">
+                <p className="text-sm opacity-80 font-medium line-clamp-1">
+                  Available to Withdraw
+                </p>
                 <p className="text-2xl font-bold">
                   {formatCurrency(fundraiser.raisedAmount)}
                 </p>
@@ -321,6 +331,7 @@ export default function ManageFundraiserPage() {
               <Button
                 className="w-full"
                 onClick={handleWithdrawFunds}
+                variant="secondary"
                 disabled={isWithdrawing || fundraiser.raisedAmount === 0}
               >
                 {isWithdrawing ? (
@@ -332,42 +343,21 @@ export default function ManageFundraiserPage() {
                 )}
               </Button>
 
-              <Separator className="my-4" />
+              <Separator className="bg-[#f2bd74]/20" />
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full text-destructive border-destructive hover:bg-destructive/10"
-                    disabled={isStoppingFundraiser}
-                  >
-                    {isStoppingFundraiser ? (
-                      "Processing..."
-                    ) : (
-                      <>
-                        <AlertCircle className="mr-2 h-4 w-4" /> Stop Fundraiser
-                      </>
-                    )}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you absolutely sure?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently stop
-                      your fundraiser and prevent any further donations.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleStopFundraiser}>
-                      Yes, stop fundraiser
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button
+                variant="destructive"
+                className="w-full"
+                disabled={isStoppingFundraiser}
+              >
+                {isStoppingFundraiser ? (
+                  "Processing..."
+                ) : (
+                  <>
+                    <AlertCircle className="mr-2 h-4 w-4" /> Stop Fundraiser
+                  </>
+                )}
+              </Button>
             </CardContent>
           </Card>
         </div>

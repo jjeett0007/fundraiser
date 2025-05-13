@@ -53,8 +53,49 @@ export default function CreateFundraiserPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ValidationErrors>({});
   const [infoExpanded, setInfoExpanded] = useState(false);
-
   const [currentStep, setCurrentStep] = useState(1);
+
+  useEffect(() => {
+    const savedData = localStorage.getItem("fundraiserFormData");
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      setTitle(parsedData.title || "");
+      setDescription(parsedData.description || "");
+      setGoalAmount(parsedData.goalAmount || "");
+      setCategory(parsedData.category || "Medical");
+      setWalletAddress(parsedData.walletAddress || "");
+      // setImagePreview(parsedData.imagePreview || null);
+      setCurrentStep(parsedData.currentStep || 1);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const formData = {
+        title,
+        description,
+        goalAmount,
+        category,
+        walletAddress,
+        // imagePreview,
+        currentStep,
+      };
+      if (typeof window !== "undefined") {
+        localStorage.setItem("fundraiserFormData", JSON.stringify(formData));
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [
+    title,
+    description,
+    goalAmount,
+    category,
+    walletAddress,
+    // imagePreview,
+    currentStep,
+  ]);
+
   const totalSteps = 4;
 
   useEffect(() => {
@@ -104,6 +145,8 @@ export default function CreateFundraiserPage() {
   };
 
   const nextStep = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
     if (currentStep === 1) {
       const stepErrors = validateInputs({
         title,
@@ -142,12 +185,17 @@ export default function CreateFundraiserPage() {
 
   const prevStep = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     setError({});
   };
 
   const handleCreateFundraiser = async () => {
     setIsLoading(true);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("fundraiserFormData");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     try {
       const errors = validateInputs({
@@ -300,34 +348,30 @@ export default function CreateFundraiserPage() {
         >
           Recipient Wallet Address
         </Label>
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
+        <div className="flex flex-col items-start gap-2">
           <AppInput
             id="walletAddress"
-            name="walletAddress"
             placeholder="Connect solana wallet address"
-            value={walletAddress}
+            value={walletAddress || ""}
             onChange={(e) => setWalletAddress(e.target.value)}
             error={error.walletAddress}
             readOnly={!!walletAddress}
-            disabled
           />
 
-          <div className="w-full md:w-auto">
-            <WalletMultiButton
-              style={{
-                background: "#0a1a2f",
-                color: "#f2bd74",
-                border: "1px solid #f2bd74",
-                padding: "0px 15px",
-                borderRadius: "0.5rem",
-                fontSize: "14px",
-                margin: 0,
-                display: "inline-flex",
-                width: "100%",
-                flex: "1",
-              }}
-            />
-          </div>
+          <WalletMultiButton
+            style={{
+              background: "#0a1a2f",
+              color: "#f2bd74",
+              border: "1px solid #f2bd74",
+              padding: "0px 15px",
+              borderRadius: "0.5rem",
+              fontSize: "14px",
+              margin: 0,
+              display: "inline-flex",
+              width: "100%",
+              flex: "1",
+            }}
+          />
         </div>
       </div>
 
@@ -458,8 +502,10 @@ export default function CreateFundraiserPage() {
         verify and launch it from your dashboard.
       </p>
       <Button
-        className="bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] hover:from-[#d01232] hover:to-[#f7ca8a] text-white border-0 px-8"
-        onClick={() => router.push("/dashboard")}
+        variant={"secondary"}
+        onClick={() => {
+          // router.push("/dashboard");
+        }}
       >
         Verify
       </Button>
@@ -548,7 +594,7 @@ export default function CreateFundraiserPage() {
                     }`}
                   >
                     {step < currentStep ? (
-                      <CheckCircle className="h-4 w-4" />
+                      <CheckCircle className="h-5 w-6" />
                     ) : (
                       <>{step === 4 ? "🎉" : step}</>
                     )}

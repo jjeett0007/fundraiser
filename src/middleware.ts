@@ -19,7 +19,13 @@ export function middleware(request: NextRequest) {
     "/fundraiser/[id]",
   ];
 
-  const isPublicPath = publicPaths.includes(path);
+  const isPublicPath = publicPaths.some((publicPath) => {
+    if (publicPath.includes("[id]")) {
+      const pathRegex = new RegExp(`^${publicPath.replace("[id]", "[^/]+")}$`);
+      return pathRegex.test(path);
+    }
+    return path === publicPath;
+  });
 
   const token = request.cookies.get("Access")?.value;
   const expirationDate = request.cookies.get("expiresIn")?.value;
@@ -29,18 +35,12 @@ export function middleware(request: NextRequest) {
     : null;
 
   const isTokenValid = token && expirationInMs && Date.now() < expirationInMs;
-  console.log("IS user authenticated");
-  console.log(isTokenValid);
 
   if (!isPublicPath && !isTokenValid) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (path === "/login" && isTokenValid) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  if (path === "/signup" && isTokenValid) {
+  if ((path === "/login" || path === "/signup") && isTokenValid) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -48,5 +48,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|.*\\..*).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };

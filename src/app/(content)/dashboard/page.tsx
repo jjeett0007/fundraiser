@@ -67,7 +67,7 @@ export default function DashboardPage() {
 
   return (
     <main className="container mx-auto mb-8 px-4 md:px-10 lg:px-14 py-6 ">
-      <div className="flex justify-between items-center mt-10 mb-6">
+      <div className="flex justify-between items-center my-6 md:mt-4 "> 
         <h2 className="md:text-2xl text-xl font-rajdhani font-bold text-[#f2bd74]">
           Profile Info
         </h2>

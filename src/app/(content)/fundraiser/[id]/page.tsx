@@ -45,6 +45,7 @@ export default function FundraiserPage() {
   const fundraiserId = params.id as string;
   const { toast } = useToast();
   const userData = useSelector((state: RootState) => state.userData);
+  const userToken = useSelector((state: RootState) => state.userToken);
 
   const [fundraiser, setFundraiser] = useState<FundraiserData | null>(null);
   const [donors, setDonors] = useState<Donor[]>([]);
@@ -54,7 +55,6 @@ export default function FundraiserPage() {
   const [showUserInfoDialog, setShowUserInfoDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [donationAmount, setDonationAmount] = useState(0);
-  const [copiedWallet, setCopiedWallet] = useState(false);
 
   const fetchFundraiserDetails = async () => {
     setLoading(true);
@@ -122,11 +122,6 @@ export default function FundraiserPage() {
     }).format(amount);
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedWallet(true);
-    setTimeout(() => setCopiedWallet(false), 2000);
-  };
 
   const handleDonation = async (userInfo: {
     name: string;
@@ -391,7 +386,7 @@ export default function FundraiserPage() {
                   </h3>
                   <div className="grid grid-cols-2 gap-2">
                     <Button
-                      variant={selectedAmount === 5 ? "secondary" : "default"}
+                      variant={selectedAmount === 5 ? "default" : "outline"}
                       onClick={() => {
                         setSelectedAmount(5);
                         setCustomAmount("");
@@ -400,7 +395,7 @@ export default function FundraiserPage() {
                       $5
                     </Button>
                     <Button
-                      variant={selectedAmount === 10 ? "secondary" : "default"}
+                      variant={selectedAmount === 10 ? "default" : "outline"}
                       onClick={() => {
                         setSelectedAmount(10);
                         setCustomAmount("");
@@ -409,7 +404,7 @@ export default function FundraiserPage() {
                       $10
                     </Button>
                     <Button
-                      variant={selectedAmount === 25 ? "secondary" : "default"}
+                      variant={selectedAmount === 25 ? "default" : "outline"}
                       onClick={() => {
                         setSelectedAmount(25);
                         setCustomAmount("");
@@ -418,7 +413,7 @@ export default function FundraiserPage() {
                       $25
                     </Button>
                     <Button
-                      variant={selectedAmount === 50 ? "secondary" : "default"}
+                      variant={selectedAmount === 50 ? "default" : "outline"}
                       onClick={() => {
                         setSelectedAmount(50);
                         setCustomAmount("");
@@ -445,7 +440,8 @@ export default function FundraiserPage() {
                   </div>
                   <Separator className="bg-[#f2bd74]/20" />
                   <Button
-                    className="w-full bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] hover:from-[#d01232] hover:to-[#f7ca8a] text-white border-0 shadow-lg shadow-[#bd0e2b]/20"
+                    className="w-full "
+                    variant="secondary"
                     onClick={() => {
                       const amount = customAmount
                         ? Number.parseFloat(customAmount)
@@ -460,6 +456,7 @@ export default function FundraiserPage() {
                         });
                       }
                     }}
+                    disabled={userToken.isAuthenticated === false}
                   >
                     <Heart className="mr-2 h-4 w-4" /> Contribute Now
                   </Button>
@@ -482,32 +479,6 @@ export default function FundraiserPage() {
                   >
                     <QrCode className="mr-2 h-4 w-4" /> QR Code
                   </Button>
-                </div>
-
-                <div className="text-xs text-gray-400 bg-[#0a1a2f] p-3 rounded-lg border border-[#f2bd74]/10">
-                  <div className="flex gap-1 items-center justify-between">
-                    <p className="flex  items-center">
-                      <Shield className="h-3 w-3 mr-1 text-[#f2bd74]" />{" "}
-                      Recipient wallet:
-                    </p>{" "}
-                    <button
-                      onClick={() =>
-                        copyToClipboard(fundMetaData.walletAddress)
-                      }
-                      className="flex items-center text-[#f2bd74] hover:text-white transition-colors"
-                    >
-                      {fundMetaData.walletAddress.substring(0, 6)}
-                      ...
-                      {fundMetaData.walletAddress.substring(
-                        fundMetaData.walletAddress.length - 4
-                      )}
-                      {copiedWallet ? (
-                        <CheckCircle2 className="h-3 w-3 ml-1 text-green-400" />
-                      ) : (
-                        <Copy className="h-3 w-3 ml-1" />
-                      )}
-                    </button>
-                  </div>
                 </div>
               </CardFooter>
             </Card>

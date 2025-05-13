@@ -22,6 +22,8 @@ import { useRouter } from "next/navigation";
 import { clearData } from "@/store/slice/userDataSlice";
 import { clearToken } from "@/store/slice/userTokenSlice";
 import Cookies from "js-cookie";
+import white_wording_logo from "@/assets/white_wording_logo.svg";
+import Image from "next/image";
 
 interface PathValidator {
   (path: string): boolean;
@@ -160,7 +162,13 @@ function HeaderComp() {
               {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
             </Button>
             <Link href="/">
-              <h1 className="text-2xl font-bold text-white">EmergFunds</h1>
+              <Image
+                src={white_wording_logo}
+                alt={"white_wording_logo"}
+                height={1000}
+                width={1000}
+                className="md:w-[6rem] w-[5rem] lg:w-[8rem] "
+              />
             </Link>
           </div>
           <nav
@@ -198,14 +206,22 @@ function HeaderComp() {
               <LogOutIcon className="mr-1 h-4 w-4" /> Logout
             </Button>
           ) : (
-            <div className="md:flex gap-2 hidden items-center">
-              <Button variant={"outline"}>
-                <Link href="/login">Login</Link>
-              </Button>
-              <Button>
-                <Link href="/signup">SignUp</Link>
-              </Button>
-            </div>
+            <>
+              <div className="md:flex gap-2 hidden items-center">
+                <Button variant={"outline"}>
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button>
+                  <Link href="/signup">SignUp</Link>
+                </Button>
+              </div>
+
+              <div className="md:hidden ">
+                <Button variant={"ghost"}>
+                  <Link href="/login">Login/SignUp</Link>
+                </Button>
+              </div>
+            </>
           )}
         </div>
       </header>
