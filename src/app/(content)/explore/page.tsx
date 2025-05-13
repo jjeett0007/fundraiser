@@ -1,200 +1,196 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Clock, Users, Search, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import FundraiserCard from "@/components/fundraiser/FundraiserCard";
+import { FundraiserData, PaginationData } from "@/utils/type";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import PaginationComp from "@/components/customs/PaginationComp";
+import apiRequest from "@/utils/apiRequest";
+import { categories } from "@/utils/list";
 
 export default function ExplorePage() {
-  // Mock data for fundraisers
-  const fundraisers = [
-    {
-      id: "1",
-      title: "Medical Emergency Support",
-      description:
-        "Help with urgent medical expenses for life-saving treatment needed immediately.",
-      goalAmount: 5000,
-      amountRaised: 2750,
-      createdAt: new Date(Date.now() - 3600000 * 5), // 5 hours ago
-      category: "Medical",
-      imageUrl:
-        "https://images.unsplash.com/photo-1584515933487-779824d29309?w=800&q=80",
-    },
-    {
-      id: "2",
-      title: "Family Crisis Relief",
-      description:
-        "Supporting a family who lost everything in a house fire last night.",
-      goalAmount: 10000,
-      amountRaised: 4200,
-      createdAt: new Date(Date.now() - 3600000 * 12), // 12 hours ago
-      category: "Family",
-      imageUrl:
-        "https://images.unsplash.com/photo-1536856136534-bb679c52a9aa?w=800&q=80",
-    },
-    {
-      id: "3",
-      title: "Urgent Bill Assistance",
-      description:
-        "Help prevent utilities from being shut off for a vulnerable elderly couple.",
-      goalAmount: 1500,
-      amountRaised: 950,
-      createdAt: new Date(Date.now() - 3600000 * 24), // 24 hours ago
-      category: "Urgent Bill",
-      imageUrl:
-        "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80",
-    },
-    {
-      id: "4",
-      title: "Disaster Recovery Fund",
-      description:
-        "Supporting recovery efforts after the recent natural disaster in our community.",
-      goalAmount: 25000,
-      amountRaised: 15750,
-      createdAt: new Date(Date.now() - 3600000 * 36), // 36 hours ago
-      category: "Crisis",
-      imageUrl:
-        "https://images.unsplash.com/photo-1498354178607-a79df2916198?w=800&q=80",
-    },
-    {
-      id: "5",
-      title: "Emergency Pet Surgery",
-      description:
-        "Help fund a life-saving surgery for a beloved pet with no insurance coverage.",
-      goalAmount: 3500,
-      amountRaised: 2100,
-      createdAt: new Date(Date.now() - 3600000 * 8), // 8 hours ago
-      category: "Medical",
-      imageUrl:
-        "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=800&q=80",
-    },
-    {
-      id: "6",
-      title: "Temporary Housing Need",
-      description:
-        "Providing temporary shelter for a family displaced by unforeseen circumstances.",
-      goalAmount: 4500,
-      amountRaised: 1800,
-      createdAt: new Date(Date.now() - 3600000 * 18), // 18 hours ago
-      category: "Family",
-      imageUrl:
-        "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80",
-    },
-    {
-      id: "7",
-      title: "Emergency Vehicle Repair",
-      description:
-        "Help a single parent fix their car to continue getting to work and supporting their family.",
-      goalAmount: 2000,
-      amountRaised: 850,
-      createdAt: new Date(Date.now() - 3600000 * 10), // 10 hours ago
-      category: "Transportation",
-      imageUrl:
-        "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80",
-    },
-    {
-      id: "8",
-      title: "Critical Medication Fund",
-      description:
-        "Support needed for life-sustaining medication that insurance won't fully cover.",
-      goalAmount: 1200,
-      amountRaised: 600,
-      createdAt: new Date(Date.now() - 3600000 * 15), // 15 hours ago
-      category: "Medical",
-      imageUrl:
-        "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=800&q=80",
-    },
-    {
-      id: "9",
-      title: "Emergency Food Relief",
-      description:
-        "Providing emergency food assistance to families affected by recent job losses.",
-      goalAmount: 3000,
-      amountRaised: 1250,
-      createdAt: new Date(Date.now() - 3600000 * 20), // 20 hours ago
-      category: "Food",
-      imageUrl:
-        "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&q=80",
-    },
-  ];
+  const { toast } = useToast();
 
-  // Categories for filtering
-  const categories = [
+  const [paginationData, setPaginationData] = useState<PaginationData>({
+    totalItems: 0,
+    currentPage: 1,
+    totalPages: 1,
+    pageSize: 9,
+  });
+  const [fundraisers, setFundraisers] = useState<FundraiserData[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [paginationLoading, setPaginationLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= paginationData.totalPages) {
+      setPaginationData((prev) => ({ ...prev, currentPage: newPage }));
+      fetchExploreFundraisers(newPage);
+    }
+  };
+
+  const fetchExploreFundraisers = async (page: number = 1) => {
+    setLoading(true);
+    setPaginationLoading(true);
+    try {
+      const response = await apiRequest(
+        "GET",
+        `/fundraise/get-fundraise?page=${page}`
+      );
+
+      if (response.success) {
+        setFundraisers(response.data.results);
+        if (response?.data?.pagination) {
+          setPaginationData(response.data.pagination);
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: response.message,
+          variant: "destructive",
+        });
+        setFundraisers([]);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch fundraisers.",
+        variant: "destructive",
+      });
+      setFundraisers([]);
+    } finally {
+      setLoading(false);
+      setPaginationLoading(false);
+    }
+  };
+
+  const initializeData = async () => {
+    await Promise.all([fetchExploreFundraisers(paginationData.currentPage)]);
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    if (mounted) {
+      initializeData();
+    }
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleCategoryChange = (category: string) => {
+    setActiveCategory(category);
+    // Implement category filtering logic here
+  };
+
+  const categoryFilters = [
     "All",
-    "Medical",
-    "Family",
-    "Crisis",
-    "Urgent Bill",
-    "Transportation",
-    "Food",
+    ...categories.map((category) => category.name),
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="container mx-auto px-4 md:px-10 lg:px-14 py-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">
+        <h2 className="text-2xl font-rajdhani font-bold mb-4 text-[#f2bd74]">
           Explore Fundraisers
-        </h1>
+        </h2>
 
         {/* Search and Filter Section */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row gap-4 mb-4">
-            <div className="relative flex-grow">
-              <Search
-                size={18}
-                className="absolute left-3 top-[40%] transform -translate-y-1/2 text-gray-400"
-              />
-              <Input
+          <div className="flex md:items-center items-start flex-col md:flex-row gap-4 mb-4">
+            <div className="flex gap-2 border border-primaryGold p-1.5 px-2 w-full md:w-auto  rounded-md items-center ">
+              <Search size={15} color={"#ede4d3"} />
+              <input
                 placeholder="Search fundraisers..."
-                className="pl-10 bg-white"
+                className="bg-transparent text-[16px] placeholder:text-sm p-0 m-0 outline-none border-0"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {categories.map((category, index) => (
-                <Button
-                  key={index}
-                  variant={category === "All" ? "default" : "outline"}
-                  className={category === "All" ? "bg-[#29339B]" : ""}
-                >
-                  {category}
-                </Button>
-              ))}
+            <div className="flex gap-2 items-center overflow-x-auto md:pb-0 pb-2">
+              {categoryFilters.map((categoryName, index) => {
+                const isActive = categoryName === activeCategory;
+
+                return (
+                  <Button
+                    key={index}
+                    variant={isActive ? "default" : "outline"}
+                    onClick={() => handleCategoryChange(categoryName)}
+                  >
+                    {categoryName}
+                  </Button>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* Fundraisers Grid */}
-        <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3  justify-center lg:gap-8 flex-wrap mx-auto items-center">
-          {fundraisers.map((fundraiser, index) => (
-            <FundraiserCard
-              key={index}
-              {...fundraiser}
-              createdAt={fundraiser.createdAt.toISOString()}
-            />
-          ))}
-        </div>
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-10">
+            <p className="text-gray-500">Loading fundraisers...</p>
+          </div>
+        )}
 
-        {/* Start Your Own Fundraiser CTA */}
-        <div className="mt-16  bg-gradient-to-r from-[#29339B]/5 to-[#FF3A20]/5 border border-gray-100 rounded-xl p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900">
+        {/* No Results State */}
+        {!loading && fundraisers && fundraisers.length === 0 && (
+          <div className="text-center py-10">
+            <p className="text-gray-500">No fundraisers found</p>
+          </div>
+        )}
+
+        {/* Fundraisers Grid */}
+        {!loading && fundraisers && fundraisers.length > 0 && (
+          <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3 justify-center lg:gap-8 flex-wrap mx-auto items-center">
+            {fundraisers.map((fundraiser, index) => (
+              <FundraiserCard
+                key={index}
+                _id={fundraiser._id}
+                title={fundraiser.fundMetaData.title}
+                description={fundraiser.fundMetaData.description}
+                goalAmount={fundraiser.fundMetaData.goalAmount}
+                currentAmount={fundraiser.fundMetaData.currentAmount}
+                isFundRaisedStartedDate={fundraiser.isFundRaisedStartedDate}
+                category={fundraiser.fundMetaData.category}
+                isTotalDonor={fundraiser.isTotalDonor}
+                imageUrl={fundraiser.fundMetaData.imageUrl}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && fundraisers && fundraisers.length > 0 && (
+          <div className="mt-8 flex justify-center">
+            <PaginationComp
+              currentPage={paginationData.currentPage}
+              totalPages={paginationData.totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
+
+        <section className="text-center p-8 mx-4 md:mx-10 lg:mx-14 my-12 rounded-xl bg-gradient-to-r from-[#bd0e2b]/10 to-[#f2bd74]/10 border border-[#f2bd74]/20 backdrop-blur-sm relative overflow-hidden">
+          <div className="absolute -left-10 -top-10 w-40 h-40 bg-gradient-to-r from-[#bd0e2b]/20 to-[#f2bd74]/20 rounded-full blur-xl"></div>
+          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-gradient-to-r from-[#bd0e2b]/20 to-[#f2bd74]/20 rounded-full blur-xl"></div>
+
+          <h2 className="text-2xl font-rajdhani font-bold mb-6 text-[#f2bd74] relative z-10">
             Need Help With an Emergency?
           </h2>
-          <p className="text-lg mb-6 max-w-2xl mx-auto text-gray-800">
+          <p className="text-lg mb-6 max-w-2xl mx-auto text-white">
             Start your own fundraiser and get the support you need in minutes.
           </p>
-          <Link href="/fundraiser/create">
-            <Button size={"lg"}>Start Your Fundraiser</Button>
-          </Link>
-        </div>
+          <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
+            <Link href="/fundraiser/create">
+              <Button size={"lg"}>Start Your Fundraiser</Button>
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );

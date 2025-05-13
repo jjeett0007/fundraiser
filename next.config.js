@@ -2,7 +2,12 @@
 
 const nextConfig = {
   images: {
-    domains: ["images.unsplash.com"],
+    domains: [
+      "images.unsplash.com",
+      "lh3.googleusercontent.com",
+      "encrypted-tbn3.gstatic.com",
+      "miro.medium.com",
+    ],
   },
 };
 

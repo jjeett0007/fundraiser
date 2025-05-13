@@ -33,8 +33,8 @@ const AppInput = ({
   return (
     <div className="flex flex-col w-full items-start gap-1">
       <div
-        className={`flex gap-2 items-center rounded-lg w-full border ${
-          type === "password" ? "" : "p-2 py-[5px]"
+        className={`flex gap-2 items-center rounded-lg w-full bg-[#0a1a2f]/50 border-[#f2bd74]/30 border ${
+          type === "password" ? "" : "p-2 py-[8px]"
         } ${
           error
             ? `border-red-500 ${shake ? "animate-shake" : ""}`
@@ -46,21 +46,21 @@ const AppInput = ({
           placeholder={placeholder}
           disabled={disabled}
           {...props}
-          className={`flex-1 border-0 bg-transparent outline-none text-[16px] appearance-none ${
+          className={`flex-1 text-white placeholder:text-gray-500 border-0 bg-transparent outline-none text-[16px] appearance-none ${
             type === "password" ? "pl-2" : ""
           } ${disabled ? "cursor-not-allowed text-[#999]" : ""}`}
         />
         {type === "password" && !disabled && (
           <span
             onClick={togglePasswordVisibility}
-            className="cursor-pointer p-3 hover:bg-[#f5f5f5] dark:hover:bg-[#363636ac] rounded-lg"
+            className="cursor-pointer p-3 hover:bg-[#35353586] text-white dark:hover:bg-[#363636ac] rounded-lg"
           >
             {showPassword ? <PiEyeSlash /> : <PiEye />}
           </span>
         )}
       </div>
       {error && (
-        <div className="text-[#f35844f1] w-full text-[12px] bg-[#febbbb4e] p-1 px-2 rounded-md flex items-center gap-2">
+        <div className="text-[#f74831f1] w-full text-xs font-rajdhani bg-[#533a3a4e] p-1 px-2 rounded-md flex items-center gap-2">
           {error}
         </div>
       )}

@@ -15,9 +15,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UserFundraiserCard from "@/components/fundraiser/UserFundraiserCard";
-
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import EditProfile from "./components/EditProfile";
 
 export default function DashboardPage() {
+  const userData = useSelector((state: RootState) => state.userData);
+
   const [userFundraisers, setUserFundraisers] = useState([
     {
       id: "1",
@@ -62,86 +66,98 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="container mx-auto px-4 md:px-10 lg:px-14 py-6 ">
-      <div className="mb-8 rounded-xl bg-gradient-to-r from-primary/90 to-primary/70 text-primary-foreground overflow-hidden shadow-md">
-        <div className="p-6 md:p-8">
-          <div className="flex relative items-start flex-col md:flex-row md:items-center lg:items-start gap-6">
-            <div className="relative">
-              <div className="w-28 h-28 rounded-full border-2 border-white overflow-hidden">
-                <Image
-                  src={userProfile.avatar || "/placeholder.svg"}
-                  alt={userProfile.name}
-                  width={112}
-                  height={112}
-                  className="object-cover"
-                />
+    <main className="container mx-auto mb-8 px-4 md:px-10 lg:px-14 py-6 ">
+      <div className="flex justify-between items-center mt-10 mb-6">
+        <h2 className="md:text-2xl text-xl font-rajdhani font-bold text-[#f2bd74]">
+          Profile Info
+        </h2>
+        <EditProfile />
+      </div>
+      <div className="mt-6 md:mt-10 bg-primary border border-white/20 rounded-lg p-4 flex items-start flex-col md:flex-row md:items-center lg:items-start gap-6">
+        <div className="relative">
+          <div className="w-28 h-28 rounded-full border-2 border-white overflow-hidden">
+            <Image
+              src={userData.profileImages.avatar || "/placeholder.svg"}
+              alt={userData.profile.displayName}
+              width={112}
+              height={112}
+              className="object-cover"
+            />
+          </div>
+          <Button
+            size="icon"
+            className="absolute bottom-0 right-0 h-8 w-8 rounded-full shadow-md"
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="w-full text-center md:text-left">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center md:gap-2">
+              <h2 className="text-2xl font-bold font-rajdhani">
+                {userData.profile.firstName} {userData.profile.lastName}
+              </h2>
+
+              <div className="p-2.5 py-0.5 rounded-full bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10">
+                <span className="text-sm">@{userData.profile.displayName}</span>
               </div>
-              <Button
-                size="icon"
-                variant="secondary"
-                className="absolute bottom-0 right-0 h-8 w-8 rounded-full shadow-md"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Mail className="h-6 w-6 rounded-full border p-1" />
+              <span className="text-sm">{userData.email}</span>
             </div>
 
-            <Button
-              variant="secondary"
-              className="absolute flex gap-2 top-0 right-0"
-            >
-              <Edit className="h-4 w-4" /> Edit Profile
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <MapPin className="h-6 w-6 rounded-full border p-1" />
+              <span className="text-sm">
+                {userData.address?.city ||
+                userData.address?.state ||
+                userData.address?.country
+                  ? `${userData.address?.city || ""} ${userData.address?.state || ""}${
+                      userData.address?.country
+                        ? `, ${userData.address.country}`
+                        : ""
+                    }`
+                      .trim()
+                      .replace(/\s+,/, ",")
+                  : "No Address"}
+              </span>
+            </div>
+          </div>
 
-            <div className="w-full text-center md:text-left">
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                <h2 className="text-2xl font-bold">{userProfile.name}</h2>
-                <div className="flex items-center gap-1.5">
-                  <Mail className="h-6 w-6 rounded-full border p-1" />
-                  <span className="text-sm">{userProfile.email}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Phone className="h-6 w-6 rounded-full border p-1" />
-                  <span className="text-sm">{userProfile.phone}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="h-6 w-6 rounded-full border p-1" />
-                  <span className="text-sm">{userProfile.location}</span>
-                </div>
+          <div className="mt-10 md:mt-3 grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl">
+            <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10">
+              <p className="text-sm opacity-80">Member Since</p>
+              <div className="flex items-center gap-2 mt-1">
+                <Calendar className="h-4 w-4" />
+                <p className="font-bold">{userProfile.memberSince}</p>
               </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-                <div className="bg-white/20 rounded-lg p-3 flex flex-col items-start">
-                  <p className="text-sm opacity-80">Member Since</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Calendar className="h-4 w-4" />
-                    <p className="font-bold">{userProfile.memberSince}</p>
-                  </div>
-                </div>
-                <div className="bg-white/20 rounded-lg p-3 flex flex-col items-start">
-                  <p className="text-sm opacity-80">Total Fundraisers</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Heart className="h-4 w-4" />
-                    <p className="font-bold">{userFundraisers.length}</p>
-                  </div>
-                </div>
-                <div className="bg-white/20 rounded-lg p-3 flex flex-col items-start">
-                  <p className="text-sm opacity-80">Total Raised</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Activity className="h-4 w-4" />
-                    <p className="font-bold">{userProfile.totalRaised}</p>
-                  </div>
-                </div>
+            </div>
+            <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10">
+              <p className="text-sm opacity-80">Total Fundraisers</p>
+              <div className="flex items-center gap-2 mt-1">
+                <Heart className="h-4 w-4" />
+                <p className="font-bold">{userFundraisers.length}</p>
+              </div>
+            </div>
+            <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10 col-span-2 md:col-span-1">
+              <p className="text-sm opacity-80">Total Raised</p>
+              <div className="flex items-center gap-2 mt-1">
+                <Activity className="h-4 w-4" />
+                <p className="font-bold">{userProfile.totalRaised}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">My Fundraisers</h2>
+      <div className="flex justify-between items-center mt-10 mb-6">
+        <h2 className="md:text-2xl text-xl font-rajdhani font-bold text-[#f2bd74]">
+          Explore Fundraisers
+        </h2>
         <Link href="/fundraiser/create">
-          <Button>
+          <Button size={"sm"}>
             <Plus className="mr-2 h-4 w-4" /> Create Fundraiser
           </Button>
         </Link>

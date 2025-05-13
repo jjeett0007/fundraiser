@@ -10,7 +10,9 @@
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 254 56% 41%;
+    --primary: 214, 65%, 11%;
+    --primary-gold: 35, 83%, 70%;
+    --primary-red: 350, 86%, 40%;
     --primary-foreground: 0 0% 98%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
@@ -78,4 +80,33 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+body {
+  font-family: var(--font-manrope);
+  background-color: #0a1a2f;
+}
+
+.rajdhani {
+  font-family: var(--font-rajdhani);
+}
+.manrope {
+  font-family: var(--font-manrope);
+}
+
+.custom-wallet-button .wallet-adapter-button {
+  border-radius: 0.75rem !important;
+  padding: 0.75rem 1rem !important;
+  height: auto !important;
+  font-size: 14px !important;
+  transition: all 0.2s ease;
+}
+
+.wallet-adapter-dropdown-list {
+  border-radius: 0.75rem !important;
+}
+
+.wallet-adapter-dropdown-list-item {
+  border-radius: 0.5rem !important;
+  margin: 0.25rem !important;
 }
