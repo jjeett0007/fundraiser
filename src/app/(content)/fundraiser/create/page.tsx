@@ -160,10 +160,10 @@ export default function CreateFundraiserPage() {
       if (!uploadResponse.success) {
         throw new Error("Failed to upload");
       }
-
+      console.log(uploadResponse);
       updateFormData(
         type === "image" ? "imagePreview" : "videoPreview",
-        uploadResponse.data
+        uploadResponse.data.link
       );
     } catch (error) {
       toast({
@@ -576,7 +576,7 @@ export default function CreateFundraiserPage() {
                     {!formData.imagePreview ? (
                       <div className="border-2 border-dashed relative border-[#f2bd74]/30 rounded-lg p-6 text-center cursor-pointer hover:bg-[#f2bd74]/5 transition-colors">
                         {imageLoading && (
-                          <div className="absolute w-6 h-6 border border-primaryGold top-2 bg-primary right-2 rounded-full">
+                          <div className="absolute flex items-center justify-center w-6 h-6 border border-primaryGold top-2 bg-primary right-2 rounded-full">
                             <Loader2 className="w-5 h-5 text-primaryGold animate-spin" />
                           </div>
                         )}
@@ -627,7 +627,7 @@ export default function CreateFundraiserPage() {
                     {!formData.videoPreview ? (
                       <div className="border-2 relative border-dashed border-[#f2bd74]/30 rounded-lg p-6 text-center cursor-pointer hover:bg-[#f2bd74]/5 transition-colors">
                         {videoLoading && (
-                          <div className="absolute border border-primaryGold w-6 h-6 top-2 bg-primary right-2 rounded-full">
+                          <div className="absolute flex items-center justify-center border border-primaryGold w-6 h-6 top-2 bg-primary right-2 rounded-full">
                             <Loader2 className="w-5 h-5 text-primaryGold animate-spin" />
                           </div>
                         )}
