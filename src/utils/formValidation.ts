@@ -160,6 +160,8 @@ export const validateInputs = (data: {
   if ("goalAmount" in data) {
     if (!data.goalAmount) {
       errors.goalAmount = "Goal amount is required";
+    } else if (Number(data.goalAmount) <= 0) {
+      errors.goalAmount = "Goal Amount must be at least 1USDC";
     }
   }
 
@@ -175,6 +177,8 @@ export const validateInputs = (data: {
       errors.description = "Description is required";
     } else if (data.description.length < 10) {
       errors.description = "Description must be at least 10 characters long";
+    }else if (data.description.length > 500) {
+      errors.description = "Description must  be at most 500 characters long";
     }
   }
   if ("walletAddress" in data) {

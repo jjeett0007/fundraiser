@@ -164,7 +164,7 @@ const UserFundraiserCard = ({
               </div>
             </div>
 
-            <Button className="w-full bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] hover:from-[#d01232] hover:to-[#f7ca8a] text-white border-0 shadow-lg shadow-[#bd0e2b]/20 font-bold">
+            <Button variant='secondary' className="w-full ">
               <Rocket className="h-4 w-4 mr-2" />
               Launch Fundraiser
             </Button>

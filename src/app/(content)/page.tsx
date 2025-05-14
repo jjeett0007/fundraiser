@@ -183,7 +183,7 @@ export default function HomePage() {
                     </div>
                     <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
                       <p className="text-2xl md:text-3xl font-bold text-white">
-                        5 min
+                        2 min
                       </p>
                       <p className="text-sm text-white/70">Average Time</p>
                     </div>
@@ -298,7 +298,7 @@ export default function HomePage() {
               <section className="py-16">
                 <div className="container mx-auto px-4 md:px-10 lg:px-14">
                   <div className="flex justify-between items-center mb-8">
-                    <h2 className="text-2xl font-rajdhani font-bold mb-4 text-[#f2bd74]">
+                    <h2 className="text-2xl font-rajdhani font-bold text-[#f2bd74]">
                       Active Fundraisers
                     </h2>
                     <Link

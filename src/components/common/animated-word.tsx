@@ -51,7 +51,7 @@ export default function AnimatedWord({
         document.body.removeChild(tempSpan);
       });
 
-      return maxWidth > 0 ? `${maxWidth + 10}px` : "auto"; // Add a small buffer
+      return maxWidth > 0 ? `${maxWidth + 10}px` : "auto";
     }
     return "auto";
   };
@@ -64,7 +64,6 @@ export default function AnimatedWord({
         display: "inline-block",
       }}
     >
-      {/* Current word */}
       <motion.span
         key={`current-${currentIndex}`}
         initial={{
@@ -87,7 +86,6 @@ export default function AnimatedWord({
         {words[currentIndex]}
       </motion.span>
 
-      {/* Previous word that's exiting */}
       {isTransitioning && (
         <motion.span
           key={`prev-${prevIndex}`}

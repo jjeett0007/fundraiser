@@ -1,19 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { ChangeEvent } from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useWallet } from "@solana/wallet-adapter-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@/components/ui/card";
 import {
   AlertCircle,
   CheckCircle,
@@ -26,6 +18,7 @@ import {
   Shield,
   ChevronDown,
   ChevronUp,
+  Loader2,
 } from "lucide-react";
 import { FiUploadCloud } from "react-icons/fi";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
@@ -37,78 +30,168 @@ import { isValidInput, validateInputs } from "@/utils/formValidation";
 import { ValidationErrors } from "@/utils/type";
 import { categories } from "@/utils/list";
 import Image from "next/image";
+import VerifyFundraising from "@/components/fundraiser/VerifyFundraising";
+
+type FormData = {
+  title: string;
+  description: string;
+  goalAmount: string;
+  category: string;
+  walletAddress: string;
+  imagePreview: string | null;
+  videoPreview: string | null;
+};
 
 export default function CreateFundraiserPage() {
   const router = useRouter();
   const { publicKey } = useWallet();
   const { toast } = useToast();
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [goalAmount, setGoalAmount] = useState("");
-  const [category, setCategory] = useState("Medical");
-  const [walletAddress, setWalletAddress] = useState("DPNXPNWvWoHaZ9P3WtfGCb2ZdLihW8VW1w1Ph4KDH9iG");
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [formData, setFormData] = useState<FormData>({
+    title: "",
+    description: "",
+    goalAmount: "",
+    category: "Medical",
+    walletAddress: "",
+    imagePreview: null,
+    videoPreview: null,
+  });
+
+  const [imageLoading, setImageLoading] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ValidationErrors>({});
   const [infoExpanded, setInfoExpanded] = useState(false);
-
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
+
+  const updateFormData = (field: keyof FormData, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  useEffect(() => {
+    const savedData = localStorage.getItem("fundraiserFormData");
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      setFormData((prev) => ({
+        ...prev,
+        ...parsedData,
+        currentStep: parsedData.currentStep || 1,
+      }));
+      setCurrentStep(parsedData.currentStep || 1);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const dataToSave = {
+        ...formData,
+        currentStep,
+      };
+      localStorage.setItem("fundraiserFormData", JSON.stringify(dataToSave));
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [formData, currentStep]);
 
   useEffect(() => {
     if (publicKey) {
-      setWalletAddress(publicKey.toString());
+      updateFormData("walletAddress", publicKey.toString());
     } else {
-      setWalletAddress("DPNXPNWvWoHaZ9P3WtfGCb2ZdLihW8VW1w1Ph4KDH9iG");
+      updateFormData("walletAddress", "");
     }
   }, [publicKey]);
+
+  const totalSteps = 4;
 
   const toggleInfoExpanded = () => {
     setInfoExpanded(!infoExpanded);
   };
 
   const handleCategorySelect = (selectedCategory: string) => {
-    setCategory(selectedCategory);
+    updateFormData("category", selectedCategory);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadChange = async (
+    e: ChangeEvent<HTMLInputElement>,
+    type: "image" | "video"
+  ) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) {
+      toast({ description: "No file selected" });
+      return;
     }
-  };
 
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setVideoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    // Video duration validation
+    if (type === "video") {
+      const video = document.createElement("video");
+      video.preload = "metadata";
+
+      const videoDuration = await new Promise<number>((resolve) => {
+        video.onloadedmetadata = () => {
+          window.URL.revokeObjectURL(video.src);
+          resolve(video.duration);
+        };
+        video.src = URL.createObjectURL(file);
+      });
+
+      if (videoDuration > 300) {
+        toast({
+          title: "Video too long",
+          description: "Please select a video shorter than 5 minutes",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    type === "image" ? setImageLoading(true) : setVideoLoading(true);
+
+    try {
+      const base64String = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+
+      const uploadResponse = await apiRequest("POST", "/upload/file", {
+        file: base64String,
+      });
+
+      if (!uploadResponse.success) {
+        throw new Error("Failed to upload");
+      }
+
+      updateFormData(
+        type === "image" ? "imagePreview" : "videoPreview",
+        uploadResponse.data
+      );
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `${error}, Try again`,
+        variant: "destructive",
+      });
+    } finally {
+      type === "image" ? setImageLoading(false) : setVideoLoading(false);
     }
   };
 
   const removeImage = () => {
-    setImagePreview(null);
+    updateFormData("imagePreview", null);
   };
 
   const removeVideo = () => {
-    setVideoPreview(null);
+    updateFormData("videoPreview", null);
   };
 
   const nextStep = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
     if (currentStep === 1) {
       const stepErrors = validateInputs({
-        title,
-        description,
-        goalAmount,
+        title: formData.title,
+        description: formData.description,
+        goalAmount: formData.goalAmount,
       });
 
       if (stepErrors.title || stepErrors.description) {
@@ -117,7 +200,7 @@ export default function CreateFundraiserPage() {
       }
     } else if (currentStep === 2) {
       const stepErrors = validateInputs({
-        walletAddress,
+        walletAddress: formData.walletAddress,
       });
 
       if (stepErrors.walletAddress) {
@@ -125,7 +208,7 @@ export default function CreateFundraiserPage() {
         return;
       }
     } else if (currentStep === 3) {
-      if (!imagePreview) {
+      if (!formData.imagePreview) {
         toast({
           title: "Image Required",
           description: "Please upload an image for your fundraiser",
@@ -136,13 +219,12 @@ export default function CreateFundraiserPage() {
     }
 
     setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
-
     setError({});
   };
 
   const prevStep = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
-
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setError({});
   };
 
@@ -151,10 +233,10 @@ export default function CreateFundraiserPage() {
 
     try {
       const errors = validateInputs({
-        goalAmount,
-        title,
-        description,
-        walletAddress,
+        goalAmount: formData.goalAmount,
+        title: formData.title,
+        description: formData.description,
+        walletAddress: formData.walletAddress,
       });
 
       const requiredFields = [
@@ -169,7 +251,7 @@ export default function CreateFundraiserPage() {
         return;
       }
 
-      if (!imagePreview) {
+      if (!formData.imagePreview) {
         toast({
           title: "Image Required",
           description: "Please upload an image for your fundraiser",
@@ -177,28 +259,27 @@ export default function CreateFundraiserPage() {
         });
         return;
       }
-      setError({});
 
       const payload = {
-        title: title.trim(),
-        description: description.trim(),
-        goalAmount: Number(goalAmount),
-        category: category.toLowerCase(),
-        walletAddress: walletAddress.trim(),
-        imageUrl:
-          "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=800&q=80",
-        //  videoUrl: videoPreview,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        goalAmount: Number(formData.goalAmount),
+        category: formData.category.toLowerCase(),
+        walletAddress: formData.walletAddress.trim(),
+        imageUrl: formData.imagePreview,
+        videoUrl: formData.videoPreview || "",
       };
 
       const response = await apiRequest("POST", "/fundraise/create", payload);
-      console.log(payload, response);
+
       if (response.success) {
         toast({
           title: "Success",
-          description:
-            response.message ||
-            "Your fundraiser has been created successfully.",
+          description: response.message || "Fundraiser created successfully",
         });
+        localStorage.removeItem("fundraiserFormData");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
         setCurrentStep(4);
       } else {
         toast({
@@ -218,269 +299,6 @@ export default function CreateFundraiserPage() {
     }
   };
 
-  const StepOne = () => (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <Label
-          htmlFor="title"
-          className="text-sm font-medium text-primaryGold font-rajdhani"
-        >
-          Title
-        </Label>
-        <input
-          id="title"
-          placeholder="E.g., Emergency Medical Expenses for John"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          // error={error.title}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label
-          htmlFor="description"
-          className="text-sm font-medium text-primaryGold font-rajdhani"
-        >
-          Story
-        </Label>
-        <AppTextarea
-          id="description"
-          placeholder="Explain your situation and why you need help..."
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          error={error.description}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label
-          htmlFor="goalAmount"
-          className="text-sm font-medium text-primaryGold font-rajdhani"
-        >
-          Goal Amount (USDC)
-        </Label>
-        <AppInput
-          id="goalAmount"
-          type="number"
-          placeholder="Min 150"
-          value={goalAmount}
-          onChange={(e) => setGoalAmount(e.target.value)}
-          error={error.goalAmount}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm font-medium text-primaryGold font-rajdhani">
-          Category
-        </Label>
-        <div className="flex flex-wrap gap-2">
-          {categories.map((cat) => {
-            const isActive = cat.name === category;
-            return (
-              <Button
-                key={cat.id}
-                variant={isActive ? "default" : "outline"}
-                onClick={() => handleCategorySelect(cat.name)}
-              >
-                {cat.name}
-              </Button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-
-  const StepTwo = () => (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <Label
-          htmlFor="walletAddress"
-          className="text-sm font-medium text-primaryGold font-rajdhani"
-        >
-          Recipient Wallet Address
-        </Label>
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
-          <AppInput
-            id="walletAddress"
-            name="walletAddress"
-            placeholder="Connect solana wallet address"
-            value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
-            error={error.walletAddress}
-            readOnly={!!walletAddress}
-            disabled
-          />
-
-          <div className="w-full md:w-auto">
-            <WalletMultiButton
-              style={{
-                background: "#0a1a2f",
-                color: "#f2bd74",
-                border: "1px solid #f2bd74",
-                padding: "0px 15px",
-                borderRadius: "0.5rem",
-                fontSize: "14px",
-                margin: 0,
-                display: "inline-flex",
-                width: "100%",
-                flex: "1",
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[#0a1a2f]/70 p-4 rounded-lg border border-[#f2bd74]/20 mt-6">
-        <h3 className="text-[#f2bd74] font-rajdhani font-medium mb-2 flex items-center">
-          <Shield className="h-4 w-4 mr-2" /> Why we need your wallet address
-        </h3>
-        <p className="text-white/80 text-sm">
-          Your wallet address is where all donations will be sent directly. Make
-          sure you have access to this wallet, as funds cannot be redirected
-          once the fundraiser is live.
-        </p>
-      </div>
-    </div>
-  );
-
-  const StepThree = () => (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <Label className="text-sm font-medium text-primaryGold font-rajdhani">
-          Image <span className="text-[#bd0e2b]">*</span>
-        </Label>
-        {!imagePreview ? (
-          <div className="border-2 border-dashed border-[#f2bd74]/30 rounded-lg p-6 text-center cursor-pointer hover:bg-[#f2bd74]/5 transition-colors">
-            <input
-              type="file"
-              id="image-upload"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-            <label
-              htmlFor="image-upload"
-              className="cursor-pointer flex flex-col items-center"
-            >
-              <FiUploadCloud className="h-10 w-10 text-[#f2bd74] mb-2" />
-              <span className="text-sm text-white/80">
-                Click to upload an image
-              </span>
-              <span className="text-xs text-[#bd0e2b] mt-1">Required</span>
-            </label>
-          </div>
-        ) : (
-          <div className="relative">
-            <Image
-              width={1000}
-              height={1000}
-              src={imagePreview || "/placeholder.svg"}
-              alt="Preview"
-              className="w-full h-48 object-cover rounded-lg"
-            />
-
-            <Button
-              size={"icon"}
-              onClick={removeImage}
-              className="absolute top-2 right-2  rounded-full"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm font-medium text-primaryGold font-rajdhani">
-          Video (Optional)
-        </Label>
-        {!videoPreview ? (
-          <div className="border-2 border-dashed border-[#f2bd74]/30 rounded-lg p-6 text-center cursor-pointer hover:bg-[#f2bd74]/5 transition-colors">
-            <input
-              type="file"
-              id="video-upload"
-              accept="video/*"
-              onChange={handleVideoUpload}
-              className="hidden"
-            />
-            <label
-              htmlFor="video-upload"
-              className="cursor-pointer flex flex-col items-center"
-            >
-              <FiUploadCloud className="h-10 w-10 text-[#f2bd74] mb-2" />
-              <span className="text-sm text-white/80">
-                Click to upload a video
-              </span>
-            </label>
-          </div>
-        ) : (
-          <div className="relative">
-            <video
-              src={videoPreview}
-              controls
-              className="w-full h-48 object-cover rounded-lg"
-            />
-            <Button
-              size={"icon"}
-              onClick={removeVideo}
-              className="absolute top-2 right-2  rounded-full"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <div className="bg-[#0a1a2f]/70 p-4 rounded-lg border border-[#f2bd74]/20 mt-6">
-        <h3 className="text-[#f2bd74] font-medium mb-2 flex items-center">
-          <AlertCircle className="h-4 w-4 mr-2" /> Media Guidelines
-        </h3>
-        <p className="text-white/80 text-sm">
-          Images help donors connect with your cause. Choose clear, relevant
-          images that represent your emergency situation. Videos can provide
-          additional context and increase donation likelihood.
-        </p>
-      </div>
-    </div>
-  );
-
-  const SuccessStep = () => (
-    <div className="flex flex-col items-center justify-center py-8 text-center">
-      <div className="w-20 h-20 rounded-full bg-gradient-to-r from-[#bd0e2b]/20 to-[#f2bd74]/20 flex items-center justify-center mb-6">
-        <CheckCircle className="h-10 w-10 text-[#f2bd74]" />
-      </div>
-      <h2 className="text-2xl font-bold mb-4 text-[#f2bd74]">
-        Fundraiser Created!
-      </h2>
-      <p className="text-white/80 mb-8 max-w-md">
-        Your emergency fundraiser has been created successfully. You can now
-        verify and launch it from your dashboard.
-      </p>
-      <Button
-        className="bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] hover:from-[#d01232] hover:to-[#f7ca8a] text-white border-0 px-8"
-        onClick={() => router.push("/dashboard")}
-      >
-        Verify
-      </Button>
-    </div>
-  );
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return <StepOne />;
-      case 2:
-        return <StepTwo />;
-      case 3:
-        return <StepThree />;
-      case 4:
-        return <SuccessStep />;
-      default:
-        return <StepOne />;
-    }
-  };
-
   const getStepInfo = () => {
     switch (currentStep) {
       case 1:
@@ -488,35 +306,32 @@ export default function CreateFundraiserPage() {
           icon: <FileText className="h-8 w-8 text-[#f2bd74] mb-4" />,
           title: "Basic Information",
           description:
-            "Tell us about your emergency and what you're raising funds for. Be clear and specific to increase your chances of receiving help.",
+            "Tell us about your emergency and what you're raising funds for.",
         };
       case 2:
         return {
           icon: <Wallet className="h-8 w-8 text-[#f2bd74] mb-4" />,
           title: "Recipient Details",
-          description:
-            "Connect your wallet to receive funds directly. All donations will be sent to this address instantly without any delays.",
+          description: "Connect your wallet to receive funds directly.",
         };
       case 3:
         return {
           icon: <ImageIcon className="h-8 w-8 text-[#f2bd74] mb-4" />,
           title: "Media Upload",
           description:
-            "Upload images and videos to help donors understand your situation better. A clear image is required for your fundraiser.",
+            "Upload images and videos to help donors understand your situation.",
         };
       case 4:
         return {
           icon: <CheckCircle className="h-8 w-8 text-[#f2bd74] mb-4" />,
           title: "Success",
-          description:
-            "Your fundraiser has been created and is ready for verification.",
+          description: "Your fundraiser has been created successfully.",
         };
       default:
         return {
           icon: <FileText className="h-8 w-8 text-[#f2bd74] mb-4" />,
           title: "Basic Information",
-          description:
-            "Tell us about your emergency and what you're raising funds for.",
+          description: "Tell us about your emergency.",
         };
     }
   };
@@ -526,18 +341,18 @@ export default function CreateFundraiserPage() {
   return (
     <div className="min-h-screen relative">
       <div className="container mx-auto px-4 py-8 md:px-10 lg:px-14 relative z-10">
-        <Card className="mx-auto shadow-lg bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-[#0a1a2f] to-[#0c2240] border-b border-[#f2bd74]/20 pb-6">
-            <CardTitle className="md:text-2xl text-xl font-rajdhani font-bold text-[#f2bd74]">
+        <div className="mx-auto rounded-lg shadow-lg bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white overflow-hidden">
+          <div className="bg-gradient-to-r from-[#0a1a2f] to-[#0c2240] border-b border-[#f2bd74]/20 p-6">
+            <div className="md:text-2xl text-xl font-rajdhani font-bold text-[#f2bd74]">
               Create Emergency Fundraiser
-            </CardTitle>
-            <CardDescription className="text-[#ede4d3] mb-10">
+            </div>
+            <div className="text-[#ede4d3] mb-10">
               Set up your fundraiser quickly to receive immediate help
-            </CardDescription>
+            </div>
 
             <div className="flex justify-between gap-2 md:gap-4 items-center">
               {[1, 2, 3, 4].map((step) => (
-                <div key={step} className="flex gap-2  w-full items-center">
+                <div key={step} className="flex gap-2 w-full items-center">
                   <div
                     className={`w-8 h-8 rounded-full px-3 flex items-center justify-center ${
                       step === currentStep
@@ -548,7 +363,7 @@ export default function CreateFundraiserPage() {
                     }`}
                   >
                     {step < currentStep ? (
-                      <CheckCircle className="h-4 w-4" />
+                      <CheckCircle className="h-5 w-6" />
                     ) : (
                       <>{step === 4 ? "🎉" : step}</>
                     )}
@@ -563,9 +378,9 @@ export default function CreateFundraiserPage() {
                 </div>
               ))}
             </div>
-          </CardHeader>
+          </div>
 
-          <CardContent className="p-0">
+          <div className="p-0">
             <div className="flex flex-col md:flex-row">
               <div className="w-full md:w-1/2 bg-[#0a1a2f]/80 border-b md:border-b-0 md:border-r border-[#f2bd74]/20">
                 <div
@@ -573,14 +388,11 @@ export default function CreateFundraiserPage() {
                   onClick={toggleInfoExpanded}
                 >
                   <div className="flex items-center">
-                    {stepInfo.icon && (
-                      <div className="mr-3">
-                        {React.cloneElement(
-                          stepInfo.icon as React.ReactElement,
-                          { className: "h-6 w-6 text-[#f2bd74]" }
-                        )}
-                      </div>
-                    )}
+                    <div className="mr-3">
+                      {React.cloneElement(stepInfo.icon as React.ReactElement, {
+                        className: "h-6 w-6 text-[#f2bd74]",
+                      })}
+                    </div>
                     <h2 className="font-rajdhani font-bold text-[#f2bd74]">
                       {stepInfo.title}
                     </h2>
@@ -607,8 +419,8 @@ export default function CreateFundraiserPage() {
                         <AlertCircle className="h-4 w-4 mr-2" /> Important
                       </h3>
                       <p className="text-white/80 text-sm">
-                        Your fundraiser will be set up and available on your
-                        dashboard, where you can launch it after verification.
+                        Your fundraiser will be available on your dashboard
+                        after creation.
                       </p>
                     </div>
                   )}
@@ -616,13 +428,281 @@ export default function CreateFundraiserPage() {
               </div>
 
               <div className="w-full md:w-1/2 p-6 md:p-8">
-                {renderStepContent()}
+                {/* Step 1 - Basic Information */}
+                <div
+                  className="space-y-6"
+                  style={{
+                    display: currentStep === 1 ? "block" : "none",
+                    position: currentStep === 1 ? "relative" : "absolute",
+                    visibility: currentStep === 1 ? "visible" : "hidden",
+                    width: "100%",
+                  }}
+                >
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-primaryGold font-rajdhani">
+                      Title
+                    </Label>
+                    <AppInput
+                      id="title"
+                      type="text"
+                      placeholder="E.g., Emergency Medical Expenses for John"
+                      value={formData.title}
+                      onChange={(e) => updateFormData("title", e.target.value)}
+                      error={error.title}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-primaryGold font-rajdhani">
+                      Story
+                    </Label>
+                    <AppTextarea
+                      id="description"
+                      placeholder="Explain your situation..."
+                      value={formData.description}
+                      onChange={(e) =>
+                        updateFormData("description", e.target.value)
+                      }
+                      error={error.description}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-primaryGold font-rajdhani">
+                      Goal Amount (USDC)
+                    </Label>
+                    <AppInput
+                      id="goalAmount"
+                      type="number"
+                      placeholder="Min 1USDC"
+                      value={formData.goalAmount}
+                      onChange={(e) =>
+                        updateFormData("goalAmount", e.target.value)
+                      }
+                      error={error.goalAmount}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-primaryGold font-rajdhani">
+                      Category
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {categories.map((cat) => (
+                        <Button
+                          key={cat.id}
+                          variant={
+                            cat.name === formData.category
+                              ? "default"
+                              : "outline"
+                          }
+                          onClick={() => handleCategorySelect(cat.name)}
+                        >
+                          {cat.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 2 - Recipient Details */}
+                <div
+                  className="space-y-6"
+                  style={{
+                    display: currentStep === 2 ? "block" : "none",
+                    position: currentStep === 2 ? "relative" : "absolute",
+                    visibility: currentStep === 2 ? "visible" : "hidden",
+                    width: "100%",
+                  }}
+                >
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-primaryGold font-rajdhani">
+                      Recipient Wallet Address
+                    </Label>
+                    <div className="flex flex-col items-start gap-2">
+                      <AppInput
+                        id="walletAddress"
+                        placeholder="Connect solana wallet address"
+                        value={formData.walletAddress}
+                        onChange={(e) =>
+                          updateFormData("walletAddress", e.target.value)
+                        }
+                        error={error.walletAddress}
+                        readOnly={!!formData.walletAddress}
+                      />
+                      <WalletMultiButton
+                        style={{
+                          background: "#0a1a2f",
+                          color: "#f2bd74",
+                          border: "1px solid #f2bd74",
+                          padding: "0px 15px",
+                          borderRadius: "0.5rem",
+                          fontSize: "14px",
+                          margin: 0,
+                          display: "inline-flex",
+                          width: "100%",
+                          flex: "1",
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-[#0a1a2f]/70 p-4 rounded-lg border border-[#f2bd74]/20 mt-6">
+                    <h3 className="text-[#f2bd74] font-rajdhani font-medium mb-2 flex items-center">
+                      <Shield className="h-4 w-4 mr-2" /> Why we need your
+                      wallet address
+                    </h3>
+                    <p className="text-white/80 text-sm">
+                      Your wallet address is where all donations will be sent
+                      directly.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3 - Media Upload */}
+                <div
+                  className="space-y-6"
+                  style={{
+                    display: currentStep === 3 ? "block" : "none",
+                    position: currentStep === 3 ? "relative" : "absolute",
+                    visibility: currentStep === 3 ? "visible" : "hidden",
+                    width: "100%",
+                  }}
+                >
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-primaryGold font-rajdhani">
+                      Image <span className="text-[#bd0e2b]">*</span>
+                    </Label>
+                    {!formData.imagePreview ? (
+                      <div className="border-2 border-dashed relative border-[#f2bd74]/30 rounded-lg p-6 text-center cursor-pointer hover:bg-[#f2bd74]/5 transition-colors">
+                        {imageLoading && (
+                          <div className="absolute w-6 h-6 border border-primaryGold top-2 bg-primary right-2 rounded-full">
+                            <Loader2 className="w-5 h-5 text-primaryGold animate-spin" />
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          id="image-upload"
+                          accept="image/*"
+                          onChange={(e) => handleUploadChange(e, "image")}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="image-upload"
+                          className="cursor-pointer flex flex-col items-center"
+                        >
+                          <FiUploadCloud className="h-10 w-10 text-[#f2bd74] mb-2" />
+                          <span className="text-sm text-white/80">
+                            Click to upload an image
+                          </span>
+                          <span className="text-xs text-[#bd0e2b] mt-1">
+                            Required
+                          </span>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <Image
+                          width={1000}
+                          height={1000}
+                          src={formData.imagePreview}
+                          alt="Preview"
+                          className="w-full h-48 object-cover border border-white/20 rounded-lg"
+                        />
+                        <Button
+                          size={"icon"}
+                          onClick={removeImage}
+                          className="absolute top-2 right-2 rounded-full"
+                        >
+                          <X className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-primaryGold font-rajdhani">
+                      Video (Optional)
+                    </Label>
+                    {!formData.videoPreview ? (
+                      <div className="border-2 relative border-dashed border-[#f2bd74]/30 rounded-lg p-6 text-center cursor-pointer hover:bg-[#f2bd74]/5 transition-colors">
+                        {videoLoading && (
+                          <div className="absolute border border-primaryGold w-6 h-6 top-2 bg-primary right-2 rounded-full">
+                            <Loader2 className="w-5 h-5 text-primaryGold animate-spin" />
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          id="video-upload"
+                          accept="video/*"
+                          onChange={(e) => handleUploadChange(e, "video")}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="video-upload"
+                          className="cursor-pointer flex flex-col items-center"
+                        >
+                          <FiUploadCloud className="h-10 w-10 text-[#f2bd74] mb-2" />
+                          <span className="text-sm text-white/80">
+                            Click to upload a video
+                          </span>
+                          <span className="text-xs text-[#bd0e2b] mt-1">
+                            Max Length: 5min
+                          </span>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <video
+                          src={formData.videoPreview}
+                          controls
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+                        <Button
+                          size={"icon"}
+                          onClick={removeVideo}
+                          className="absolute top-2 right-2 rounded-full"
+                        >
+                          <X className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Step 4 - Success */}
+                <div
+                  className="flex flex-col items-center justify-center py-8 text-center"
+                  style={{
+                    display: currentStep === 4 ? "flex" : "none",
+                    position: currentStep === 4 ? "relative" : "absolute",
+                    visibility: currentStep === 4 ? "visible" : "hidden",
+                    width: "100%",
+                  }}
+                >
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-[#bd0e2b]/20 to-[#f2bd74]/20 flex items-center justify-center mb-6">
+                    <CheckCircle className="h-10 w-10 text-[#f2bd74]" />
+                  </div>
+                  <h2 className="text-2xl font-bold mb-4 text-[#f2bd74]">
+                    Fundraiser Created!
+                  </h2>
+                  <p className="text-white/80 mb-8 max-w-md">
+                    Your emergency fundraiser has been created successfully.
+                  </p>
+                  <div
+                    onClick={() =>
+                      localStorage.removeItem("fundraiserFormData")
+                    }
+                  >
+                    <VerifyFundraising />
+                  </div>
+                </div>
               </div>
             </div>
-          </CardContent>
+          </div>
 
           {currentStep < 4 && (
-            <CardFooter className="flex justify-between p-6 border-t border-[#f2bd74]/20">
+            <div className="flex justify-between p-6 border-t border-[#f2bd74]/20">
               <Button
                 onClick={prevStep}
                 disabled={currentStep === 1}
@@ -650,9 +730,9 @@ export default function CreateFundraiserPage() {
                   {isLoading ? "Creating..." : "Create Fundraiser"}
                 </Button>
               )}
-            </CardFooter>
+            </div>
           )}
-        </Card>
+        </div>
       </div>
     </div>
   );

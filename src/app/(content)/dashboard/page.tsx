@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -8,6 +8,7 @@ import {
   Calendar,
   Edit,
   Heart,
+  Loader2,
   Mail,
   MapPin,
   Phone,
@@ -18,9 +19,19 @@ import UserFundraiserCard from "@/components/fundraiser/UserFundraiserCard";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import EditProfile from "./components/EditProfile";
+import { useToast } from "@/hooks/use-toast";
+import apiRequest from "@/utils/apiRequest";
+import { useAppDispatch } from "@/store/hooks";
+import { setData } from "@/store/slice/userDataSlice";
 
 export default function DashboardPage() {
   const userData = useSelector((state: RootState) => state.userData);
+  const { toast } = useToast();
+
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [avatarUpload, setAvatarUpload] = useState("");
+  const dispatch = useAppDispatch();
 
   const [userFundraisers, setUserFundraisers] = useState([
     {
@@ -53,13 +64,77 @@ export default function DashboardPage() {
     },
   ]);
 
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      toast({
+        title: "Upload Error",
+        description: "Please select an image file to upload",
+      });
+      return;
+    }
+
+    setAvatarLoading(true);
+
+    try {
+      const base64String = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+
+      const uploadResponse = await apiRequest("POST", "/upload/file", {
+        file: base64String,
+      });
+
+      if (!uploadResponse.success) {
+        throw new Error(uploadResponse.message || "Failed to upload image");
+      }
+
+      setAvatar(base64String);
+      setAvatarUpload(uploadResponse.data);
+
+      const payload = {
+        profileInfo: {
+          firstName: userData.profile.firstName,
+          lastName: userData.profile.lastName,
+          displayName: userData.profile.displayName,
+        },
+        avatar: uploadResponse.data,
+        address: {
+          country: userData.address?.country,
+          state: userData.address?.state,
+          city: userData.address?.city,
+        },
+      };
+
+      const response = await apiRequest("PATCH", "/user", payload);
+
+      if (response.status === 200) {
+        toast({
+          title: "Success",
+          description: response.message || "Avatar updated successfully",
+        });
+        const res = await apiRequest("GET", "/user");
+        dispatch(setData({ ...res.data }));
+      } else {
+        throw new Error(response.message || "Failed to update profile");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Upload Failed",
+        variant: "destructive",
+        description: error.message || "Failed to update avatar",
+      });
+
+      setAvatar(null);
+      setAvatarUpload("");
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
   const userProfile = {
-    name: "Sarah Johnson",
-    email: "sarah.johnson@example.com",
-    phone: "+1 (555) 123-4567",
-    location: "San Francisco, CA",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80",
     memberSince: "March 2023",
     totalRaised: "$6,950",
     totalDonations: 14,
@@ -67,7 +142,7 @@ export default function DashboardPage() {
 
   return (
     <main className="container mx-auto mb-8 px-4 md:px-10 lg:px-14 py-6 ">
-      <div className="flex justify-between items-center mt-10 mb-6">
+      <div className="flex justify-between items-center my-6 md:mt-4 ">
         <h2 className="md:text-2xl text-xl font-rajdhani font-bold text-[#f2bd74]">
           Profile Info
         </h2>
@@ -75,21 +150,36 @@ export default function DashboardPage() {
       </div>
       <div className="mt-6 md:mt-10 bg-primary border border-white/20 rounded-lg p-4 flex items-start flex-col md:flex-row md:items-center lg:items-start gap-6">
         <div className="relative">
-          <div className="w-28 h-28 rounded-full border-2 border-white overflow-hidden">
+          <div className="w-28 h-28 rounded-full border border-primaryGold overflow-hidden">
             <Image
-              src={userData.profileImages.avatar || "/placeholder.svg"}
+              src={
+                avatar || userData.profileImages.avatar || "/placeholder.svg"
+              }
               alt={userData.profile.displayName}
               width={112}
               height={112}
               className="object-cover"
             />
           </div>
-          <Button
-            size="icon"
-            className="absolute bottom-0 right-0 h-8 w-8 rounded-full shadow-md"
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
+
+          {avatarLoading ? (
+            <div className="absolute flex items-center justify-center bottom-0 right-0 h-8 w-8 bg-primary border border-primaryGold rounded-full shadow-md">
+              <Loader2 className="w-5 h-5 text-primaryGold animate-spin" />
+            </div>
+          ) : (
+            <div className="absolute flex items-center justify-center bottom-0 right-0 h-8 w-8 bg-primary border border-primaryGold rounded-full shadow-md">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp,image/jpg"
+                className="hidden"
+                id="avatarUpload"
+                onChange={handleImageChange}
+              />
+              <label htmlFor="avatarUpload" className="cursor-pointer">
+                <Edit className="h-4 w-4 text-primaryGold" />
+              </label>
+            </div>
+          )}
         </div>
 
         <div className="w-full text-center md:text-left">

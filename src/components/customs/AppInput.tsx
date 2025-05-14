@@ -60,7 +60,7 @@ const AppInput = ({
         )}
       </div>
       {error && (
-        <div className="text-[#f74831f1] w-full text-xs font-rajdhani bg-[#533a3a4e] p-1 px-2 rounded-md flex items-center gap-2">
+        <div className="text-[#f74831f1] w-full text-xs raj bg-[#533a3a4e] p-1 px-2 rounded-md flex items-center gap-2">
           {error}
         </div>
       )}

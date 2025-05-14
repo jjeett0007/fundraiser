@@ -36,6 +36,7 @@ const AppTextarea = ({
       >
         <textarea
           placeholder={placeholder}
+          rows={4}
           disabled={disabled}
           {...props}
           className={`flex-1 text-white border-0 bg-transparent outline-none text-[16px] resize-none appearance-none ${

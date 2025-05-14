@@ -22,6 +22,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { setData } from "@/store/slice/userDataSlice";
+import { CountrySelector } from "@/components/customs/CountrySelection";
 
 const EditProfile = () => {
   const [error, setError] = useState<ValidationErrors>({});
@@ -97,6 +98,7 @@ const EditProfile = () => {
             ...res.data,
           })
         );
+        setOpen(false);
       } else {
         toast({
           title: "Error",
@@ -153,7 +155,6 @@ const EditProfile = () => {
                   error={error.firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   value={firstName}
-                  disabled
                 />
               </div>
               <div className="space-y-2 w-full">
@@ -175,12 +176,11 @@ const EditProfile = () => {
                   error={error.lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   value={lastName}
-                  disabled
                 />
               </div>
             </div>
 
-            <div className="space-y-2  w-full">
+            <div className="space-y-2 w-full">
               <Label
                 htmlFor="displayName"
                 className="flex items-center justify-between"
@@ -218,13 +218,10 @@ const EditProfile = () => {
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                   )}
                 </Label>
-                <AppInput
-                  id="country"
-                  placeholder="e.g Nigeria"
-                  type="text"
-                  error={error.country}
-                  onChange={(e) => setCountry(e.target.value)}
+                <CountrySelector
                   value={country}
+                  onChange={setCountry}
+                  error={error.country}
                 />
               </div>
               <div className="gap-4 mt-2 w-full flex flex-col md:flex-row items-center">
