@@ -3,7 +3,7 @@
 import React, { FC, useMemo } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { PhantomWalletAdapter, SolflareWalletAdapter, AlphaWalletAdapter, BitgetWalletAdapter, CloverWalletAdapter, LedgerWalletAdapter, NightlyWalletAdapter, BitpieWalletAdapter, CoinhubWalletAdapter, CoinbaseWalletAdapter } from '@solana/wallet-adapter-wallets';
 import {
     WalletModalProvider,
     WalletDisconnectButton,
@@ -29,6 +29,15 @@ export const Wallet = ({ children }: props) => {
         () => [
 
             new PhantomWalletAdapter(),
+            new SolflareWalletAdapter(),
+            new AlphaWalletAdapter(),
+            new BitgetWalletAdapter(),
+            new CloverWalletAdapter(),
+            new LedgerWalletAdapter(),
+            new NightlyWalletAdapter(),
+            new BitpieWalletAdapter(),
+            new CoinhubWalletAdapter(),
+            new CoinbaseWalletAdapter(),
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [network]

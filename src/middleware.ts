@@ -10,22 +10,19 @@ export function middleware(request: NextRequest) {
     "/signup",
     "/explore",
     "/about",
+    "/wait-list",
     "/forgot-password",
     "/reset-password",
     "/redirect",
     "/privacy",
     "/terms-and-condition",
     "/help",
-    "/fundraiser/[id]",
   ];
 
-  const isPublicPath = publicPaths.some((publicPath) => {
-    if (publicPath.includes("[id]")) {
-      const pathRegex = new RegExp(`^${publicPath.replace("[id]", "[^/]+")}$`);
-      return pathRegex.test(path);
-    }
-    return path === publicPath;
-  });
+  const isPublicPath =
+    publicPaths.includes(path) ||
+    path.startsWith("/fundraiser/") && !path.startsWith("/fundraiser/create") && !path.startsWith("/fundraiser/manage");
+
 
   const token = request.cookies.get("Access")?.value;
   const expirationDate = request.cookies.get("expiresIn")?.value;
