@@ -227,12 +227,12 @@ export default function CreateFundraiserPage() {
         >
           Title
         </Label>
-        <AppInput
+        <input
           id="title"
           placeholder="E.g., Emergency Medical Expenses for John"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          error={error.title}
+          // error={error.title}
         />
       </div>
 

@@ -32,16 +32,19 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/logo.jpg", type: "image/x-icon" },
-      { url: "/logo.jpg", type: "image/jpg", sizes: "16x16" },
-      { url: "/logo.jpg", type: "image/jpg", sizes: "32x32" },
-      { url: "/logo.jpg", type: "image/jpg", sizes: "96x96" },
+      { url: "https://www.emergfunds.org/logo.jpg" },
+      { url: "/logo.jpg" },
+      new URL('/logo.jpg', 'https://www.emergfunds.org'),
     ],
-    shortcut: "/logo-16x16.png",
+    shortcut: ["https://www.emergfunds.org/logo.jpg"],
     apple: [
-      { url: "/logo.jpg", sizes: "180x180" },
-      { url: "/logo.jpg", sizes: "152x152" },
-      { url: "/logo.jpg", sizes: "167x167" },
+      { url: "https://www.emergfunds.org/logo.jpg" }
+    ],
+    other: [
+      {
+        rel: 'apple-touch-icon-precomposed',
+        url: 'https://www.emergfunds.org/logo.jpg',
+      },
     ],
   },
   verification: {
@@ -50,17 +53,23 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://www.emergfunds.org",
   },
+  metadataBase: new URL("https://www.emergfunds.org"),
   openGraph: {
     title: "Emerg Funds Raising",
     description:
       "Emerg Funds Raising is a dedicated platform designed to help individuals and organizations quickly raise emergency funds for urgent needs. Easily create, share, and support fundraising campaigns for medical emergencies, disaster relief, and other critical situations.",
-    url: "https://www.emergfunds.org",
     siteName: "Emergency Funds Raising",
     images: [
       {
-        url: "/twitter-banner.jpeg",
+        url: "https://www.emergfunds.org/twitter-banner.jpeg",
         width: 1200,
         height: 630,
+        alt: "Emerg Fund Raising Platform",
+      },
+      {
+        url: "https://www.emergfunds.org/logo.jpg",
+        width: 800,
+        height: 600,
         alt: "Emerg Fund Raising Platform",
       },
     ],
@@ -72,7 +81,7 @@ export const metadata: Metadata = {
     title: "Emerg Funds Raising",
     description:
       "Emerg Funds Raising is a dedicated platform designed to help individuals and organizations quickly raise emergency funds for urgent needs. Easily create, share, and support fundraising campaigns for medical emergencies, disaster relief, and other critical situations.",
-    images: ["/twitter-banner.jpeg"],
+    images: ["https://www.emergfunds.org/twitter-banner.jpeg"],
     creator: "@emergfunds_",
   },
 };
