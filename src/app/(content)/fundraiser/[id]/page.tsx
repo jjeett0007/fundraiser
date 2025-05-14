@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title: `${responseData.fundMetaData.title} | Emerg Funds`,
     description: responseData.fundMetaData.description,
     icons: {
-      icon: [{ url: responseData.fundMetaData.imageUrl }],
+      icon: [{ url: responseData.fundMetaData.imageUrl }, { url: "https://www.emergfunds.org/logo.jpg" },],
       apple: [{ url: responseData.fundMetaData.imageUrl }],
       other: [
         { rel: "mask-icon", url: responseData.fundMetaData.imageUrl }
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: responseData.fundMetaData.title,
       description: responseData.fundMetaData.description,
       images: responseData.fundMetaData
-        ? [{ url: responseData.fundMetaData.imageUrl }]
+        ? [responseData.fundMetaData.imageUrl]
         : []
     },
     twitter: {
@@ -50,7 +50,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       description: responseData.fundMetaData.description,
       images: responseData.fundMetaData
         ? [responseData.fundMetaData.imageUrl]
-        : []
+        : [],
+      creator: "@emergfunds_",
     }
   };
 }

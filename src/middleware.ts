@@ -32,8 +32,6 @@ export function middleware(request: NextRequest) {
     : null;
 
   const isTokenValid = token && expirationInMs && Date.now() < expirationInMs;
-  console.log("IS user authenticated");
-  console.log(isTokenValid);
 
   if (!isPublicPath && !isTokenValid) {
     return NextResponse.redirect(new URL("/login", request.url));
