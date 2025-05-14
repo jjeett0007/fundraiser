@@ -14,7 +14,7 @@ const buttonVariants = cva(
           "bg-primaryRed text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-[#f2bd7444] text-[#ede4d3] bg-transparent hover:bg-transparent",
         secondary:
-          "bg-gradient-to-r from-[#bd0e2b] via-primary to-[#f2bd74] text-white",
+          "border border-white/30 bg-gradient-to-r from-primary via-[#bd0e2b] to-[#f2bd74] text-white",
         ghost: "hover:bg-primary/40 text-white hover:text-[#ede4d3]",
         link: "text-primaryGold underline-offset-4 hover:underline",
       },

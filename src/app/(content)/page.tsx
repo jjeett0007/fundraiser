@@ -183,7 +183,7 @@ export default function HomePage() {
                     </div>
                     <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
                       <p className="text-2xl md:text-3xl font-bold text-white">
-                        5 min
+                        2 min
                       </p>
                       <p className="text-sm text-white/70">Average Time</p>
                     </div>

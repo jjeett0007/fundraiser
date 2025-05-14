@@ -87,36 +87,20 @@ export default function DashboardPage() {
         file: base64String,
       });
 
-      if (uploadResponse.success) {
-        handleEditProfile();
-      } else {
+      if (!uploadResponse.success) {
         throw new Error(uploadResponse.message || "Failed to upload image");
       }
 
       setAvatar(base64String);
       setAvatarUpload(uploadResponse.data);
-    } catch (error: any) {
-      toast({
-        title: "Upload Failed",
-        description:
-          error.message ||
-          "Failed to upload image. Please try a different image or try again later.",
-      });
-      setAvatar(null);
-    } finally {
-      setAvatarLoading(false);
-    }
-  };
 
-  const handleEditProfile = async () => {
-    try {
       const payload = {
         profileInfo: {
           firstName: userData.profile.firstName,
           lastName: userData.profile.lastName,
           displayName: userData.profile.displayName,
         },
-        avatar: avatarUpload,
+        avatar: uploadResponse.data,
         address: {
           country: userData.address?.country,
           state: userData.address?.state,
@@ -129,29 +113,24 @@ export default function DashboardPage() {
       if (response.status === 200) {
         toast({
           title: "Success",
-          description:
-            response.message || "Your profile has been updated successfully.",
+          description: response.message || "Avatar updated successfully",
         });
         const res = await apiRequest("GET", "/user");
-
-        dispatch(
-          setData({
-            ...res.data,
-          })
-        );
+        dispatch(setData({ ...res.data }));
       } else {
-        toast({
-          title: "Error",
-          variant: "destructive",
-          description: response.message || "Failed to update profile",
-        });
+        throw new Error(response.message || "Failed to update profile");
       }
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: "Upload Failed",
         variant: "destructive",
-        description: error.message || "An unexpected error occurred",
+        description: error.message || "Failed to update avatar",
       });
+
+      setAvatar(null);
+      setAvatarUpload("");
+    } finally {
+      setAvatarLoading(false);
     }
   };
 
@@ -171,7 +150,7 @@ export default function DashboardPage() {
       </div>
       <div className="mt-6 md:mt-10 bg-primary border border-white/20 rounded-lg p-4 flex items-start flex-col md:flex-row md:items-center lg:items-start gap-6">
         <div className="relative">
-          <div className="w-28 h-28 rounded-full border-2 border-white overflow-hidden">
+          <div className="w-28 h-28 rounded-full border border-primaryGold overflow-hidden">
             <Image
               src={
                 avatar || userData.profileImages.avatar || "/placeholder.svg"
@@ -184,11 +163,11 @@ export default function DashboardPage() {
           </div>
 
           {avatarLoading ? (
-            <div className="absolute bottom-0 right-0 h-8 w-8 bg-primary border border-primaryGold rounded-full shadow-md">
+            <div className="absolute flex items-center justify-center bottom-0 right-0 h-8 w-8 bg-primary border border-primaryGold rounded-full shadow-md">
               <Loader2 className="w-5 h-5 text-primaryGold animate-spin" />
             </div>
           ) : (
-            <div className="absolute bottom-0 right-0 h-8 w-8 bg-primary border border-primaryGold rounded-full shadow-md">
+            <div className="absolute flex items-center justify-center bottom-0 right-0 h-8 w-8 bg-primary border border-primaryGold rounded-full shadow-md">
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/gif,image/webp,image/jpg"

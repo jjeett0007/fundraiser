@@ -45,7 +45,6 @@ export default function FundraiserPage() {
   const fundraiserId = params.id as string;
   const { toast } = useToast();
   const userData = useSelector((state: RootState) => state.userData);
-  const userToken = useSelector((state: RootState) => state.userToken);
 
   const [fundraiser, setFundraiser] = useState<FundraiserData | null>(null);
   const [donors, setDonors] = useState<Donor[]>([]);
@@ -456,7 +455,6 @@ export default function FundraiserPage() {
                         });
                       }
                     }}
-                    disabled={userToken.isAuthenticated === false}
                   >
                     <Heart className="mr-2 h-4 w-4" /> Contribute Now
                   </Button>
