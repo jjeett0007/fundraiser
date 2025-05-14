@@ -112,7 +112,7 @@ export default function ExplorePage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex gap-2 items-center overflow-x-auto md:pb-0 pb-2">
+            <div className="flex gap-2 md:w-auto w-full items-center overflow-x-scroll md:mb-0 mb-2">
               {categoryFilters.map((categoryName, index) => {
                 const isActive = categoryName === activeCategory;
 

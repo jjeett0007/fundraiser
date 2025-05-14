@@ -64,3 +64,10 @@ export const getCategoryById = (id: string): Category | undefined => {
 export const getCategoryByName = (name: string): Category | undefined => {
   return categories.find((category) => category.name === name);
 };
+
+export const ID_VERIFICATION_OPTIONS = [
+  { value: "nin", label: "National ID (NIN)" },
+  { value: "driver_license", label: "Driver’s License" },
+  { value: "passport", label: "Passport" },
+  { value: "voter_card", label: "Voter’s Card" },
+];

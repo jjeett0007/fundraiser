@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { ChangeEvent } from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import {
   Shield,
   ChevronDown,
   ChevronUp,
+  Loader2,
 } from "lucide-react";
 import { FiUploadCloud } from "react-icons/fi";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
@@ -37,6 +38,7 @@ import { isValidInput, validateInputs } from "@/utils/formValidation";
 import { ValidationErrors } from "@/utils/type";
 import { categories } from "@/utils/list";
 import Image from "next/image";
+import VerifyFundraising from "@/components/fundraiser/VerifyFundraising";
 
 export default function CreateFundraiserPage() {
   const router = useRouter();
@@ -48,8 +50,12 @@ export default function CreateFundraiserPage() {
   const [goalAmount, setGoalAmount] = useState("");
   const [category, setCategory] = useState("Medical");
   const [walletAddress, setWalletAddress] = useState("");
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ValidationErrors>({});
   const [infoExpanded, setInfoExpanded] = useState(false);
@@ -64,7 +70,8 @@ export default function CreateFundraiserPage() {
       setGoalAmount(parsedData.goalAmount || "");
       setCategory(parsedData.category || "Medical");
       setWalletAddress(parsedData.walletAddress || "");
-      // setImagePreview(parsedData.imagePreview || null);
+      setImagePreview(parsedData.imagePreview || null);
+      setVideoPreview(parsedData.videoPreview || null);
       setCurrentStep(parsedData.currentStep || 1);
     }
   }, []);
@@ -77,7 +84,8 @@ export default function CreateFundraiserPage() {
         goalAmount,
         category,
         walletAddress,
-        // imagePreview,
+        imagePreview,
+        videoPreview,
         currentStep,
       };
       if (typeof window !== "undefined") {
@@ -92,7 +100,8 @@ export default function CreateFundraiserPage() {
     goalAmount,
     category,
     walletAddress,
-    // imagePreview,
+    imagePreview,
+    videoPreview,
     currentStep,
   ]);
 
@@ -114,25 +123,48 @@ export default function CreateFundraiserPage() {
     setCategory(selectedCategory);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadChange = async (
+    e: ChangeEvent<HTMLInputElement>,
+    type: "image" | "video"
+  ) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) {
+      toast({
+        description: "No file selected",
+      });
+      return;
     }
-  };
 
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setVideoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    type === "image" ? setImageLoading(true) : setVideoLoading(true);
+
+    try {
+      const base64String = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+
+      const uploadResponse = await apiRequest("POST", "/upload/file", {
+        file: base64String,
+      });
+
+      if (!uploadResponse.success) {
+        throw new Error("Failed to upload ");
+      }
+
+      if (type === "image") {
+        setImagePreview(uploadResponse.data);
+      } else {
+        setVideoPreview(uploadResponse.data);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `${error}, Try again`,
+        variant: "destructive",
+      });
+    } finally {
+      type === "image" ? setImageLoading(false) : setVideoLoading(false);
     }
   };
 
@@ -233,13 +265,13 @@ export default function CreateFundraiserPage() {
         goalAmount: Number(goalAmount),
         category: category.toLowerCase(),
         walletAddress: walletAddress.trim(),
-        imageUrl:
-          "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=800&q=80",
-        //  videoUrl: videoPreview,
+        imageUrl: imagePreview,
+        videoUrl: videoPreview || "",
       };
 
       const response = await apiRequest("POST", "/fundraise/create", payload);
       console.log(payload, response);
+
       if (response.success) {
         toast({
           title: "Success",
@@ -277,6 +309,7 @@ export default function CreateFundraiserPage() {
         </Label>
         <AppInput
           id="title"
+          type="text"
           placeholder="E.g., Emergency Medical Expenses for John"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -395,12 +428,17 @@ export default function CreateFundraiserPage() {
           Image <span className="text-[#bd0e2b]">*</span>
         </Label>
         {!imagePreview ? (
-          <div className="border-2 border-dashed border-[#f2bd74]/30 rounded-lg p-6 text-center cursor-pointer hover:bg-[#f2bd74]/5 transition-colors">
+          <div className="border-2 border-dashed relative border-[#f2bd74]/30 rounded-lg p-6 text-center cursor-pointer hover:bg-[#f2bd74]/5 transition-colors">
+            {imageLoading && (
+              <div className="absolute  w-6 h-6 border border-primaryGold top-2 bg-primary right-2 rounded-full">
+                <Loader2 className="w-5 h-5 text-primaryGold animate-spin" />
+              </div>
+            )}
             <input
               type="file"
               id="image-upload"
               accept="image/*"
-              onChange={handleImageUpload}
+              onChange={(e) => handleUploadChange(e, "image")}
               className="hidden"
             />
             <label
@@ -440,12 +478,17 @@ export default function CreateFundraiserPage() {
           Video (Optional)
         </Label>
         {!videoPreview ? (
-          <div className="border-2 border-dashed border-[#f2bd74]/30 rounded-lg p-6 text-center cursor-pointer hover:bg-[#f2bd74]/5 transition-colors">
+          <div className="border-2 relative border-dashed border-[#f2bd74]/30 rounded-lg p-6 text-center cursor-pointer hover:bg-[#f2bd74]/5 transition-colors">
+            {videoLoading && (
+              <div className="absolute border border-primaryGold  w-6 h-6 top-2 bg-primary right-2 rounded-full">
+                <Loader2 className="w-5 h-5 text-primaryGold animate-spin" />
+              </div>
+            )}
             <input
               type="file"
               id="video-upload"
               accept="video/*"
-              onChange={handleVideoUpload}
+              onChange={(e) => handleUploadChange(e, "video")}
               className="hidden"
             />
             <label
@@ -455,6 +498,9 @@ export default function CreateFundraiserPage() {
               <FiUploadCloud className="h-10 w-10 text-[#f2bd74] mb-2" />
               <span className="text-sm text-white/80">
                 Click to upload a video
+              </span>
+              <span className="text-xs text-[#bd0e2b] mt-1">
+                Max length: 5min
               </span>
             </label>
           </div>
@@ -501,14 +547,16 @@ export default function CreateFundraiserPage() {
         Your emergency fundraiser has been created successfully. You can now
         verify and launch it from your dashboard.
       </p>
-      <Button
-        variant={"secondary"}
+
+      <div
         onClick={() => {
-          // router.push("/dashboard");
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("fundraiserFormData");
+          }
         }}
       >
-        Verify
-      </Button>
+        <VerifyFundraising />
+      </div>
     </div>
   );
 

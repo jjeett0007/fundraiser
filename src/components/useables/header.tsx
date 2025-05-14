@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -123,7 +124,7 @@ function HeaderComp() {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="md:max-w-[50%] max-w-[90%] lg:max-w-[30%] h-fit">
+        <DialogContent className="md:max-w-[50%] max-w-[90%] h-[30vh] lg:max-w-[30%] md:h-fit">
           <DialogHeader>
             <DialogTitle> Logout</DialogTitle>
             <DialogDescription>

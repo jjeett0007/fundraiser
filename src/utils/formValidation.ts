@@ -160,6 +160,8 @@ export const validateInputs = (data: {
   if ("goalAmount" in data) {
     if (!data.goalAmount) {
       errors.goalAmount = "Goal amount is required";
+    } else if (Number(data.goalAmount) <= 0) {
+      errors.goalAmount = "Goal Amount must be at least $1";
     }
   }
 
