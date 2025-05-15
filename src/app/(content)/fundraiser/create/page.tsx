@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, useRef } from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,8 @@ export default function CreateFundraiserPage() {
   const { publicKey } = useWallet();
   const { toast } = useToast();
 
+  const formSubmittedRef = useRef(false);
+
   const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
@@ -63,34 +65,42 @@ export default function CreateFundraiserPage() {
   const [error, setError] = useState<ValidationErrors>({});
   const [infoExpanded, setInfoExpanded] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [fundRaiseId, setFundRaiseId] = useState("");
 
   const updateFormData = (field: keyof FormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   useEffect(() => {
-    const savedData = localStorage.getItem("fundraiserFormData");
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      setFormData((prev) => ({
-        ...prev,
-        ...parsedData,
-        currentStep: parsedData.currentStep || 1,
-      }));
-      setCurrentStep(parsedData.currentStep || 1);
+    if (!formSubmittedRef.current) {
+      const savedData = localStorage.getItem("fundraiserFormData");
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          setFormData((prev) => ({
+            ...prev,
+            ...parsedData,
+          }));
+          setCurrentStep(parsedData.currentStep || 1);
+        } catch (e) {
+          localStorage.removeItem("fundraiserFormData");
+        }
+      }
     }
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const dataToSave = {
-        ...formData,
-        currentStep,
-      };
-      localStorage.setItem("fundraiserFormData", JSON.stringify(dataToSave));
-    }, 500);
+    if (!formSubmittedRef.current) {
+      const timer = setTimeout(() => {
+        const dataToSave = {
+          ...formData,
+          currentStep,
+        };
+        localStorage.setItem("fundraiserFormData", JSON.stringify(dataToSave));
+      }, 500);
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    }
   }, [formData, currentStep]);
 
   useEffect(() => {
@@ -121,7 +131,36 @@ export default function CreateFundraiserPage() {
       return;
     }
 
-    // Video duration validation
+    if (file.size > 50 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select a file smaller than 50MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (type === "video" && !file.type.includes("mp4")) {
+      toast({
+        title: "Invalid video format",
+        description: "Please upload an MP4 video",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (
+      type === "image" &&
+      !["image/png", "image/jpeg", "image/gif"].includes(file.type)
+    ) {
+      toast({
+        title: "Invalid image format",
+        description: "Please upload a PNG, JPG, or GIF image",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (type === "video") {
       const video = document.createElement("video");
       video.preload = "metadata";
@@ -160,7 +199,6 @@ export default function CreateFundraiserPage() {
       if (!uploadResponse.success) {
         throw new Error("Failed to upload");
       }
-      console.log(uploadResponse);
       updateFormData(
         type === "image" ? "imagePreview" : "videoPreview",
         uploadResponse.data.link
@@ -217,7 +255,6 @@ export default function CreateFundraiserPage() {
         return;
       }
     }
-
     setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     setError({});
   };
@@ -226,6 +263,22 @@ export default function CreateFundraiserPage() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
     setError({});
+  };
+
+  const clearFormData = () => {
+    formSubmittedRef.current = true;
+
+    localStorage.removeItem("fundraiserFormData");
+
+    setFormData({
+      title: "",
+      description: "",
+      goalAmount: "",
+      category: "Medical",
+      walletAddress: publicKey ? publicKey.toString() : "",
+      imagePreview: null,
+      videoPreview: null,
+    });
   };
 
   const handleCreateFundraiser = async () => {
@@ -273,14 +326,16 @@ export default function CreateFundraiserPage() {
       const response = await apiRequest("POST", "/fundraise/create", payload);
 
       if (response.success) {
+        clearFormData();
         toast({
           title: "Success",
           description: response.message || "Fundraiser created successfully",
         });
-        localStorage.removeItem("fundraiserFormData");
         window.scrollTo({ top: 0, behavior: "smooth" });
-
+        setFundRaiseId(response.data.fundRaiseId);
         setCurrentStep(4);
+
+        console.log(fundRaiseId);
       } else {
         toast({
           title: "Error",
@@ -583,7 +638,7 @@ export default function CreateFundraiserPage() {
                         <input
                           type="file"
                           id="image-upload"
-                          accept="image/*"
+                          accept="image/png, image/jpeg, image/gif"
                           onChange={(e) => handleUploadChange(e, "image")}
                           className="hidden"
                         />
@@ -634,7 +689,7 @@ export default function CreateFundraiserPage() {
                         <input
                           type="file"
                           id="video-upload"
-                          accept="video/*"
+                          accept="video/mp4"
                           onChange={(e) => handleUploadChange(e, "video")}
                           className="hidden"
                         />
@@ -689,12 +744,8 @@ export default function CreateFundraiserPage() {
                   <p className="text-white/80 mb-8 max-w-md">
                     Your emergency fundraiser has been created successfully.
                   </p>
-                  <div
-                    onClick={() =>
-                      localStorage.removeItem("fundraiserFormData")
-                    }
-                  >
-                    <VerifyFundraising />
+                  <div>
+                    <VerifyFundraising fundRaiseId={fundRaiseId} />
                   </div>
                 </div>
               </div>

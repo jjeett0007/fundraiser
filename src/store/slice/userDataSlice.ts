@@ -7,6 +7,11 @@ interface UserDataInitialState {
   profile: Profile;
   profileImages: ProfileImages;
   address: Address;
+  statics: {
+    totalFundRaiseCreated: number;
+    totalRaised: number;
+  };
+  createdAt: string;
 }
 
 const initialState: UserDataInitialState = {
@@ -26,6 +31,11 @@ const initialState: UserDataInitialState = {
     country: "",
     state: "",
   },
+  statics: {
+    totalFundRaiseCreated: 0,
+    totalRaised: 0,
+  },
+  createdAt: "",
 };
 
 const userDataSlice = createSlice({
@@ -38,6 +48,7 @@ const userDataSlice = createSlice({
         ...action.payload,
       };
     },
+    
     updateUser(
       state,
       action: PayloadAction<{

@@ -10,12 +10,13 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import AppInput from "@/components/customs/AppInput";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 const UserInfoDialog = ({
   isOpen,
   onClose,
   onSubmit,
-  userData,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -26,8 +27,9 @@ const UserInfoDialog = ({
     isAnonymous: boolean;
     amount: number;
   }) => void;
-  userData: { profile: { displayName: string }; email: string } | null;
 }) => {
+  const userData = useSelector((state: RootState) => state.userData);
+
   const [name, setName] = useState(userData?.profile?.displayName || "");
   const [email, setEmail] = useState(userData?.email || "");
   const [note, setNote] = useState("");
@@ -38,11 +40,8 @@ const UserInfoDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="p-6 w-full max-w-md">
-
-        <DialogHeader >
-          <DialogTitle >
-            User Information
-          </DialogTitle>
+        <DialogHeader>
+          <DialogTitle>User Information</DialogTitle>
           <DialogDescription className="text-gray-300">
             Please provide your information to proceed with the donation.
           </DialogDescription>
@@ -57,7 +56,6 @@ const UserInfoDialog = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
-              disabled
             />
           </div>
           <div>
@@ -69,7 +67,6 @@ const UserInfoDialog = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Your email"
-              disabled
             />
           </div>
           <div>

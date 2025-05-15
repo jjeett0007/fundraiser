@@ -27,8 +27,10 @@ import {
   getAssociatedTokenAddress,
   createTransferInstruction,
 } from "@solana/spl-token";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import apiRequest from "@/utils/apiRequest";
+import { useToast } from "@/hooks/use-toast";
+import { GetDonorInfoData } from "@/utils/type";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // USDC mint address on Solana devnet
 const USDC_DEVNET_MINT = new PublicKey(
@@ -36,10 +38,13 @@ const USDC_DEVNET_MINT = new PublicKey(
 );
 
 export default function PaymentPageComponent() {
+  const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { publicKey, wallet, connected, sendTransaction } = useWallet();
   const { connection } = useConnection();
-  const searchParams = useSearchParams();
+
+  // State variables
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletType, setWalletType] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
@@ -47,24 +52,95 @@ export default function PaymentPageComponent() {
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [transactionHash, setTransactionHash] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [donateId, setDonateId] = useState("");
 
-  const userData = useSelector((state: RootState) => state.userData);
-
-  // Get parameters from URL
-  const amount = searchParams.get("amount") || "0";
-  const fundraiserId = searchParams.get("fundraiserId") || "";
-  const name = searchParams.get("name") || "";
-  const email = searchParams.get("email") || "";
-  const note = searchParams.get("note") || "";
-  const isAnonymous = searchParams.get("isAnonymous") === "true";
-
-  // Mock fundraiser data - in a real app, you would fetch this based on fundraiserId
   const [fundraiser, setFundraiser] = useState({
-    title: "Medical Emergency Support for Sarah",
-    walletAddress: "H1pyQiBHh34PxpcKqtHV5MbJkfgx31Uj9bEsFp6Js2Bz",
-    imageUrl:
-      "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=800&q=80",
+    title: "",
+    imageUrl: "",
+    fundraiserId: "",
   });
+  const [donorInfo, setDonorInfo] = useState<GetDonorInfoData>({
+    walletAddress: "",
+    amount: 0,
+    note: "",
+    name: "",
+    _id: "",
+    email: "",
+    anonymous: false,
+  });
+
+  useEffect(() => {
+    const donateIdFromStorage = localStorage.getItem("donateId");
+    const donateIdFromParams = searchParams.get("donateId");
+    const idToUse = donateIdFromParams || donateIdFromStorage;
+
+    if (idToUse) {
+      setDonateId(idToUse);
+      if (donateIdFromParams && !donateIdFromStorage) {
+        localStorage.setItem("donateId", donateIdFromParams);
+      }
+    }
+
+    const storedDetails = localStorage.getItem("fundraiserDetails");
+
+    if (storedDetails) {
+      try {
+        const fundraiserDetails = JSON.parse(storedDetails);
+        setFundraiser({
+          title: fundraiserDetails.title || "",
+          imageUrl: fundraiserDetails.imageUrl || "",
+          fundraiserId: fundraiserDetails.fundraiserId || "",
+        });
+      } catch (e) {
+        console.error("Error parsing fundraiser details:", e);
+      }
+    }
+  }, [searchParams]);
+
+  const fetchDonorInfo = async () => {
+    if (!donateId) return;
+
+    setLoading(true);
+    try {
+      const response = await apiRequest(
+        "GET",
+        `/fundraise/donate/info/${donateId}`
+      );
+
+      if (response.success) {
+        setDonorInfo(response.data);
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to fetch fundraiser details",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred while fetching fundraiser details",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const initializeData = async () => {
+    await Promise.all([fetchDonorInfo()]);
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    if (mounted && fundraiser.fundraiserId && donateId) {
+      initializeData();
+    }
+    return () => {
+      mounted = false;
+    };
+  }, [fundraiser.fundraiserId, donateId]);
 
   useEffect(() => {
     if (!publicKey) {
@@ -90,11 +166,6 @@ export default function PaymentPageComponent() {
     setPaymentCompleted(true);
 
     // In a real app, you would send the payment confirmation to your backend here
-
-    // Redirect to fundraiser page after 3 seconds
-    setTimeout(() => {
-      router.push(`/fundraiser/${fundraiserId}`);
-    }, 3000);
   };
 
   const sendUSDC = async () => {
@@ -106,7 +177,7 @@ export default function PaymentPageComponent() {
         return;
       }
 
-      const recipientPubKey = new PublicKey(fundraiser.walletAddress);
+      const recipientPubKey = new PublicKey(donorInfo.walletAddress);
       const senderPublicKey = publicKey;
 
       const senderATA = await getAssociatedTokenAddress(
@@ -122,7 +193,7 @@ export default function PaymentPageComponent() {
         senderATA,
         recipientATA,
         senderPublicKey,
-        Number(amount) * 1_000_000 // USDC has 6 decimals
+        Number(donorInfo.amount) * 1_000_000 // USDC has 6 decimals
       );
 
       const transaction = new Transaction().add(transferIx);
@@ -142,15 +213,21 @@ export default function PaymentPageComponent() {
         setPaymentCompleted(true);
 
         // Redirect to fundraiser page after 3 seconds
-        setTimeout(() => {
-          router.push(`/fundraiser/${fundraiserId}`);
-        }, 3000);
       }
     } catch (error) {
       console.error("Transaction failed", error);
       setPaymentProcessing(false);
     }
   };
+
+  // Loading skeleton component for content sections
+  const ContentSkeleton = () => (
+    <div className="space-y-2">
+      <Skeleton className="h-4 w-3/4 bg-[#f2bd74]/10" />
+      <Skeleton className="h-4 w-1/2 bg-[#f2bd74]/10" />
+      <Skeleton className="h-4 w-5/6 bg-[#f2bd74]/10" />
+    </div>
+  );
 
   return (
     <div className="min-h-screen relative">
@@ -173,27 +250,37 @@ export default function PaymentPageComponent() {
                 </h2>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-4">
-                  <div className="relative w-16 h-16 rounded-md overflow-hidden border border-[#f2bd74]/30">
-                    <Image
-                      src={fundraiser.imageUrl || "/placeholder.svg"}
-                      alt={fundraiser.title}
-                      fill
-                      style={{ objectFit: "cover" }}
-                    />
+                {loading ? (
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="w-16 h-16 rounded-md bg-[#f2bd74]/10" />
+                    <div className="flex-1">
+                      <Skeleton className="h-5 w-3/4 mb-2 bg-[#f2bd74]/10" />
+                      <Skeleton className="h-4 w-1/2 bg-[#f2bd74]/10" />
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-white">
-                      {fundraiser.title}
-                    </h3>
-                    <p className="text-sm text-gray-300">
-                      Contribution Amount:{" "}
-                      <span className="font-semibold text-[#f2bd74]">
-                        ${amount} USDC
-                      </span>
-                    </p>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-16 h-16 rounded-md overflow-hidden border border-[#f2bd74]/30">
+                      <Image
+                        src={fundraiser.imageUrl || "/placeholder.svg"}
+                        alt={fundraiser.title}
+                        fill
+                        style={{ objectFit: "cover" }}
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-white">
+                        {fundraiser.title}
+                      </h3>
+                      <p className="text-sm text-gray-300">
+                        Contribution Amount:{" "}
+                        <span className="font-semibold text-[#f2bd74]">
+                          ${donorInfo.amount} USDC
+                        </span>
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -205,26 +292,32 @@ export default function PaymentPageComponent() {
                 </h2>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Name:</span>
-                    <span className="text-white  line-clamp-1">
-                      {userData.profile.firstName} {userData.profile.lastName}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Email:</span>
-                    <span className="text-white line-clamp-1">{userData.email}</span>
-                  </div>
-                  {note && (
-                    <div className="pt-2">
-                      <span className="text-gray-400 block mb-1">Note:</span>
-                      <p className="text-sm bg-[#0a1a2f] p-3 rounded-md border border-[#f2bd74]/10 text-white/80">
-                        "{note}"
-                      </p>
+                {loading ? (
+                  <ContentSkeleton />
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Name:</span>
+                      <span className="text-white line-clamp-1">
+                        {donorInfo.name}
+                      </span>
                     </div>
-                  )}
-                </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Email:</span>
+                      <span className="text-white line-clamp-1">
+                        {donorInfo.email}
+                      </span>
+                    </div>
+                    {donorInfo.note && (
+                      <div className="pt-2">
+                        <span className="text-gray-400 block mb-1">Note:</span>
+                        <p className="text-sm bg-[#0a1a2f] p-3 rounded-md border border-[#f2bd74]/10 text-white/80">
+                          "{donorInfo.note}"
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -235,7 +328,7 @@ export default function PaymentPageComponent() {
                   <h2 className="text-lg font-rajdhani font-medium text-[#f2bd74]">
                     Payment Method
                   </h2>
-                  <Badge className=" bg-gradient-to-r from-[#bd0e2b]/80 to-[#f2bd74]/80 text-white border-0">
+                  <Badge className="bg-gradient-to-r from-[#bd0e2b]/80 to-[#f2bd74]/80 text-white border-0">
                     USDC
                   </Badge>
                 </div>
@@ -246,29 +339,33 @@ export default function PaymentPageComponent() {
                     <p className="text-sm text-gray-300 mb-2">
                       Send exactly{" "}
                       <span className="font-semibold text-[#f2bd74]">
-                        ${amount} USDC
+                        ${donorInfo.amount} USDC
                       </span>{" "}
                       to the following address:
                     </p>
-                    <div className="bg-[#0a1a2f] p-3 rounded-md flex items-center justify-between border border-[#f2bd74]/20">
-                      <code className="text-xs md:text-sm break-all text-white/80">
-                        {fundraiser.walletAddress}
-                      </code>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="ml-2 text-[#f2bd74] hover:text-white hover:bg-[#f2bd74]/10"
-                        onClick={() =>
-                          copyToClipboard(fundraiser.walletAddress)
-                        }
-                      >
-                        {copiedAddress ? (
-                          <CheckCircle2 className="h-4 w-4" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
+                    {loading ? (
+                      <Skeleton className="h-12 w-full bg-[#f2bd74]/10" />
+                    ) : (
+                      <div className="bg-[#0a1a2f] p-3 rounded-md flex items-center justify-between border border-[#f2bd74]/20">
+                        <code className="text-xs md:text-sm break-all text-white/80">
+                          {donorInfo.walletAddress}
+                        </code>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="ml-2 text-[#f2bd74] hover:text-white hover:bg-[#f2bd74]/10"
+                          onClick={() =>
+                            copyToClipboard(donorInfo.walletAddress)
+                          }
+                        >
+                          {copiedAddress ? (
+                            <CheckCircle2 className="h-4 w-4" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   <Separator className="bg-[#f2bd74]/20" />
@@ -327,10 +424,11 @@ export default function PaymentPageComponent() {
                             className="w-full bg-[#0a1a2f] hover:bg-[#0a1a2f]/80 text-[#f2bd74] border border-[#f2bd74]/30 hover:text-white"
                             onClick={() =>
                               window.open(
-                                `https://explorer.solana.com/address/${fundraiser.walletAddress}?cluster=devnet`,
+                                `https://explorer.solana.com/address/${donorInfo.walletAddress}?cluster=devnet`,
                                 "_blank"
                               )
                             }
+                            disabled={loading || !donorInfo.walletAddress}
                           >
                             <ExternalLink className="h-4 w-4 mr-2" />
                             View Address on Explorer
@@ -340,7 +438,11 @@ export default function PaymentPageComponent() {
                             className="w-full"
                             variant="secondary"
                             onClick={sendUSDC}
-                            disabled={paymentProcessing}
+                            disabled={
+                              paymentProcessing ||
+                              loading ||
+                              !donorInfo.walletAddress
+                            }
                           >
                             {paymentProcessing ? (
                               <>
@@ -349,7 +451,7 @@ export default function PaymentPageComponent() {
                               </>
                             ) : (
                               <>
-                                Send ${amount} USDC{" "}
+                                Send ${donorInfo.amount} USDC{" "}
                                 <ArrowRight className="ml-2 h-4 w-4" />
                               </>
                             )}
@@ -364,6 +466,7 @@ export default function PaymentPageComponent() {
                           <Button
                             className="w-full"
                             onClick={handlePaymentComplete}
+                            disabled={loading}
                           >
                             I've Made the Payment Manually
                           </Button>

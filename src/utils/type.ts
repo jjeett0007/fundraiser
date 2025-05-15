@@ -43,6 +43,11 @@ export interface UserData {
   profile: Profile;
   profileImages: ProfileImages;
   address: Address;
+  statics: {
+    totalFundRaiseCreated: number;
+    totalRaised: number;
+  };
+  createdAt: string;
 }
 
 export type PaginationData = {
@@ -51,7 +56,6 @@ export type PaginationData = {
   totalPages: number;
   pageSize: number;
 };
-
 
 export interface Category {
   id: string;
@@ -65,35 +69,62 @@ export interface FundMetaData {
   currency: string;
   currentAmount: number;
   category: string;
-  walletAddress: string;
+  walletAddress?: string;
   imageUrl: string;
   videoUrl: string | null;
 }
+export interface Statics {
+  totalRaised: number;
+  totalDonor: number;
+  averageDonation: number;
+  largestAmount: number;
+  lastPaymentTime: null | string;
+}
 
+export interface Verified {
+  isFundRaiseVerified: boolean;
+  isFundRaiseVerifiedDate: string;
+}
 export interface FundraiserData {
   _id: string;
   fundMetaData: FundMetaData;
+  verify: {
+    isFundRaiseVerified: boolean;
+  };
+  statics: Statics;
+  isFundRaiseDeactivated: boolean;
+  isFundRaisedStartedDate: string;
+}
+
+export interface FundraiserByIdData {
+  _id: string;
+  fundMetaData: FundMetaData;
+  verify: Verified;
+  statics: Statics;
   isInitialized: boolean;
   isFundRaiseStarted: boolean;
   isFundRaisedStopped: boolean;
   isFundRaiseFundsComplete: boolean;
   isFundRaisedStartedDate: string;
-  isTotalDonor?: number;
 }
 
-export interface Donor {
+export interface DonorByIdData {
+  name: string;
+  amount: number;
+  note: string;
+  anonymous: boolean;
+  isFundPaid: boolean;
+  walletAddress: string;
+  blockTime: string;
+  updatedAt: string;
+}
+
+export interface GetDonorInfoData {
   _id: string;
   name: string;
   email: string;
   amount: number;
-  note?: string;
-  timestamp: string;
-  isAnonymous?: boolean;
-}
-
-export interface FundraiserDetailResponse {
-  data: FundraiserData;
-  donors?: Donor[];
-  success: boolean;
-  message: string;
+  note: string;
+  anonymous: false;
+  walletAddress: string;
 }
