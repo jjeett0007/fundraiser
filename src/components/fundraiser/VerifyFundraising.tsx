@@ -161,7 +161,7 @@ const VerifyFundraising = ({
             setFundRaiseProofs((prev) => [
               ...prev,
               {
-                type: file.type.split("/")[1] || "document",
+                type: uploadResponse.data.type,
                 file: uploadResponse.data.link,
               },
             ]);
@@ -208,7 +208,7 @@ const VerifyFundraising = ({
       !selectedIdType ||
       !idNumber ||
       !selfie ||
-      //       !livenessVideo ||
+      // !livenessVideo ||
       !documentData.frontView ||
       !mobileNumber
     ) {
@@ -230,24 +230,14 @@ const VerifyFundraising = ({
           country,
           meansOfVerification: selectedIdType,
           selfie,
-          livenessVideo,
+          // livenessVideo,
           documentData,
+          idNumber,
           mobileNumber,
           fundRaiseProofs:
             fundRaiseProofs.length > 0 ? fundRaiseProofs : undefined,
         }
       );
-
-      console.log(response, fundRaiseId, {
-        country,
-        meansOfVerification: selectedIdType,
-        selfie,
-        livenessVideo,
-        documentData,
-        mobileNumber,
-        fundRaiseProofs:
-          fundRaiseProofs.length > 0 ? fundRaiseProofs : undefined,
-      });
 
       if (response.success) {
         toast({
@@ -273,7 +263,7 @@ const VerifyFundraising = ({
     selectedIdType,
     idNumber,
     selfie,
-    livenessVideo,
+    // livenessVideo,
     documentData,
     mobileNumber,
     fundRaiseProofs,
@@ -454,7 +444,7 @@ const VerifyFundraising = ({
                 onRemove={() => removeFile("selfie")}
                 type="image"
               />
-              <FileUploadSection
+              {/* <FileUploadSection
                 id="liveness-upload"
                 label={
                   <>
@@ -469,20 +459,20 @@ const VerifyFundraising = ({
                 onChange={(e) => handleFileUpload(e, "video", "livenessVideo")}
                 onRemove={() => removeFile("livenessVideo")}
                 type="video"
-              />
+              /> */}
             </div>
           </div>
 
           {/* Fundraiser Proofs */}
           <div className="space-y-4 p-4 bg-white/5 rounded-lg">
             <h3 className="text-primaryGold font-rajdhani font-medium">
-              Fundraiser Proofs
+              Fundraiser Proofs (Image)
             </h3>
             <p className="text-sm text-white/80 mb-4">
-              Upload supporting documents for your fundraiser (e.g., medical
-              bills, invoices, etc.)
+              Upload supporting documents for your fundraiser (e.g., medical bills, invoices, etc.)
             </p>
 
+            {/* Grid of uploaded proofs */}
             {fundRaiseProofs.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {fundRaiseProofs.map((proof, index) => (
@@ -495,19 +485,21 @@ const VerifyFundraising = ({
               </div>
             )}
 
+            {/* Upload button */}
             <div className="mt-4">
               <input
                 type="file"
                 id="proof-upload"
                 accept="image/*,application/pdf"
-                onChange={(e) => handleFileUpload(e, "pdf", "proof")}
+                onChange={(e) => handleFileUpload(e, "image", "proof")}
                 className="hidden"
               />
-              <Label htmlFor="proof-upload">
+              <Label htmlFor="proof-upload" className="cursor-pointer">  {/* Add cursor-pointer */}
                 <Button
                   variant="outline"
                   className="w-full"
                   disabled={loadingStates.proof}
+                  onClick={() => document.getElementById("proof-upload")?.click()}  // Fallback
                 >
                   {loadingStates.proof ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

@@ -58,6 +58,8 @@ export default function PaymentPageComponent() {
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [transactionHash, setTransactionHash] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [manualPaymentLoading, setManualPaymentLoading] = useState(false);
   const [donateId, setDonateId] = useState("");
 
   const [fundraiser, setFundraiser] = useState({
@@ -75,6 +77,20 @@ export default function PaymentPageComponent() {
     email: "",
     anonymous: false,
   });
+
+  const handleReRoutePaymentComplete = async () => {
+    if (paymentCompleted && fundraiser.fundraiserId) {
+      const timer = setTimeout(() => {
+        router.push(`/fundraiser/${fundraiser.fundraiserId}`);
+
+        localStorage.removeItem("fundraiserDetails");
+        localStorage.removeItem("donateId");
+        localStorage.setItem("paymentCompleted", 'true');
+      }, 10000);
+
+      return () => clearTimeout(timer);
+    }
+  }
 
   useEffect(() => {
     const donateIdFromStorage = localStorage.getItem("donateId");
@@ -168,16 +184,40 @@ export default function PaymentPageComponent() {
     setTimeout(() => setCopiedAddress(false), 2000);
   };
 
-  const handlePaymentComplete = () => {
-    setPaymentCompleted(true);
+  const handlePaymentComplete = async () => {
+    setManualPaymentLoading(true);
+    try {
+      const response = await apiRequest("GET", `/fundraise/donate/check/${donateId}`,);
+      console.log(response)
 
-    // In a real app, you would send the payment confirmation to your backend here
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: response.message || "Payment confirmed successfully",
+        });
+        setPaymentCompleted(true);
+        handleReRoutePaymentComplete()
+        localStorage.setItem(`paymentCompleted_${donateId}`, 'true');
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to confirm payment",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      setManualPaymentLoading(false);
+      toast({
+        title: "Error",
+        description: "An error occurred while confirming payment",
+      })
+    } finally { setManualPaymentLoading(false); }
   };
 
   const sendUSDC = async () => {
     try {
       setPaymentProcessing(true);
-      
+
       if (!connected || !publicKey || !signTransaction) {
         throw new Error("Wallet not connected");
       }
@@ -229,8 +269,9 @@ export default function PaymentPageComponent() {
       await connection.confirmTransaction(txid, "confirmed");
 
       console.log("✅ Sent USDC on devnet! Tx ID:", txid);
+      localStorage.setItem("paymentCompleted", 'true');
       setPaymentProcessing(false);
-
+      handleReRoutePaymentComplete()
       return txid;
     } catch (error) {
       console.error("Transaction failed", error);
@@ -526,7 +567,17 @@ export default function PaymentPageComponent() {
                             onClick={handlePaymentComplete}
                             disabled={loading}
                           >
-                            I've Made the Payment Manually
+                            {manualPaymentLoading ? (
+                              <>
+                                <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin mr-2"></div>
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                I've Made the Payment{" "}
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                              </>
+                            )}
                           </Button>
                         </div>
                       ) : (
@@ -564,7 +615,7 @@ export default function PaymentPageComponent() {
                             )}
 
                             <p className="text-sm text-white/60">
-                              Redirecting you back to the fundraiser...
+                              Redirecting you back to the fundraiser in 5 seconds...
                             </p>
                           </div>
                         </div>

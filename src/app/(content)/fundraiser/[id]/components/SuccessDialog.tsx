@@ -13,12 +13,10 @@ import { CheckCircle2, Zap } from "lucide-react";
 const SuccessDialog = ({
   isOpen,
   onClose,
-  amount,
   fundraiserTitle,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  amount: number;
   fundraiserTitle: string;
 }) => {
   if (!isOpen) return null;
@@ -43,17 +41,12 @@ const SuccessDialog = ({
           </h2>
 
           <p className="text-gray-300 mb-4">
-            Thank you for your generous contribution of {formatCurrency(amount)}{" "}
+            Thank you for your generous contribution
             to "{fundraiserTitle}".
           </p>
 
           <div className="w-full p-4 bg-[#0a1a2f]/50 rounded-lg border border-[#f2bd74]/20 mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-300">Amount</span>
-              <span className="font-bold text-[#f2bd74]">
-                {formatCurrency(amount)}
-              </span>
-            </div>
+
             <div className="flex items-center justify-between">
               <span className="text-gray-300">Status</span>
               <span className="text-green-400 flex items-center">
@@ -62,7 +55,7 @@ const SuccessDialog = ({
             </div>
           </div>
 
-          <Button onClick={onClose} className="w-full" variant={"outline"}>
+          <Button className="w-full" variant={"outline"}>
             Close
           </Button>
         </div>

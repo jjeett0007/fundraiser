@@ -22,6 +22,7 @@ import apiRequest from "@/utils/apiRequest";
 import type { FundraiserByIdData, DonorByIdData } from "@/utils/type";
 import UserInfoDialog from "./components/UserInfoDialog";
 import { getRelativeTime, formatDate } from "@/components/customs/customComponent";
+import SuccessDialog from "./components/SuccessDialog";
 
 type props = {
   fundraiserId: string;
@@ -38,6 +39,15 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
   const [selectedAmount, setSelectedAmount] = useState(0);
   const [customAmount, setCustomAmount] = useState("");
   const [showUserInfoDialog, setShowUserInfoDialog] = useState(false);
+  const [isSuccessDialog, setIsSuccessDialog] = useState(false);
+
+  useEffect(() => {
+    const isPaymentCompleted = localStorage.getItem("paymentCompleted");
+    if (isPaymentCompleted === "true") {
+      setIsSuccessDialog(true);
+    }
+
+  }, []);
 
   const fetchDonation = async () => {
     try {
@@ -106,6 +116,10 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
   }, [fundraiserId]);
 
 
+
+  const handleDialogClose = () => {
+    setIsSuccessDialog(false);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -203,300 +217,304 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
     (fundraiser.statics.totalRaised / fundMetaData.goalAmount) * 100;
 
   return (
-    <div className=" text-white relative">
-      {/* Decorative Elements */}
-      <div className="absolute top-20 left-10 w-64 h-64 rounded-full bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] opacity-5 blur-3xl"></div>
-      <div className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-gradient-to-r from-[#4338CA] to-[#6366F1] opacity-5 blur-3xl"></div>
+    <>
+      <SuccessDialog isOpen={isSuccessDialog} onClose={handleDialogClose} fundraiserTitle={fundMetaData.title} />
 
-      <div className="container mx-auto px-4 md:px-10 lg:px-14 py-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="mb-6">
-              <Badge className="mb-2 capitalize font-rajdhani  bg-primaryRed text-white border-0">
-                {fundMetaData.category}
-              </Badge>
-              <h1 className="text-3xl font-rajdhani font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-[#f2bd74]">
-                {fundMetaData.title}
-              </h1>
-              <div className="flex items-center text-gray-400 mb-4">
-                <Clock className="h-4 w-4 mr-1 text-[#f2bd74]" />
-                <span className="text-sm text-[#ede4d3]">
-                  Created {getRelativeTime(fundraiser.isFundRaisedStartedDate)}
-                </span>
-              </div>
-            </div>
+      <div className=" text-white relative">
+        {/* Decorative Elements */}
+        <div className="absolute top-20 left-10 w-64 h-64 rounded-full bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] opacity-5 blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-gradient-to-r from-[#4338CA] to-[#6366F1] opacity-5 blur-3xl"></div>
 
-            <div className="relative w-full h-64 mb-6 rounded-2xl overflow-hidden group">
-              <Image
-                src={fundMetaData.imageUrl || "/placeholder.svg"}
-                alt={fundMetaData.title}
-                className="rounded-2xl w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                width={1000}
-                height={1000}
-              />
-
-              {/* Blockchain verification badge */}
-              {fundraiser.verify.isFundRaiseVerified && (
-                <div className="absolute top-4 right-4 z-20">
-                  <Badge className="bg-[#0a1a2f]/80 backdrop-blur-sm border border-[#f2bd74]/30 text-[#f2bd74] flex items-center gap-1">
-                    <Shield className="h-3 w-3" /> Verified
-                  </Badge>
+        <div className="container mx-auto px-4 md:px-10 lg:px-14 py-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="mb-6">
+                <Badge className="mb-2 capitalize font-rajdhani  bg-primaryRed text-white border-0">
+                  {fundMetaData.category}
+                </Badge>
+                <h1 className="text-3xl font-rajdhani font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-[#f2bd74]">
+                  {fundMetaData.title}
+                </h1>
+                <div className="flex items-center text-gray-400 mb-4">
+                  <Clock className="h-4 w-4 mr-1 text-[#f2bd74]" />
+                  <span className="text-sm text-[#ede4d3]">
+                    Created {getRelativeTime(fundraiser.isFundRaisedStartedDate)}
+                  </span>
                 </div>
-              )}
-            </div>
+              </div>
 
-            <Card className="mb-8 bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
-              <CardContent className="pt-6">
-                <p className="text-lg whitespace-pre-line text-gray-300">
-                  {fundMetaData.description}
-                </p>
-              </CardContent>
-            </Card>
+              <div className="relative w-full h-64 mb-6 rounded-2xl overflow-hidden group">
+                <Image
+                  src={fundMetaData.imageUrl || "/placeholder.svg"}
+                  alt={fundMetaData.title}
+                  className="rounded-2xl w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  width={1000}
+                  height={1000}
+                />
 
-            <Tabs defaultValue="donors" className="mb-8">
-              <TabsList className="w-full bg-transparent border border-[#f2bd74]/20">
-                <TabsTrigger
-                  value="donors"
-                  className="flex-1 data-[state=active]:bg-[#0a1a2f] data-[state=active]:border data-[state=active]:border-white/20 data-[state=active]:text-[#f2bd74] text-[#ede4d3]"
-                >
-                  <Users className="h-4 w-4 mr-2" /> Donors
-                </TabsTrigger>
-                <TabsTrigger
-                  value="updates"
-                  className="flex-1 data-[state=active]:bg-[#0a1a2f] data-[state=active]:border data-[state=active]:border-white/20 data-[state=active]:text-[#f2bd74] text-[#ede4d3]"
-                >
-                  <Zap className="h-4 w-4 mr-2" /> Updates
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="donors" className="mt-4">
-                <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
-                  <CardHeader>
-                    <h3 className="text-xl font-semibold text-[#f2bd74]">
-                      Recent Donors
-                    </h3>
-                  </CardHeader>
-                  <CardContent>
-                    {donors && donors.length > 0 ? (
-                      <div className="space-y-4">
-                        {donors.map((donor, index) => (
-                          <div
-                            key={index}
-                            className="flex items-start gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10"
-                          >
-                            <Avatar className="border-2 border-[#f2bd74]/20">
-                              <AvatarImage
-                                src={`https://api.dicebear.com/9.x/identicon/svg?seed=${donor.name}`}
-                              />
-                              <AvatarFallback className="bg-[#bd0e2b]/20 text-[#f2bd74]">
-                                {donor.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="w-full">
-                              <div className="flex justify-between">
-                                <div className="flex items-start flex-col gap-1 ">
-                                  <p className="font-medium font-rajdhani text-white">
-                                    {donor.anonymous ? "Anonymous" : donor.name}
-                                  </p>
-                                  {donor.note && (
-                                    <p className="mt-1 text-sm text-gray-300 italic">
-                                      "{donor.note}"
+                {/* Blockchain verification badge */}
+                {fundraiser.verify.isFundRaiseVerified && (
+                  <div className="absolute top-4 right-4 z-20">
+                    <Badge className="bg-[#0a1a2f]/80 backdrop-blur-sm border border-[#f2bd74]/30 text-[#f2bd74] flex items-center gap-1">
+                      <Shield className="h-3 w-3" /> Verified
+                    </Badge>
+                  </div>
+                )}
+              </div>
+
+              <Card className="mb-8 bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
+                <CardContent className="pt-6">
+                  <p className="text-lg whitespace-pre-line text-gray-300">
+                    {fundMetaData.description}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Tabs defaultValue="donors" className="mb-8">
+                <TabsList className="w-full bg-transparent border border-[#f2bd74]/20">
+                  <TabsTrigger
+                    value="donors"
+                    className="flex-1 data-[state=active]:bg-[#0a1a2f] data-[state=active]:border data-[state=active]:border-white/20 data-[state=active]:text-[#f2bd74] text-[#ede4d3]"
+                  >
+                    <Users className="h-4 w-4 mr-2" /> Donors
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="updates"
+                    className="flex-1 data-[state=active]:bg-[#0a1a2f] data-[state=active]:border data-[state=active]:border-white/20 data-[state=active]:text-[#f2bd74] text-[#ede4d3]"
+                  >
+                    <Zap className="h-4 w-4 mr-2" /> Updates
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="donors" className="mt-4">
+                  <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
+                    <CardHeader>
+                      <h3 className="text-xl font-semibold text-[#f2bd74]">
+                        Recent Donors
+                      </h3>
+                    </CardHeader>
+                    <CardContent>
+                      {donors && donors.length > 0 ? (
+                        <div className="space-y-4">
+                          {donors.map((donor, index) => (
+                            <div
+                              key={index}
+                              className="flex items-start gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10"
+                            >
+                              <Avatar className="border-2 border-[#f2bd74]/20">
+                                <AvatarImage
+                                  src={`https://api.dicebear.com/9.x/identicon/svg?seed=${donor.name}`}
+                                />
+                                <AvatarFallback className="bg-[#bd0e2b]/20 text-[#f2bd74]">
+                                  {donor.name.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="w-full">
+                                <div className="flex justify-between">
+                                  <div className="flex items-start flex-col gap-1 ">
+                                    <p className="font-medium font-rajdhani text-white">
+                                      {donor.anonymous ? "Anonymous" : donor.name}
                                     </p>
-                                  )}
-                                </div>
-                                <div className="flex items-end flex-col gap-1 ">
-                                  <p className="text-[#f2bd74] font-semibold">
-                                    {formatCurrency(donor.amount)}
-                                  </p>
-                                  <p className="text-gray-400 text-sm flex items-center">
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    {formatDate(donor.blockTime)}
-                                  </p>
+                                    {donor.note && (
+                                      <p className="mt-1 text-sm text-gray-300 italic">
+                                        "{donor.note}"
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="flex items-end flex-col gap-1 ">
+                                    <p className="text-[#f2bd74] font-semibold">
+                                      {formatCurrency(donor.amount)}
+                                    </p>
+                                    <p className="text-gray-400 text-sm flex items-center">
+                                      <Clock className="h-3 w-3 mr-1" />
+                                      {formatDate(donor.blockTime)}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                          <p className="text-gray-400">
+                            No donors yet. Be the first to donate!
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                <TabsContent value="updates" className="mt-4">
+                  <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
+                    <CardHeader>
+                      <h3 className="text-xl font-semibold text-[#f2bd74]">
+                        Recent Updates
+                      </h3>
+                    </CardHeader>
+                    <CardContent className="pt-6">
                       <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <p className="text-gray-400">
-                          No donors yet. Be the first to donate!
-                        </p>
+                        <p className="text-gray-400">No updates yet</p>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="updates" className="mt-4">
-                <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
-                  <CardHeader>
-                    <h3 className="text-xl font-semibold text-[#f2bd74]">
-                      Recent Updates
-                    </h3>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="flex flex-col items-center justify-center py-8 text-center">
-                      <p className="text-gray-400">No updates yet</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
 
-          <div className="lg:col-span-1">
-            <Card className="sticky top-4 md:top-[6rem] bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white overflow-hidden">
-              <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
-                <div className="absolute transform rotate-45 bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] w-8 h-8 -top-4 -right-4 opacity-50"></div>
-              </div>
+            <div className="lg:col-span-1">
+              <Card className="sticky top-4 md:top-[6rem] bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
+                  <div className="absolute transform rotate-45 bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] w-8 h-8 -top-4 -right-4 opacity-50"></div>
+                </div>
 
-              <CardHeader>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <h2 className="text-2xl flex items-center gap-2 font-bold text-[#f2bd74]">
-                      {formatCurrency(fundraiser.statics.totalRaised)}
-                      <p className="text-gray-400 font-normal text-sm">
-                        raised
+                <CardHeader>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-2xl flex items-center gap-2 font-bold text-[#f2bd74]">
+                        {formatCurrency(fundraiser.statics.totalRaised)}
+                        <p className="text-gray-400 font-normal text-sm">
+                          raised
+                        </p>
+                      </h2>
+                      <p className="text-gray-400">
+                        of {formatCurrency(fundMetaData.goalAmount)}
                       </p>
-                    </h2>
-                    <p className="text-gray-400">
-                      of {formatCurrency(fundMetaData.goalAmount)}
-                    </p>
-                  </div>
+                    </div>
 
-                  <div className="h-2 w-full bg-gray-700/50 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] rounded-full"
-                      style={{
-                        width: `${Math.min(progressPercentage, 100)}%`,
-                      }}
-                    />
-                  </div>
+                    <div className="h-2 w-full bg-gray-700/50 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] rounded-full"
+                        style={{
+                          width: `${Math.min(progressPercentage, 100)}%`,
+                        }}
+                      />
+                    </div>
 
-                  <div className="flex justify-between text-sm">
-                    <p className="flex items-center text-gray-300">
-                      <Users className="h-3 w-3 mr-1 text-[#f2bd74]" />{" "}
-                      {fundraiser.statics.totalDonor}{" "}
-                      {fundraiser.statics.totalDonor <= 1 ? "donor" : "donors"}
-                    </p>
-                    <p className="flex items-center text-gray-300">
-                      <Zap className="h-3 w-3 mr-1 text-[#f2bd74]" />{" "}
-                      {Math.round(progressPercentage)}% complete
-                    </p>
+                    <div className="flex justify-between text-sm">
+                      <p className="flex items-center text-gray-300">
+                        <Users className="h-3 w-3 mr-1 text-[#f2bd74]" />{" "}
+                        {fundraiser.statics.totalDonor}{" "}
+                        {fundraiser.statics.totalDonor <= 1 ? "donor" : "donors"}
+                      </p>
+                      <p className="flex items-center text-gray-300">
+                        <Zap className="h-3 w-3 mr-1 text-[#f2bd74]" />{" "}
+                        {Math.round(progressPercentage)}% complete
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
+                </CardHeader>
 
-              <CardContent>
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-[#f2bd74]">
-                    Select an amount
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2">
+                <CardContent>
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-[#f2bd74]">
+                      Select an amount
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant={selectedAmount === 5 ? "default" : "outline"}
+                        onClick={() => {
+                          setSelectedAmount(5);
+                          setCustomAmount("");
+                        }}
+                      >
+                        $5
+                      </Button>
+                      <Button
+                        variant={selectedAmount === 10 ? "default" : "outline"}
+                        onClick={() => {
+                          setSelectedAmount(10);
+                          setCustomAmount("");
+                        }}
+                      >
+                        $10
+                      </Button>
+                      <Button
+                        variant={selectedAmount === 25 ? "default" : "outline"}
+                        onClick={() => {
+                          setSelectedAmount(25);
+                          setCustomAmount("");
+                        }}
+                      >
+                        $25
+                      </Button>
+                      <Button
+                        variant={selectedAmount === 50 ? "default" : "outline"}
+                        onClick={() => {
+                          setSelectedAmount(50);
+                          setCustomAmount("");
+                        }}
+                      >
+                        $50
+                      </Button>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        placeholder="Custom amount"
+                        min="1"
+                        className="pl-6 bg-[#0a1a2f]/50 border-[#f2bd74]/30 text-white placeholder:text-gray-500"
+                        value={customAmount}
+                        onChange={(e) => {
+                          setCustomAmount(e.target.value);
+                          setSelectedAmount(0);
+                        }}
+                      />
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#f2bd74]">
+                        $
+                      </span>
+                    </div>
+                    <Separator className="bg-[#f2bd74]/20" />
                     <Button
-                      variant={selectedAmount === 5 ? "default" : "outline"}
+                      className="w-full bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] hover:from-[#d01232] hover:to-[#f7ca8a] text-white border-0 shadow-lg shadow-[#bd0e2b]/20"
                       onClick={() => {
-                        setSelectedAmount(5);
-                        setCustomAmount("");
+                        const amount = customAmount
+                          ? Number.parseFloat(customAmount)
+                          : selectedAmount;
+                        if (amount > 0) {
+                          setShowUserInfoDialog(true);
+                        } else {
+                          toast({
+                            title: "Invalid amount",
+                            description: "Please select a valid donation amount",
+                            variant: "destructive",
+                          });
+                        }
                       }}
                     >
-                      $5
-                    </Button>
-                    <Button
-                      variant={selectedAmount === 10 ? "default" : "outline"}
-                      onClick={() => {
-                        setSelectedAmount(10);
-                        setCustomAmount("");
-                      }}
-                    >
-                      $10
-                    </Button>
-                    <Button
-                      variant={selectedAmount === 25 ? "default" : "outline"}
-                      onClick={() => {
-                        setSelectedAmount(25);
-                        setCustomAmount("");
-                      }}
-                    >
-                      $25
-                    </Button>
-                    <Button
-                      variant={selectedAmount === 50 ? "default" : "outline"}
-                      onClick={() => {
-                        setSelectedAmount(50);
-                        setCustomAmount("");
-                      }}
-                    >
-                      $50
+                      <Heart className="mr-2 h-4 w-4" /> Contribute Now
                     </Button>
                   </div>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      placeholder="Custom amount"
-                      min="1"
-                      className="pl-6 bg-[#0a1a2f]/50 border-[#f2bd74]/30 text-white placeholder:text-gray-500"
-                      value={customAmount}
-                      onChange={(e) => {
-                        setCustomAmount(e.target.value);
-                        setSelectedAmount(0);
-                      }}
-                    />
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#f2bd74]">
-                      $
-                    </span>
-                  </div>
-                  <Separator className="bg-[#f2bd74]/20" />
-                  <Button
-                    className="w-full bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] hover:from-[#d01232] hover:to-[#f7ca8a] text-white border-0 shadow-lg shadow-[#bd0e2b]/20"
-                    onClick={() => {
-                      const amount = customAmount
-                        ? Number.parseFloat(customAmount)
-                        : selectedAmount;
-                      if (amount > 0) {
-                        setShowUserInfoDialog(true);
-                      } else {
-                        toast({
-                          title: "Invalid amount",
-                          description: "Please select a valid donation amount",
-                          variant: "destructive",
-                        });
-                      }
-                    }}
-                  >
-                    <Heart className="mr-2 h-4 w-4" /> Contribute Now
-                  </Button>
-                </div>
-              </CardContent>
+                </CardContent>
 
-              <CardFooter className="flex-col space-y-4">
-                <div className="flex justify-between w-full">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10 hover:text-white"
-                  >
-                    <Share2 className="mr-2 h-4 w-4" /> Share
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10 hover:text-white"
-                  >
-                    <QrCode className="mr-2 h-4 w-4" /> QR Code
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
+                <CardFooter className="flex-col space-y-4">
+                  <div className="flex justify-between w-full">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10 hover:text-white"
+                    >
+                      <Share2 className="mr-2 h-4 w-4" /> Share
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10 hover:text-white"
+                    >
+                      <QrCode className="mr-2 h-4 w-4" /> QR Code
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            </div>
           </div>
         </div>
-      </div>
 
-      <UserInfoDialog
-        isOpen={showUserInfoDialog}
-        onClose={() => setShowUserInfoDialog(false)}
-        onSubmit={handleDonation}
-      />
-    </div>
+        <UserInfoDialog
+          isOpen={showUserInfoDialog}
+          onClose={() => setShowUserInfoDialog(false)}
+          onSubmit={handleDonation}
+        />
+      </div>
+    </>
   );
 }
