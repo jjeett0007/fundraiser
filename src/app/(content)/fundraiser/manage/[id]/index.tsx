@@ -40,6 +40,7 @@ import { DonorByIdData, FundraiserByIdData } from "@/utils/type";
 import apiRequest from "@/utils/apiRequest";
 import { useToast } from "@/hooks/use-toast";
 import { formatDate } from "@/components/customs/customComponent";
+import VerifyFundraising from "@/components/fundraiser/VerifyFundraising";
 
 type props = {
   fundraiserId: string;
@@ -142,21 +143,6 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
 
   const { fundMetaData } = fundraiser;
 
-  // const fundraiser = {
-  //   id: "123",
-  //   title: "Medical Emergency Support for Sarah",
-  //   description:
-  //     "Sarah was recently diagnosed with a rare condition requiring immediate treatment. The medical costs are overwhelming for her family, and they need our support during this difficult time.",
-  //   goalAmount: 5000,
-  //   raisedAmount: 2750,
-  //   createdAt: "2023-05-15T10:30:00Z",
-  //   category: "Medical",
-  //   walletAddress: "8xj7dkE9JDkf82jS6Qgp2H7K5uyJM9N1X2L",
-  //   imageUrl:
-  //     "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=800&q=80",
-  //   status: "active",
-  // };
-
   const progressPercentage = fundraiser
     ? (fundMetaData.currentAmount / fundMetaData.goalAmount) * 100
     : 0;
@@ -187,23 +173,40 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
     }).format(numericAmount);
   };
 
-  const handleWithdrawFunds = () => {
-    setIsWithdrawing(true);
-    // Mock API call to withdraw funds
-    setTimeout(() => {
-      setIsWithdrawing(false);
-      alert("Funds have been withdrawn to your wallet!");
-    }, 2000);
-  };
 
-  const handleStopFundraiser = () => {
-    setIsStoppingFundraiser(true);
-    // Mock API call to stop fundraiser
-    setTimeout(() => {
+
+  const handleStopFundraiser = async () => {
+    try {
+      setIsStoppingFundraiser(true);
+      const response = await apiRequest(
+        "POST",
+        `/fundraise/withdraw/${fundraiserId}`
+      );
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: "Fundraiser has been stopped and withdrawn successfully",
+          variant: "default",
+        });
+        router.push("/dashboard");
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to stop fundraiser",
+          variant: "destructive",
+        });
+        setIsStoppingFundraiser(false);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred while stopping the fundraiser",
+        variant: "destructive",
+      });
+    } finally {
       setIsStoppingFundraiser(false);
-      alert("Fundraiser has been stopped!");
-      // In a real app, you would update the fundraiser status
-    }, 2000);
+    }
+
   };
 
   return (
@@ -219,9 +222,16 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
           View Public Page
         </Button>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
+          {fundraiser.verify.isFundRaiseVerified === false && (
+            <div className="flex items-center gap-4 p-1 border border-white/30 rounded-lg w-fit mb-6">
+              <span className="text-sm font-rajdhani text-[#f2bd74]">
+                please verify your fundraiser
+              </span>
+              <VerifyFundraising fundRaiseId={fundraiserId} />
+            </div>
+          )}
           <Card className="mb-6 bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
             <CardHeader>
               <CardTitle className="text-xl font-rajdhani font-bold text-[#f2bd74]">
@@ -433,33 +443,21 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
                 </p>
               </div>
 
-              <Button
-                className="w-full"
-                onClick={handleWithdrawFunds}
-                variant="secondary"
-                disabled={isWithdrawing || fundMetaData.currentAmount === 0}
-              >
-                {isWithdrawing ? (
-                  "Processing..."
-                ) : (
-                  <>
-                    <DollarSign className="mr-2 h-4 w-4" /> Withdraw Funds
-                  </>
-                )}
-              </Button>
+
 
               <Separator className="bg-[#f2bd74]/20" />
 
               <Button
-                variant="destructive"
+                variant="secondary"
                 className="w-full"
-                disabled={isStoppingFundraiser}
+                disabled={isStoppingFundraiser || fundraiser.isFundRaiseStarted}
+                onClick={handleStopFundraiser}
               >
                 {isStoppingFundraiser ? (
                   "Processing..."
                 ) : (
                   <>
-                    <AlertCircle className="mr-2 h-4 w-4" /> Stop Fundraiser
+                    <AlertCircle className="mr-2 h-4 w-4" /> Stop and Withdraw
                   </>
                 )}
               </Button>

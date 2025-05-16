@@ -127,7 +127,7 @@ export default function DashboardPage() {
       }
 
       setAvatar(base64String);
-      setAvatarUpload(uploadResponse.data);
+      setAvatarUpload(uploadResponse.data.link);
 
       const payload = {
         profileInfo: {
@@ -135,7 +135,7 @@ export default function DashboardPage() {
           lastName: userData.profile.lastName,
           displayName: userData.profile.displayName,
         },
-        avatar: uploadResponse.data,
+        avatar: uploadResponse.data.link,
         address: {
           country: userData.address?.country,
           state: userData.address?.state,
