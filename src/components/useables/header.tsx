@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
@@ -209,16 +208,16 @@ function HeaderComp() {
           ) : (
             <>
               <div className="md:flex gap-2 hidden items-center">
-                <Button variant={"outline"}>
+                <Button asChild variant={"outline"}>
                   <Link href="/login">Login</Link>
                 </Button>
-                <Button>
+                <Button asChild>
                   <Link href="/signup">SignUp</Link>
                 </Button>
               </div>
 
               <div className="md:hidden ">
-                <Button variant={"ghost"}>
+                <Button asChild variant={"ghost"}>
                   <Link href="/login">Login/SignUp</Link>
                 </Button>
               </div>

@@ -100,14 +100,14 @@ export default function HomePage() {
         <>
           <div className="min-h-screen bg-white">
             <section className="relative min-h-[100dvh] bg-primary text-white py-16 md:py-24 overflow-hidden">
-              {/* Grid Pattern Overlay */}
-              <Image
-                alt=""
-                height={1000}
-                width={1000}
-                className="absolute right-0 left-0 bottom-0 bg-top object-cover w-full h-[50vh] opacity-30"
-                priority
-                src={landingBg}
+              <div
+                className="absolute right-0 left-0 bottom-0 w-full h-[50vh] lg:h-[80vh] md:h-[60vh] opacity-30"
+                style={{
+                  backgroundImage: `url(${landingBg.src})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "top",
+                  backgroundRepeat: "no-repeat",
+                }}
               />
               <div className="absolute inset-0 w-full h-full opacity-[0.08] pointer-events-none">
                 <div className="absolute inset-0 flex flex-col justify-between">

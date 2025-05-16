@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -36,31 +36,130 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import { Donor } from "@/utils/type";
+import { DonorByIdData, FundraiserByIdData } from "@/utils/type";
+import apiRequest from "@/utils/apiRequest";
+import { useToast } from "@/hooks/use-toast";
+import { formatDate } from "@/components/customs/customComponent";
 
-export default function ManageFundraiserPage() {
+type props = {
+  fundraiserId: string;
+};
+
+export default function ManageFundraiserPage({ fundraiserId }: props) {
   const router = useRouter();
+  const { toast } = useToast();
+
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [isStoppingFundraiser, setIsStoppingFundraiser] = useState(false);
-  const [donors, setDonors] = useState<Donor[]>([]);
+  const [fundraiser, setFundraiser] = useState<FundraiserByIdData | null>(null);
+  const [donors, setDonors] = useState<DonorByIdData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const fundraiser = {
-    id: "123",
-    title: "Medical Emergency Support for Sarah",
-    description:
-      "Sarah was recently diagnosed with a rare condition requiring immediate treatment. The medical costs are overwhelming for her family, and they need our support during this difficult time.",
-    goalAmount: 5000,
-    raisedAmount: 2750,
-    createdAt: "2023-05-15T10:30:00Z",
-    category: "Medical",
-    walletAddress: "8xj7dkE9JDkf82jS6Qgp2H7K5uyJM9N1X2L",
-    imageUrl:
-      "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=800&q=80",
-    status: "active",
+  const fetchDonation = async () => {
+    try {
+      const response = await apiRequest(
+        "GET",
+        `/fundraise/donate/${fundraiserId}`
+      );
+      if (response.success) {
+        setDonors(response.data.results);
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to fetch donors",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred while fetching donors",
+        variant: "destructive",
+      });
+    }
   };
 
-  const progressPercentage =
-    (fundraiser.raisedAmount / fundraiser.goalAmount) * 100;
+  const fetchFundraiserDetails = async () => {
+    setLoading(true);
+    try {
+      const response = await apiRequest(
+        "GET",
+        `/fundraise/get-fundraise/${fundraiserId}`
+      );
+
+      if (response.success) {
+        setFundraiser(response.data);
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to fetch fundraiser details",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred while fetching fundraiser details",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const initializeData = async () => {
+    await Promise.all([fetchFundraiserDetails(), fetchDonation()]);
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    if (mounted && fundraiserId) {
+      initializeData();
+    }
+    return () => {
+      mounted = false;
+    };
+  }, [fundraiserId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#0a1a2f] to-[#0c2240] text-white flex justify-center items-center">
+        <div className="flex flex-col items-center">
+          <div className="w-16 h-16 border-4 border-t-[#f2bd74] border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-[#f2bd74]">Loading fundraiser details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!fundraiser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#0a1a2f] to-[#0c2240] text-white flex justify-center items-center">
+        <p className="text-[#f2bd74]">Fundraiser not found</p>
+      </div>
+    );
+  }
+
+  const { fundMetaData } = fundraiser;
+
+  // const fundraiser = {
+  //   id: "123",
+  //   title: "Medical Emergency Support for Sarah",
+  //   description:
+  //     "Sarah was recently diagnosed with a rare condition requiring immediate treatment. The medical costs are overwhelming for her family, and they need our support during this difficult time.",
+  //   goalAmount: 5000,
+  //   raisedAmount: 2750,
+  //   createdAt: "2023-05-15T10:30:00Z",
+  //   category: "Medical",
+  //   walletAddress: "8xj7dkE9JDkf82jS6Qgp2H7K5uyJM9N1X2L",
+  //   imageUrl:
+  //     "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=800&q=80",
+  //   status: "active",
+  // };
+
+  const progressPercentage = fundraiser
+    ? (fundMetaData.currentAmount / fundMetaData.goalAmount) * 100
+    : 0;
 
   const getRelativeTime = (dateString: string | number | Date) => {
     const date = new Date(dateString);
@@ -115,7 +214,7 @@ export default function ManageFundraiserPage() {
         </h1>
         <Button
           variant="outline"
-          onClick={() => router.push(`/fundraiser/${fundraiser.id}`)}
+          onClick={() => router.push(`/fundraiser/${fundraiser._id}`)}
         >
           View Public Page
         </Button>
@@ -129,25 +228,27 @@ export default function ManageFundraiserPage() {
                 Fundraiser Overview
               </CardTitle>
               <CardDescription className="text-[#ede4d3]">
-                Created {getRelativeTime(fundraiser.createdAt)}
+                Created {getRelativeTime(fundraiser.isFundRaisedStartedDate)}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-start gap-4 mb-4">
                 <Image
-                  src={fundraiser.imageUrl}
-                  alt={fundraiser.title}
+                  src={fundMetaData.imageUrl || "/placeholder.svg"}
+                  alt={fundMetaData.title}
+                  className="rounded-2xl w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   width={1000}
                   height={1000}
-                  className="object-cover w-24 h-24 rounded-lg"
                 />
                 <div>
                   <Badge className="mb-2 capitalize font-rajdhani  bg-primaryRed text-white border-0">
-                    {fundraiser.category}
+                    {fundMetaData.category}
                   </Badge>
-                  <h2 className="text-xl font-semibold">{fundraiser.title}</h2>
+                  <h2 className="text-xl font-semibold">
+                    {fundMetaData.title}
+                  </h2>
                   <p className="text-[#ede4d3] line-clamp-2 max-w-md">
-                    {fundraiser.description}
+                    {fundMetaData.description}
                   </p>
                 </div>
               </div>
@@ -155,10 +256,10 @@ export default function ManageFundraiserPage() {
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">
-                    {formatCurrency(fundraiser.raisedAmount)}
+                    {formatCurrency(fundMetaData.currentAmount)}
                   </h3>
                   <p className="text-[ #ede4d3]">
-                    raised of {formatCurrency(fundraiser.goalAmount)}
+                    raised of {formatCurrency(fundMetaData.goalAmount)}
                   </p>
                 </div>
                 <div className="h-2 w-full bg-gray-700/50 rounded-full overflow-hidden">
@@ -206,7 +307,7 @@ export default function ManageFundraiserPage() {
                   </h3>
                 </CardHeader>
                 <CardContent>
-                  {donors.length > 0 ? (
+                  {donors && donors.length > 0 ? (
                     <div className="space-y-4">
                       {donors.map((donor, index) => (
                         <div
@@ -215,30 +316,34 @@ export default function ManageFundraiserPage() {
                         >
                           <Avatar className="border-2 border-[#f2bd74]/20">
                             <AvatarImage
-                              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${donor._id}`}
+                              src={`https://api.dicebear.com/9.x/identicon/svg?seed=${donor.name}`}
                             />
                             <AvatarFallback className="bg-[#bd0e2b]/20 text-[#f2bd74]">
                               {donor.name.charAt(0)}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="flex-1">
+                          <div className="w-full">
                             <div className="flex justify-between">
-                              <p className="font-medium text-white">
-                                {donor.isAnonymous ? "Anonymous" : donor.name}
-                              </p>
-                              <p className="text-[#f2bd74] font-semibold">
-                                {formatCurrency(donor.amount)}
-                              </p>
+                              <div className="flex items-start flex-col gap-1 ">
+                                <p className="font-medium font-rajdhani text-white">
+                                  {donor.anonymous ? "Anonymous" : donor.name}
+                                </p>
+                                {donor.note && (
+                                  <p className="mt-1 text-sm text-gray-300 italic">
+                                    "{donor.note}"
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-end flex-col gap-1 ">
+                                <p className="text-[#f2bd74] font-semibold">
+                                  {formatCurrency(donor.amount)}
+                                </p>
+                                <p className="text-gray-400 text-sm flex items-center">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {formatDate(donor.blockTime)}
+                                </p>
+                              </div>
                             </div>
-                            <p className="text-gray-400 text-sm flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {getRelativeTime(donor.timestamp)}
-                            </p>
-                            {donor.note && (
-                              <p className="mt-1 text-sm text-gray-300 italic">
-                                "{donor.note}"
-                              </p>
-                            )}
                           </div>
                         </div>
                       ))}
@@ -246,7 +351,7 @@ export default function ManageFundraiserPage() {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <p className="text-gray-400">
-                        No donors yet.
+                        No donors yet. Be the first to donate!
                       </p>
                     </div>
                   )}
@@ -267,7 +372,7 @@ export default function ManageFundraiserPage() {
                         Total Raised
                       </p>
                       <p className="text-2xl font-bold">
-                        {formatCurrency(fundraiser.raisedAmount)}
+                        {formatCurrency(fundMetaData.currentAmount)}
                       </p>
                     </div>
 
@@ -316,7 +421,7 @@ export default function ManageFundraiserPage() {
                 <p className="text-sm opacity-80 font-medium line-clamp-1">
                   Wallet Address
                 </p>
-                <p className="text-xs ">{fundraiser.walletAddress}</p>
+                <p className="text-xs ">{fundMetaData.walletAddress}</p>
               </div>
 
               <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-start flex-col border-white/10">
@@ -324,7 +429,7 @@ export default function ManageFundraiserPage() {
                   Available to Withdraw
                 </p>
                 <p className="text-2xl font-bold">
-                  {formatCurrency(fundraiser.raisedAmount)}
+                  {formatCurrency(fundMetaData.currentAmount)}
                 </p>
               </div>
 
@@ -332,7 +437,7 @@ export default function ManageFundraiserPage() {
                 className="w-full"
                 onClick={handleWithdrawFunds}
                 variant="secondary"
-                disabled={isWithdrawing || fundraiser.raisedAmount === 0}
+                disabled={isWithdrawing || fundMetaData.currentAmount === 0}
               >
                 {isWithdrawing ? (
                   "Processing..."

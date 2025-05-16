@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -23,6 +23,9 @@ import { useToast } from "@/hooks/use-toast";
 import apiRequest from "@/utils/apiRequest";
 import { useAppDispatch } from "@/store/hooks";
 import { setData } from "@/store/slice/userDataSlice";
+import { PaginationData, FundraiserData } from "@/utils/type";
+import PaginationComp from "@/components/customs/PaginationComp";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   const userData = useSelector((state: RootState) => state.userData);
@@ -33,36 +36,68 @@ export default function DashboardPage() {
   const [avatarUpload, setAvatarUpload] = useState("");
   const dispatch = useAppDispatch();
 
-  const [userFundraisers, setUserFundraisers] = useState([
-    {
-      id: "1",
-      title: "Medical Emergency Support",
-      description:
-        "Help with urgent medical expenses for life-saving treatment needed immediately.",
-      goalAmount: 5000,
-      amountRaised: 2750,
-      createdAt: "3 days ago",
-      category: "Medical",
-      imageUrl:
-        "https://images.unsplash.com/photo-1584515933487-779824d29309?w=800&q=80",
-      status: "active",
-      donors: 42,
-    },
-    {
-      id: "2",
-      title: "Family Crisis Relief",
-      description:
-        "Supporting a family who lost everything in a house fire last night.",
-      goalAmount: 10000,
-      amountRaised: 4200,
-      createdAt: "5 days ago",
-      category: "Family",
-      imageUrl:
-        "https://images.unsplash.com/photo-1536856136534-bb679c52a9aa?w=800&q=80",
-      status: "ended",
-      donors: 78,
-    },
-  ]);
+  const [userFundraisers, setUserFundraisers] = useState<FundraiserData[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [paginationLoading, setPaginationLoading] = useState(false);
+  const [paginationData, setPaginationData] = useState<PaginationData>({
+    totalItems: 0,
+    currentPage: 1,
+    totalPages: 1,
+    pageSize: 9,
+  });
+
+  const fetchExploreFundraisers = async (page: number = 1) => {
+    setPaginationLoading(true);
+    try {
+      const response = await apiRequest("GET", `/fundraise/get?page=${page}`);
+
+      if (response.success) {
+        setUserFundraisers(response.data.results);
+        if (response?.data?.pagination) {
+          setPaginationData(response.data.pagination);
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: response.message,
+          variant: "destructive",
+        });
+        setUserFundraisers([]);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch fundraisers.",
+        variant: "destructive",
+      });
+      setUserFundraisers([]);
+    } finally {
+      setPaginationLoading(false);
+      setLoading(false);
+    }
+  };
+
+  const initializeData = async () => {
+    setLoading(true);
+    await Promise.all([fetchExploreFundraisers(paginationData.currentPage)]);
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    if (mounted) {
+      initializeData();
+    }
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= paginationData.totalPages) {
+      setPaginationData((prev) => ({ ...prev, currentPage: newPage }));
+      fetchExploreFundraisers(newPage);
+    }
+  };
 
   const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -134,10 +169,28 @@ export default function DashboardPage() {
     }
   };
 
-  const userProfile = {
-    memberSince: "March 2023",
-    totalRaised: "$6,950",
-    totalDonations: 14,
+  function formatDateToMonthYear(isoDateString: string): string {
+    const date = new Date(isoDateString);
+
+    if (isNaN(date.getTime())) {
+      throw new Error("Invalid date string provided");
+    }
+
+    const options: Intl.DateTimeFormatOptions = {
+      month: "long",
+      year: "numeric",
+    };
+
+    return new Intl.DateTimeFormat("en-US", options).format(date);
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
   return (
@@ -150,95 +203,125 @@ export default function DashboardPage() {
       </div>
       <div className="mt-6 md:mt-10 bg-primary border border-white/20 rounded-lg p-4 flex items-start flex-col md:flex-row md:items-center lg:items-start gap-6">
         <div className="relative">
-          <div className="w-28 h-28 rounded-full border border-primaryGold overflow-hidden">
-            <Image
-              src={
-                avatar || userData.profileImages.avatar || "/placeholder.svg"
-              }
-              alt={userData.profile.displayName}
-              width={112}
-              height={112}
-              className="object-cover"
-            />
-          </div>
+          {loading ? (
+            <Skeleton className="w-28 h-28 rounded-full" />
+          ) : (
+            <div className="w-28 h-28 rounded-full border border-primaryGold overflow-hidden">
+              <Image
+                src={
+                  avatar || userData.profileImages.avatar || "/placeholder.svg"
+                }
+                alt={userData.profile.displayName}
+                width={112}
+                height={112}
+                className="object-cover"
+              />
+            </div>
+          )}
 
           {avatarLoading ? (
             <div className="absolute flex items-center justify-center bottom-0 right-0 h-8 w-8 bg-primary border border-primaryGold rounded-full shadow-md">
               <Loader2 className="w-5 h-5 text-primaryGold animate-spin" />
             </div>
           ) : (
-            <div className="absolute flex items-center justify-center bottom-0 right-0 h-8 w-8 bg-primary border border-primaryGold rounded-full shadow-md">
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp,image/jpg"
-                className="hidden"
-                id="avatarUpload"
-                onChange={handleImageChange}
-              />
-              <label htmlFor="avatarUpload" className="cursor-pointer">
-                <Edit className="h-4 w-4 text-primaryGold" />
-              </label>
-            </div>
+            !loading && (
+              <div className="absolute flex items-center justify-center bottom-0 right-0 h-8 w-8 bg-primary border border-primaryGold rounded-full shadow-md">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp,image/jpg"
+                  className="hidden"
+                  id="avatarUpload"
+                  onChange={handleImageChange}
+                />
+                <label htmlFor="avatarUpload" className="cursor-pointer">
+                  <Edit className="h-4 w-4 text-primaryGold" />
+                </label>
+              </div>
+            )
           )}
         </div>
 
         <div className="w-full text-center md:text-left">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-            <div className="flex flex-col md:flex-row items-start md:items-center md:gap-2">
-              <h2 className="text-2xl font-bold font-rajdhani">
-                {userData.profile.firstName} {userData.profile.lastName}
-              </h2>
+          {loading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-4 w-48" />
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl mt-6">
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                <div className="flex flex-col md:flex-row items-start md:items-center md:gap-2">
+                  <h2 className="text-2xl font-bold font-rajdhani">
+                    {userData.profile.firstName} {userData.profile.lastName}
+                  </h2>
 
-              <div className="p-2.5 py-0.5 rounded-full bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10">
-                <span className="text-sm">@{userData.profile.displayName}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Mail className="h-6 w-6 rounded-full border p-1" />
-              <span className="text-sm">{userData.email}</span>
-            </div>
+                  <div className="p-2.5 py-0.5 rounded-full bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10">
+                    <span className="text-sm">
+                      @{userData.profile.displayName}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Mail className="h-6 w-6 rounded-full border p-1" />
+                  <span className="text-sm">{userData.email}</span>
+                </div>
 
-            <div className="flex items-center gap-1.5">
-              <MapPin className="h-6 w-6 rounded-full border p-1" />
-              <span className="text-sm">
-                {userData.address?.city ||
-                userData.address?.state ||
-                userData.address?.country
-                  ? `${userData.address?.city || ""} ${userData.address?.state || ""}${
-                      userData.address?.country
-                        ? `, ${userData.address.country}`
-                        : ""
-                    }`
-                      .trim()
-                      .replace(/\s+,/, ",")
-                  : "No Address"}
-              </span>
-            </div>
-          </div>
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="h-6 w-6 rounded-full border p-1" />
+                  <span className="text-sm">
+                    {userData.address?.city ||
+                    userData.address?.state ||
+                    userData.address?.country
+                      ? `${userData.address?.city || ""} ${
+                          userData.address?.state || ""
+                        }${
+                          userData.address?.country
+                            ? `, ${userData.address.country}`
+                            : ""
+                        }`
+                          .trim()
+                          .replace(/\s+,/, ",")
+                      : "No Address"}
+                  </span>
+                </div>
+              </div>
 
-          <div className="mt-10 md:mt-3 grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl">
-            <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10">
-              <p className="text-sm opacity-80">Member Since</p>
-              <div className="flex items-center gap-2 mt-1">
-                <Calendar className="h-4 w-4" />
-                <p className="font-bold">{userProfile.memberSince}</p>
+              <div className="mt-10 md:mt-3 grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl">
+                <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10">
+                  <p className="text-sm opacity-80">Member Since</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Calendar className="h-4 w-4" />
+                    <p className="font-bold">
+                      {formatDateToMonthYear(userData?.createdAt)}
+                    </p>
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10">
+                  <p className="text-sm opacity-80">Total Fundraisers</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Heart className="h-4 w-4" />
+                    <p className="font-bold">
+                      {userData.statics?.totalFundRaiseCreated || 0}
+                    </p>
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10 col-span-2 md:col-span-1">
+                  <p className="text-sm opacity-80">Total Raised</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Activity className="h-4 w-4" />
+                    <p className="font-bold">
+                      {formatCurrency(userData.statics?.totalRaised) || 0}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10">
-              <p className="text-sm opacity-80">Total Fundraisers</p>
-              <div className="flex items-center gap-2 mt-1">
-                <Heart className="h-4 w-4" />
-                <p className="font-bold">{userFundraisers.length}</p>
-              </div>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10 col-span-2 md:col-span-1">
-              <p className="text-sm opacity-80">Total Raised</p>
-              <div className="flex items-center gap-2 mt-1">
-                <Activity className="h-4 w-4" />
-                <p className="font-bold">{userProfile.totalRaised}</p>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -253,12 +336,18 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {userFundraisers.length === 0 ? (
-        <div className="text-center py-16 bg-muted/50 rounded-lg">
-          <h2 className="text-xl font-semibold text-muted-foreground mb-4">
+      {loading ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, index) => (
+            <Skeleton key={index} className="h-96 w-full rounded-lg" />
+          ))}
+        </div>
+      ) : userFundraisers.length === 0 ? (
+        <div className="text-center py-16 bg-primary rounded-lg">
+          <h2 className="text-xl font-semibold text-white mb-4">
             You haven't created any fundraisers yet
           </h2>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+          <p className="text-white/40 mb-8 max-w-md mx-auto">
             Start your first emergency fundraiser in just a few minutes.
           </p>
           <Link href="/fundraiser/create">
@@ -268,21 +357,42 @@ export default function DashboardPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {userFundraisers.map((fundraiser, index) => (
-            <UserFundraiserCard
-              key={index}
-              id={fundraiser.id}
-              title={fundraiser.title}
-              createdAt={fundraiser.createdAt}
-              category={fundraiser.category}
-              goalAmount={fundraiser.goalAmount}
-              amountRaised={fundraiser.amountRaised}
-              imageUrl={fundraiser.imageUrl}
-              status={fundraiser.status}
-            />
-          ))}
-        </div>
+        <>
+          {paginationLoading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, index) => (
+                <Skeleton key={index} className="h-96 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userFundraisers.map((fundraiser, index) => (
+                <UserFundraiserCard
+                  key={index}
+                  id={fundraiser._id}
+                  title={fundraiser.fundMetaData.title}
+                  description={fundraiser.fundMetaData.description}
+                  createdAt={fundraiser.isFundRaisedStartedDate}
+                  category={fundraiser.fundMetaData.category}
+                  goalAmount={fundraiser.fundMetaData.goalAmount}
+                  amountRaised={fundraiser.fundMetaData.currentAmount}
+                  imageUrl={fundraiser.fundMetaData.imageUrl}
+                  isFundRaiseVerified={fundraiser.verify.isFundRaiseVerified}
+                  updatedResponse={initializeData}
+                />
+              ))}
+            </div>
+          )}
+          {!loading && userFundraisers && userFundraisers.length > 0 && (
+            <div className="mt-8 flex justify-center">
+              <PaginationComp
+                currentPage={paginationData.currentPage}
+                totalPages={paginationData.totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
+        </>
       )}
     </main>
   );

@@ -121,7 +121,7 @@ const EditProfile = () => {
   return (
     <div>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger>
+        <DialogTrigger asChild>
           <Button>
             <Edit className="h-4 w-4 mr-1" /> Edit Profile
           </Button>

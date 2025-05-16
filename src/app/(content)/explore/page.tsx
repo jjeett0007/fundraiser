@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import PaginationComp from "@/components/customs/PaginationComp";
 import apiRequest from "@/utils/apiRequest";
 import { categories } from "@/utils/list";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ExplorePage() {
   const { toast } = useToast();
@@ -30,18 +31,23 @@ export default function ExplorePage() {
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= paginationData.totalPages) {
       setPaginationData((prev) => ({ ...prev, currentPage: newPage }));
-      fetchExploreFundraisers(newPage);
+      fetchExploreFundraisers(newPage, activeCategory);
     }
   };
 
-  const fetchExploreFundraisers = async (page: number = 1) => {
-    setLoading(true);
+  const fetchExploreFundraisers = async (
+    page: number = 1,
+    category: string = "All"
+  ) => {
     setPaginationLoading(true);
     try {
-      const response = await apiRequest(
-        "GET",
-        `/fundraise/get-fundraise?page=${page}`
-      );
+      // Only add category to the URL if it's not "All"
+      const url =
+        category === "All"
+          ? `/fundraise/get-fundraise?page=${page}`
+          : `/fundraise/get-fundraise?page=${page}&category=${category}`;
+
+      const response = await apiRequest("GET", url);
 
       if (response.success) {
         setFundraisers(response.data.results);
@@ -70,7 +76,10 @@ export default function ExplorePage() {
   };
 
   const initializeData = async () => {
-    await Promise.all([fetchExploreFundraisers(paginationData.currentPage)]);
+    setLoading(true);
+    await Promise.all([
+      fetchExploreFundraisers(paginationData.currentPage, activeCategory),
+    ]);
   };
 
   useEffect(() => {
@@ -85,7 +94,9 @@ export default function ExplorePage() {
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
-    // Implement category filtering logic here
+    // Reset to page 1 when changing categories
+    setPaginationData((prev) => ({ ...prev, currentPage: 1 }));
+    fetchExploreFundraisers(1, category);
   };
 
   const categoryFilters = [
@@ -107,7 +118,7 @@ export default function ExplorePage() {
               <Search size={15} color={"#ede4d3"} />
               <input
                 placeholder="Search fundraisers..."
-                className="bg-transparent text-[16px] placeholder:text-sm p-0 m-0 outline-none border-0"
+                className="bg-transparent w-full text-[16px] placeholder:text-sm p-0 m-0 outline-none border-0"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -131,48 +142,69 @@ export default function ExplorePage() {
         </div>
 
         {/* Loading State */}
-        {loading && (
-          <div className="text-center py-10">
-            <p className="text-gray-500">Loading fundraisers...</p>
+        {loading ? (
+          <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3 justify-center lg:gap-8 flex-wrap mx-auto items-center">
+            {[...Array(6)].map((_, index) => (
+              <div key={index} className="space-y-4">
+                <Skeleton className="h-48 w-full rounded-lg" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="h-4 w-1/3" />
+                </div>
+                <Skeleton className="h-10 w-full rounded-md" />
+              </div>
+            ))}
           </div>
-        )}
-
-        {/* No Results State */}
-        {!loading && fundraisers && fundraisers.length === 0 && (
+        ) : paginationLoading ? (
+          <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3 justify-center lg:gap-8 flex-wrap mx-auto items-center">
+            {[...Array(6)].map((_, index) => (
+              <div key={index} className="space-y-4">
+                <Skeleton className="h-48 w-full rounded-lg" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="h-4 w-1/3" />
+                </div>
+                <Skeleton className="h-10 w-full rounded-md" />
+              </div>
+            ))}
+          </div>
+        ) : fundraisers.length === 0 ? (
           <div className="text-center py-10">
             <p className="text-gray-500">No fundraisers found</p>
           </div>
-        )}
+        ) : (
+          <>
+            <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3 justify-center lg:gap-8 flex-wrap mx-auto items-center">
+              {fundraisers.map((fundraiser, index) => (
+                <FundraiserCard
+                  key={index}
+                  _id={fundraiser._id}
+                  title={fundraiser.fundMetaData.title}
+                  description={fundraiser.fundMetaData.description}
+                  goalAmount={fundraiser.fundMetaData.goalAmount}
+                  currentAmount={fundraiser.statics.totalRaised}
+                  isFundRaisedStartedDate={fundraiser.isFundRaisedStartedDate}
+                  category={fundraiser.fundMetaData.category}
+                  isTotalDonor={fundraiser.statics.totalDonor}
+                  imageUrl={fundraiser.fundMetaData.imageUrl}
+                />
+              ))}
+            </div>
 
-        {/* Fundraisers Grid */}
-        {!loading && fundraisers && fundraisers.length > 0 && (
-          <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3 justify-center lg:gap-8 flex-wrap mx-auto items-center">
-            {fundraisers.map((fundraiser, index) => (
-              <FundraiserCard
-                key={index}
-                _id={fundraiser._id}
-                title={fundraiser.fundMetaData.title}
-                description={fundraiser.fundMetaData.description}
-                goalAmount={fundraiser.fundMetaData.goalAmount}
-                currentAmount={fundraiser.fundMetaData.currentAmount}
-                isFundRaisedStartedDate={fundraiser.isFundRaisedStartedDate}
-                category={fundraiser.fundMetaData.category}
-                isTotalDonor={fundraiser.isTotalDonor}
-                imageUrl={fundraiser.fundMetaData.imageUrl}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {!loading && fundraisers && fundraisers.length > 0 && (
-          <div className="mt-8 flex justify-center">
-            <PaginationComp
-              currentPage={paginationData.currentPage}
-              totalPages={paginationData.totalPages}
-              onPageChange={handlePageChange}
-            />
-          </div>
+            {fundraisers.length > 0 && (
+              <div className="mt-8 flex justify-center">
+                <PaginationComp
+                  currentPage={paginationData.currentPage}
+                  totalPages={paginationData.totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
+          </>
         )}
 
         <section className="text-center p-8 mx-4 md:mx-10 lg:mx-14 my-12 rounded-xl bg-gradient-to-r from-[#bd0e2b]/10 to-[#f2bd74]/10 border border-[#f2bd74]/20 backdrop-blur-sm relative overflow-hidden">
