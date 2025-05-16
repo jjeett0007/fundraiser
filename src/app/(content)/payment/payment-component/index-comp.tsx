@@ -580,6 +580,23 @@ export default function PaymentPageComponent() {
                       )}
                     </div>
                   )}
+                  <Button
+                    className="w-full"
+                    onClick={handlePaymentComplete}
+                    disabled={loading}
+                  >
+                    {manualPaymentLoading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin mr-2"></div>
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        I've Made the Payment Manually{" "}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
                 </div>
               </CardContent>
               <CardFooter className="text-xs text-gray-400 border-t border-[#f2bd74]/20 pt-4">
