@@ -36,7 +36,6 @@ import { useToast } from "@/hooks/use-toast";
 import { GetDonorInfoData } from "@/utils/type";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// USDC mint address on Solana devnet
 const USDC_DEVNET_MINT = new PublicKey(
   "Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"
 );
@@ -49,7 +48,6 @@ export default function PaymentPageComponent() {
     useWallet();
   const { connection } = useConnection();
 
-  // State variables
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletType, setWalletType] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
@@ -257,7 +255,6 @@ export default function PaymentPageComponent() {
         recentBlockhash: latestBlockhash.blockhash,
       });
 
-      // Only add the create ATA instruction if the account does not exist
       if (!recipientAccountInfo) {
         tx.add(createRecipientATAIx);
       }
@@ -278,45 +275,6 @@ export default function PaymentPageComponent() {
       setPaymentProcessing(false);
     }
   };
-
-  //   const sendSolFun = async () => {
-  //   try {
-  //     if (!publicKey) {
-  //       console.error("Wallet not connected");
-  //       return;
-  //     }
-
-  //     setPaymentProcessing(true);
-
-  //     const recipientPubKey = new PublicKey(donorInfo.walletAddress);
-  //     const senderPublicKey = publicKey;
-
-  //     const senderATA = await getAssociatedTokenAddress(
-  //       USDC_DEVNET_MINT,
-  //       senderPublicKey
-  //     );
-  //     const recipientATA = await getAssociatedTokenAddress(
-  //       USDC_DEVNET_MINT,
-  //       recipientPubKey
-  //     );
-
-  //     const transferIx = createTransferInstruction(
-  //       senderATA,
-  //       recipientATA,
-  //       senderPublicKey,
-  //       50 * 1_000_000
-  //     );
-
-  //     const transaction = new Transaction().add(transferIx);
-
-  //     const signature = await sendTransaction(transaction, connection);
-  //     console.log(`Transaction signature: ${signature}`);
-  //     setPaymentProcessing(false);
-
-  //   } catch (error) {
-  //     console.error("Transaction failed", error);
-  //   }
-  // };
 
   const ContentSkeleton = () => (
     <div className="space-y-2">
