@@ -271,7 +271,7 @@ export default function PaymentPageComponent() {
       console.log("✅ Sent USDC on devnet! Tx ID:", txid);
       localStorage.setItem("paymentCompleted", 'true');
       setPaymentProcessing(false);
-      handleReRoutePaymentComplete()
+      handlePaymentComplete()
       return txid;
     } catch (error) {
       console.error("Transaction failed", error);
