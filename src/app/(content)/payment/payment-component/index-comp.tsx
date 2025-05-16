@@ -20,12 +20,16 @@ import {
   Shield,
   ArrowRight,
 } from "lucide-react";
+import { WalletNotConnectedError } from "@solana/wallet-adapter-base";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import {
   getAssociatedTokenAddress,
   createTransferInstruction,
+  createAssociatedTokenAccountInstruction,
+  getAssociatedTokenAddressSync,
+  getAccount,
 } from "@solana/spl-token";
 import apiRequest from "@/utils/apiRequest";
 import { useToast } from "@/hooks/use-toast";
@@ -41,7 +45,8 @@ export default function PaymentPageComponent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { publicKey, wallet, connected, sendTransaction } = useWallet();
+  const { publicKey, wallet, connected, sendTransaction, signTransaction } =
+    useWallet();
   const { connection } = useConnection();
 
   // State variables
@@ -60,6 +65,7 @@ export default function PaymentPageComponent() {
     imageUrl: "",
     fundraiserId: "",
   });
+
   const [donorInfo, setDonorInfo] = useState<GetDonorInfoData>({
     walletAddress: "",
     amount: 0,
@@ -171,22 +177,29 @@ export default function PaymentPageComponent() {
   const sendUSDC = async () => {
     try {
       setPaymentProcessing(true);
-
-      if (!publicKey) {
-        console.error("Wallet not connected");
-        return;
+      
+      if (!connected || !publicKey || !signTransaction) {
+        throw new Error("Wallet not connected");
       }
 
-      const recipientPubKey = new PublicKey(donorInfo.walletAddress);
       const senderPublicKey = publicKey;
+      const recipientPublicKey = new PublicKey(donorInfo.walletAddress);
 
-      const senderATA = await getAssociatedTokenAddress(
+      const senderATA = getAssociatedTokenAddressSync(
         USDC_DEVNET_MINT,
         senderPublicKey
       );
-      const recipientATA = await getAssociatedTokenAddress(
+
+      const recipientATA = getAssociatedTokenAddressSync(
         USDC_DEVNET_MINT,
-        recipientPubKey
+        recipientPublicKey
+      );
+
+      const createRecipientATAIx = createAssociatedTokenAccountInstruction(
+        senderPublicKey, // payer
+        recipientATA, // ATA to create
+        recipientPublicKey, // owner of the new ATA
+        USDC_DEVNET_MINT
       );
 
       const transferIx = createTransferInstruction(
@@ -196,31 +209,74 @@ export default function PaymentPageComponent() {
         Number(donorInfo.amount) * 1_000_000 // USDC has 6 decimals
       );
 
-      const transaction = new Transaction().add(transferIx);
+      let recipientAccountInfo = await connection.getAccountInfo(recipientATA);
 
-      const signature = await sendTransaction(transaction, connection);
-      console.log(`Transaction signature: ${signature}`);
-      setTransactionHash(signature);
+      const latestBlockhash = await connection.getLatestBlockhash();
+      const tx = new Transaction({
+        feePayer: senderPublicKey,
+        recentBlockhash: latestBlockhash.blockhash,
+      });
 
-      // Wait for confirmation
-      const confirmation = await connection.confirmTransaction(
-        signature,
-        "confirmed"
-      );
-
-      if (confirmation) {
-        setPaymentProcessing(false);
-        setPaymentCompleted(true);
-
-        // Redirect to fundraiser page after 3 seconds
+      // Only add the create ATA instruction if the account does not exist
+      if (!recipientAccountInfo) {
+        tx.add(createRecipientATAIx);
       }
+
+      tx.add(transferIx);
+
+      const signedTx = await signTransaction(tx);
+      const txid = await connection.sendRawTransaction(signedTx.serialize());
+      await connection.confirmTransaction(txid, "confirmed");
+
+      console.log("✅ Sent USDC on devnet! Tx ID:", txid);
+      setPaymentProcessing(false);
+
+      return txid;
     } catch (error) {
       console.error("Transaction failed", error);
       setPaymentProcessing(false);
     }
   };
 
-  // Loading skeleton component for content sections
+  //   const sendSolFun = async () => {
+  //   try {
+  //     if (!publicKey) {
+  //       console.error("Wallet not connected");
+  //       return;
+  //     }
+
+  //     setPaymentProcessing(true);
+
+  //     const recipientPubKey = new PublicKey(donorInfo.walletAddress);
+  //     const senderPublicKey = publicKey;
+
+  //     const senderATA = await getAssociatedTokenAddress(
+  //       USDC_DEVNET_MINT,
+  //       senderPublicKey
+  //     );
+  //     const recipientATA = await getAssociatedTokenAddress(
+  //       USDC_DEVNET_MINT,
+  //       recipientPubKey
+  //     );
+
+  //     const transferIx = createTransferInstruction(
+  //       senderATA,
+  //       recipientATA,
+  //       senderPublicKey,
+  //       50 * 1_000_000
+  //     );
+
+  //     const transaction = new Transaction().add(transferIx);
+
+  //     const signature = await sendTransaction(transaction, connection);
+  //     console.log(`Transaction signature: ${signature}`);
+  //     setPaymentProcessing(false);
+
+  //   } catch (error) {
+  //     console.error("Transaction failed", error);
+  //   }
+  // };
+
   const ContentSkeleton = () => (
     <div className="space-y-2">
       <Skeleton className="h-4 w-3/4 bg-[#f2bd74]/10" />
@@ -437,7 +493,9 @@ export default function PaymentPageComponent() {
                           <Button
                             className="w-full"
                             variant="secondary"
-                            onClick={sendUSDC}
+                            onClick={() => {
+                              sendUSDC();
+                            }}
                             disabled={
                               paymentProcessing ||
                               loading ||

@@ -290,7 +290,7 @@ const UserFundraiserCard = ({
                 </Link>
 
                 <div className="flex space-x-2">
-                  <Link href={`/fundraiser/manage?id=${id}`}>
+                  <Link href={`/fundraiser/manage/${id}`}>
                     <Button
                       variant="outline"
                       size="icon"
