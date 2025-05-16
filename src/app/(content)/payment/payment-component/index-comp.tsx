@@ -36,7 +36,6 @@ import { useToast } from "@/hooks/use-toast";
 import { GetDonorInfoData } from "@/utils/type";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// USDC mint address on Solana devnet
 const USDC_DEVNET_MINT = new PublicKey(
   "Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"
 );
@@ -49,7 +48,6 @@ export default function PaymentPageComponent() {
     useWallet();
   const { connection } = useConnection();
 
-  // State variables
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletType, setWalletType] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
@@ -257,7 +255,6 @@ export default function PaymentPageComponent() {
         recentBlockhash: latestBlockhash.blockhash,
       });
 
-      // Only add the create ATA instruction if the account does not exist
       if (!recipientAccountInfo) {
         tx.add(createRecipientATAIx);
       }
@@ -271,52 +268,13 @@ export default function PaymentPageComponent() {
       console.log("✅ Sent USDC on devnet! Tx ID:", txid);
       localStorage.setItem("paymentCompleted", 'true');
       setPaymentProcessing(false);
-      handleReRoutePaymentComplete()
+      await handlePaymentComplete()
       return txid;
     } catch (error) {
       console.error("Transaction failed", error);
       setPaymentProcessing(false);
     }
   };
-
-  //   const sendSolFun = async () => {
-  //   try {
-  //     if (!publicKey) {
-  //       console.error("Wallet not connected");
-  //       return;
-  //     }
-
-  //     setPaymentProcessing(true);
-
-  //     const recipientPubKey = new PublicKey(donorInfo.walletAddress);
-  //     const senderPublicKey = publicKey;
-
-  //     const senderATA = await getAssociatedTokenAddress(
-  //       USDC_DEVNET_MINT,
-  //       senderPublicKey
-  //     );
-  //     const recipientATA = await getAssociatedTokenAddress(
-  //       USDC_DEVNET_MINT,
-  //       recipientPubKey
-  //     );
-
-  //     const transferIx = createTransferInstruction(
-  //       senderATA,
-  //       recipientATA,
-  //       senderPublicKey,
-  //       50 * 1_000_000
-  //     );
-
-  //     const transaction = new Transaction().add(transferIx);
-
-  //     const signature = await sendTransaction(transaction, connection);
-  //     console.log(`Transaction signature: ${signature}`);
-  //     setPaymentProcessing(false);
-
-  //   } catch (error) {
-  //     console.error("Transaction failed", error);
-  //   }
-  // };
 
   const ContentSkeleton = () => (
     <div className="space-y-2">
@@ -622,6 +580,23 @@ export default function PaymentPageComponent() {
                       )}
                     </div>
                   )}
+                  <Button
+                    className="w-full"
+                    onClick={handlePaymentComplete}
+                    disabled={loading}
+                  >
+                    {manualPaymentLoading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin mr-2"></div>
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        I've Made the Payment Manually{" "}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
                 </div>
               </CardContent>
               <CardFooter className="text-xs text-gray-400 border-t border-[#f2bd74]/20 pt-4">
