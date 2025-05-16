@@ -17,6 +17,7 @@ export function middleware(request: NextRequest) {
     "/privacy",
     "/terms-and-condition",
     "/help",
+    "payment"
   ];
 
   const isPublicPath =

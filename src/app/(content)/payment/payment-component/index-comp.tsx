@@ -177,7 +177,7 @@ export default function PaymentPageComponent() {
   const sendUSDC = async () => {
     try {
       setPaymentProcessing(true);
-      
+
       if (!connected || !publicKey || !signTransaction) {
         throw new Error("Wallet not connected");
       }
@@ -521,13 +521,7 @@ export default function PaymentPageComponent() {
                               OR
                             </div>
                           </div>
-                          <Button
-                            className="w-full"
-                            onClick={handlePaymentComplete}
-                            disabled={loading}
-                          >
-                            I've Made the Payment Manually
-                          </Button>
+
                         </div>
                       ) : (
                         <div className="bg-gradient-to-r from-[#0a1a2f] to-[#0c2240] p-6 rounded-xl border border-[#f2bd74]/20">
@@ -571,6 +565,14 @@ export default function PaymentPageComponent() {
                       )}
                     </div>
                   )}
+
+                  <Button
+                    className="w-full"
+                    onClick={handlePaymentComplete}
+                    disabled={loading}
+                  >
+                    I've Made the Payment Manually
+                  </Button>
                 </div>
               </CardContent>
               <CardFooter className="text-xs text-gray-400 border-t border-[#f2bd74]/20 pt-4">
