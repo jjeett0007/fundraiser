@@ -14,6 +14,7 @@ export function middleware(request: NextRequest) {
     "/forgot-password",
     "/reset-password",
     "/redirect",
+    "/payment",
     "/privacy",
     "/terms-and-condition",
     "/help",
