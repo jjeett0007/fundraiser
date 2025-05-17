@@ -14,7 +14,7 @@ export default async function apiRequest(
     const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${path}`;
     const headers = {
       "Content-Type": "application/json",
-      // Origin: "https://staging.ihaven.vip",
+      // Origin: "https://localhost:3000",
       ...(cookie?.value && { Authorization: `Bearer ${cookie.value}` }),
     };
 
