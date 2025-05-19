@@ -335,7 +335,6 @@ export default function CreateFundraiserPage() {
         setFundRaiseId(response.data.fundRaiseId);
         setCurrentStep(4);
 
-        console.log(fundRaiseId);
       } else {
         toast({
           title: "Error",

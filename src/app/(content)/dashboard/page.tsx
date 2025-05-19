@@ -375,10 +375,14 @@ export default function DashboardPage() {
                   createdAt={fundraiser.isFundRaisedStartedDate}
                   category={fundraiser.fundMetaData.category}
                   goalAmount={fundraiser.fundMetaData.goalAmount}
-                  amountRaised={fundraiser.fundMetaData.currentAmount}
+                  amountRaised={fundraiser.statics.totalRaised}
                   imageUrl={fundraiser.fundMetaData.imageUrl}
                   isFundRaiseVerified={fundraiser.verify.isFundRaiseVerified}
                   updatedResponse={initializeData}
+                  totalRaised={fundraiser.statics.totalRaised}
+                  totalDonor={fundraiser.statics.totalDonor}
+                  averageDonation={fundraiser.statics.averageDonation}
+                  largestAmount={fundraiser.statics.largestAmount}
                 />
               ))}
             </div>
