@@ -14,13 +14,6 @@ export default async function createFundraiser(formData: FormData) {
 
         // Image handling would need to be done differently with FormData
         // For now, just log what we received
-        console.log({
-            title,
-            description,
-            goalAmount: Number(goalAmount),
-            category: category.toLowerCase(),
-            walletAddress,
-        });
 
         // Your API request would go here
         // const response = await apiRequest("POST", "/fundraise/create", payload);

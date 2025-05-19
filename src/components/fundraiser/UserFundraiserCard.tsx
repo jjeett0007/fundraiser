@@ -8,7 +8,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Edit, Trash, Zap, Shield, Rocket } from "lucide-react";
+import {
+  Clock,
+  Edit,
+  Trash,
+  Zap,
+  Shield,
+  Rocket,
+  Landmark,
+  Users,
+  DollarSign,
+  ArrowBigUpDash,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -23,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import apiRequest from "@/utils/apiRequest";
+import { Separator } from "@/components/ui/separator";
 
 interface FundraiserCardProps {
   id: string;
@@ -35,6 +48,10 @@ interface FundraiserCardProps {
   description: string;
   isFundRaiseVerified: boolean;
   updatedResponse?: () => void;
+  totalRaised: number;
+  totalDonor: number;
+  averageDonation: number;
+  largestAmount: number;
 }
 
 const UserFundraiserCard = ({
@@ -48,6 +65,10 @@ const UserFundraiserCard = ({
   description,
   isFundRaiseVerified,
   updatedResponse,
+  totalRaised,
+  totalDonor,
+  averageDonation,
+  largestAmount,
 }: FundraiserCardProps) => {
   const { toast } = useToast();
 
@@ -266,14 +287,50 @@ const UserFundraiserCard = ({
                   style={{ width: `${progressPercentage}%` }}
                 />
               </div>
-
-              <div className="mt-2 flex items-center">
-                <Zap className="h-4 w-4 text-[#f2bd74] mr-1" />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-[#f2bd74]">
+                {formatCurrency(goalAmount - amountRaised)} Left to Raise
+              </span>
+              <div className="flex items-center">
+                <Zap className="h-3 w-3 text-[#f2bd74] mr-1" />
                 <span className="text-xs font-medium text-gray-300">
                   {progressPercentage}% Complete
                 </span>
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-2 my-3 border border-white/20 p-1 rounded-lg">
+              <div className="px-2 py-1 rounded-lg bg-white/5">
+                <div className="justify-center flex items-center gap-2 text-xs opacity-80 font-light">
+                  <Landmark className="h-3 w-3" />
+                  <p className="text-xs">{formatCurrency(totalRaised)}</p>
+                </div>
+              </div>
+
+              <div className="px-2 py-1 rounded-lg bg-white/5">
+                <div className="justify-center flex items-center gap-2 text-xs opacity-80 font-light">
+                  <Users className="h-3 w-3" />
+                  <p className="text-xs">{totalDonor}</p>
+                </div>
+              </div>
+
+              <div className="px-2 py-1 rounded-lg bg-white/5">
+                <div className="justify-center flex items-center gap-2 text-xs opacity-80 font-light">
+                  <DollarSign className="h-3 w-3" />
+                  <p className="text-xs">{formatCurrency(averageDonation)}</p>
+                </div>
+              </div>
+
+              <div className="px-2 py-1 rounded-lg bg-white/5">
+                <div className="justify-center flex items-center gap-2 text-xs opacity-80 font-light">
+                  <ArrowBigUpDash className="h-3 w-3" />
+                  <p className="text-xs">{formatCurrency(largestAmount)}</p>
+                </div>
+              </div>
+            </div>
+
+            <Separator className="bg-[#f2bd74]/20" />
           </CardContent>
 
           <CardFooter className="pt-0">

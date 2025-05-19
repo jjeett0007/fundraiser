@@ -79,16 +79,18 @@ export default function PaymentPageComponent() {
   const handleReRoutePaymentComplete = async () => {
     if (paymentCompleted && fundraiser.fundraiserId) {
       const timer = setTimeout(() => {
-        router.push(`/fundraiser/${fundraiser.fundraiserId}`);
+        router.push(
+          `/fundraiser/${fundraiser.fundraiserId}?paymentSuccessful=true`
+        );
 
         localStorage.removeItem("fundraiserDetails");
         localStorage.removeItem("donateId");
-        localStorage.setItem("paymentCompleted", 'true');
-      }, 10000);
+        localStorage.removeItem("walletName");
+      }, 5000);
 
       return () => clearTimeout(timer);
     }
-  }
+  };
 
   useEffect(() => {
     const donateIdFromStorage = localStorage.getItem("donateId");
@@ -185,8 +187,10 @@ export default function PaymentPageComponent() {
   const handlePaymentComplete = async () => {
     setManualPaymentLoading(true);
     try {
-      const response = await apiRequest("GET", `/fundraise/donate/check/${donateId}`,);
-      console.log(response)
+      const response = await apiRequest(
+        "GET",
+        `/fundraise/donate/check/${donateId}`
+      );
 
       if (response.success) {
         toast({
@@ -194,8 +198,7 @@ export default function PaymentPageComponent() {
           description: response.message || "Payment confirmed successfully",
         });
         setPaymentCompleted(true);
-        handleReRoutePaymentComplete()
-        localStorage.setItem(`paymentCompleted_${donateId}`, 'true');
+        handleReRoutePaymentComplete();
       } else {
         toast({
           title: "Error",
@@ -208,8 +211,10 @@ export default function PaymentPageComponent() {
       toast({
         title: "Error",
         description: "An error occurred while confirming payment",
-      })
-    } finally { setManualPaymentLoading(false); }
+      });
+    } finally {
+      setManualPaymentLoading(false);
+    }
   };
 
   const sendUSDC = async () => {
@@ -264,11 +269,15 @@ export default function PaymentPageComponent() {
       const signedTx = await signTransaction(tx);
       const txid = await connection.sendRawTransaction(signedTx.serialize());
       await connection.confirmTransaction(txid, "confirmed");
-
-      console.log("✅ Sent USDC on devnet! Tx ID:", txid);
-      localStorage.setItem("paymentCompleted", 'true');
+      setTransactionHash(txid);
       setPaymentProcessing(false);
-      await handlePaymentComplete()
+      try {
+        await handlePaymentComplete();
+      } catch (error) {
+        toast({
+          title: `Click "I've Made the Payment" button to confirm your payment`,
+        });
+      }
       return txid;
     } catch (error) {
       console.error("Transaction failed", error);
@@ -520,23 +529,6 @@ export default function PaymentPageComponent() {
                               OR
                             </div>
                           </div>
-                          <Button
-                            className="w-full"
-                            onClick={handlePaymentComplete}
-                            disabled={loading}
-                          >
-                            {manualPaymentLoading ? (
-                              <>
-                                <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin mr-2"></div>
-                                Processing...
-                              </>
-                            ) : (
-                              <>
-                                I've Made the Payment{" "}
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                              </>
-                            )}
-                          </Button>
                         </div>
                       ) : (
                         <div className="bg-gradient-to-r from-[#0a1a2f] to-[#0c2240] p-6 rounded-xl border border-[#f2bd74]/20">
@@ -573,7 +565,8 @@ export default function PaymentPageComponent() {
                             )}
 
                             <p className="text-sm text-white/60">
-                              Redirecting you back to the fundraiser in 5 seconds...
+                              Redirecting you back to the fundraiser in 5
+                              seconds...
                             </p>
                           </div>
                         </div>
@@ -592,7 +585,7 @@ export default function PaymentPageComponent() {
                       </>
                     ) : (
                       <>
-                        I've Made the Payment Manually{" "}
+                        I've Made the Payment
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </>
                     )}

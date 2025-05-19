@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,13 +16,39 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Share2, QrCode, Clock, Heart, Zap, Users, Shield } from "lucide-react";
+import {
+  Share2,
+  QrCode,
+  Clock,
+  Heart,
+  Zap,
+  Users,
+  Shield,
+  X,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Link as LinkIcon,
+  MessageCircle,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import apiRequest from "@/utils/apiRequest";
 import type { FundraiserByIdData, DonorByIdData } from "@/utils/type";
 import UserInfoDialog from "./components/UserInfoDialog";
-import { getRelativeTime, formatDate } from "@/components/customs/customComponent";
+import {
+  getRelativeTime,
+  formatDate,
+} from "@/components/customs/customComponent";
 import SuccessDialog from "./components/SuccessDialog";
+import QRCode from "react-qr-code";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 type props = {
   fundraiserId: string;
@@ -32,6 +58,7 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
 
   const [fundraiser, setFundraiser] = useState<FundraiserByIdData | null>(null);
   const [donors, setDonors] = useState<DonorByIdData[]>([]);
@@ -40,14 +67,19 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
   const [customAmount, setCustomAmount] = useState("");
   const [showUserInfoDialog, setShowUserInfoDialog] = useState(false);
   const [isSuccessDialog, setIsSuccessDialog] = useState(false);
+  const [openQRCode, setIsOpenQRCode] = useState(false);
+  const [openShare, setOpenShare] = useState(false);
+
+  const qrValue = `https://www.emergfunds.org/fundraiser/${fundraiserId}`;
 
   useEffect(() => {
-    const isPaymentCompleted = localStorage.getItem("paymentCompleted");
-    if (isPaymentCompleted === "true") {
+    if (searchParams.get("paymentSuccessful") === "true") {
       setIsSuccessDialog(true);
-    }
 
-  }, []);
+      const cleanUrl = window.location.pathname;
+      router.replace(cleanUrl);
+    }
+  }, [searchParams]);
 
   const fetchDonation = async () => {
     try {
@@ -115,8 +147,6 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
     };
   }, [fundraiserId]);
 
-
-
   const handleDialogClose = () => {
     setIsSuccessDialog(false);
   };
@@ -155,15 +185,11 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
         anonymous: userInfo.isAnonymous,
       };
 
-      console.log(payload);
-
       const response = await apiRequest(
         "POST",
         `/fundraise/donate/${fundraiserId}`,
         payload
       );
-
-      console.log(response);
 
       if (response.success) {
         setShowUserInfoDialog(false);
@@ -193,6 +219,48 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
     }
   };
 
+  const handleShare = (platform: string) => {
+    if (!fundraiser) return;
+    const message = `Check out this fundraiser: ${fundraiser.fundMetaData.title}`;
+    const url = qrValue;
+
+    switch (platform) {
+      case "twitter":
+        window.open(
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`,
+          "_blank"
+        );
+        break;
+      case "facebook":
+        window.open(
+          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+          "_blank"
+        );
+        break;
+      case "linkedin":
+        window.open(
+          `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+          "_blank"
+        );
+        break;
+      case "whatsapp":
+        window.open(
+          `https://wa.me/?text=${encodeURIComponent(`${message} ${url}`)}`,
+          "_blank"
+        );
+        break;
+      case "copy":
+        navigator.clipboard.writeText(url);
+        toast({
+          title: "Link copied",
+          description: "Fundraiser link copied to clipboard",
+          variant: "default",
+        });
+        break;
+    }
+    setOpenShare(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a1a2f] to-[#0c2240] text-white flex justify-center items-center">
@@ -218,7 +286,131 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
 
   return (
     <>
-      <SuccessDialog isOpen={isSuccessDialog} onClose={handleDialogClose} fundraiserTitle={fundMetaData.title} />
+      <SuccessDialog
+        isOpen={isSuccessDialog}
+        onClose={handleDialogClose}
+        fundraiserTitle={fundMetaData.title}
+      />
+
+      <Dialog open={openShare} onOpenChange={setOpenShare}>
+        <DialogContent className="md:max-w-[50%] max-w-[90%] h-fit lg:max-w-[30%]">
+          <DialogHeader>
+            <DialogTitle>Share Fundraiser</DialogTitle>
+            <DialogDescription>
+              Share this fundraiser with your network
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <Button
+              variant="outline"
+              className="flex flex-col items-center justify-center h-24 gap-2 border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10"
+              onClick={() => handleShare("twitter")}
+            >
+              <Twitter className="h-6 w-6" />
+              <span><s>Twitter</s> X</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="flex flex-col items-center justify-center h-24 gap-2 border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10"
+              onClick={() => handleShare("facebook")}
+            >
+              <Facebook className="h-6 w-6" />
+              <span>Facebook</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="flex flex-col items-center justify-center h-24 gap-2 border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10"
+              onClick={() => handleShare("linkedin")}
+            >
+              <Linkedin className="h-6 w-6" />
+              <span>LinkedIn</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="flex flex-col items-center justify-center h-24 gap-2 border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10"
+              onClick={() => handleShare("whatsapp")}
+            >
+              <MessageCircle className="h-6 w-6" />
+              <span>WhatsApp</span>
+            </Button>
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => setOpenShare(false)}
+              className="w-full"
+              variant="ghost"
+            >
+              Close
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => handleShare("copy")}
+            >
+              <span>Copy Link</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openQRCode} onOpenChange={setIsOpenQRCode}>
+        <DialogContent className="md:max-w-[50%] max-w-[90%] h-fit lg:max-w-[30%]">
+          <DialogHeader>
+            <DialogTitle> QR Code</DialogTitle>
+            <DialogDescription>
+              Scan this QR code to share this fundraiser with others or copy the
+              link below.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col items-center justify-center py-4">
+            <div className="p-4 bg-white rounded-lg">
+              <QRCode
+                value={qrValue}
+                size={200}
+                level="H"
+                fgColor="#000000"
+                bgColor="#ffffff"
+              />
+            </div>
+            <p className="mt-4 text-sm text-center text-gray-500">
+              Or copy this link: {qrValue}
+            </p>
+          </div>
+
+          <DialogFooter>
+            <div className="flex items-center justify-center gap-2 w-full">
+              <Button
+                onClick={() => setIsOpenQRCode(false)}
+                className="w-full sm:w-auto"
+                variant="ghost"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(qrValue);
+                  toast({
+                    title: "Link copied",
+                    description:
+                      "The fundraiser link has been copied to clipboard",
+                    variant: "default",
+                  });
+                }}
+                className="w-full sm:w-auto"
+                variant="outline"
+              >
+                Copy Link
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className=" text-white relative">
         {/* Decorative Elements */}
@@ -238,7 +430,8 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                 <div className="flex items-center text-gray-400 mb-4">
                   <Clock className="h-4 w-4 mr-1 text-[#f2bd74]" />
                   <span className="text-sm text-[#ede4d3]">
-                    Created {getRelativeTime(fundraiser.isFundRaisedStartedDate)}
+                    Created{" "}
+                    {getRelativeTime(fundraiser.isFundRaisedStartedDate)}
                   </span>
                 </div>
               </div>
@@ -312,7 +505,9 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                                 <div className="flex justify-between">
                                   <div className="flex items-start flex-col gap-1 ">
                                     <p className="font-medium font-rajdhani text-white">
-                                      {donor.anonymous ? "Anonymous" : donor.name}
+                                      {donor.anonymous
+                                        ? "Anonymous"
+                                        : donor.name}
                                     </p>
                                     {donor.note && (
                                       <p className="mt-1 text-sm text-gray-300 italic">
@@ -394,7 +589,9 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                       <p className="flex items-center text-gray-300">
                         <Users className="h-3 w-3 mr-1 text-[#f2bd74]" />{" "}
                         {fundraiser.statics.totalDonor}{" "}
-                        {fundraiser.statics.totalDonor <= 1 ? "donor" : "donors"}
+                        {fundraiser.statics.totalDonor <= 1
+                          ? "donor"
+                          : "donors"}
                       </p>
                       <p className="flex items-center text-gray-300">
                         <Zap className="h-3 w-3 mr-1 text-[#f2bd74]" />{" "}
@@ -465,6 +662,7 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                     </div>
                     <Separator className="bg-[#f2bd74]/20" />
                     <Button
+                      disabled={fundraiser.isFundRaisedStopped}
                       className="w-full bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] hover:from-[#d01232] hover:to-[#f7ca8a] text-white border-0 shadow-lg shadow-[#bd0e2b]/20"
                       onClick={() => {
                         const amount = customAmount
@@ -475,7 +673,8 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                         } else {
                           toast({
                             title: "Invalid amount",
-                            description: "Please select a valid donation amount",
+                            description:
+                              "Please select a valid donation amount",
                             variant: "destructive",
                           });
                         }
@@ -491,12 +690,14 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => setOpenShare(true)}
                       className="border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10 hover:text-white"
                     >
                       <Share2 className="mr-2 h-4 w-4" /> Share
                     </Button>
                     <Button
                       variant="outline"
+                      onClick={() => setIsOpenQRCode(true)}
                       size="sm"
                       className="border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10 hover:text-white"
                     >

@@ -12,22 +12,11 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import {
   Clock,
   DollarSign,
@@ -144,7 +133,7 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
   const { fundMetaData } = fundraiser;
 
   const progressPercentage = fundraiser
-    ? (fundMetaData.currentAmount / fundMetaData.goalAmount) * 100
+    ? (fundraiser.statics.totalRaised / fundMetaData.goalAmount) * 100
     : 0;
 
   const getRelativeTime = (dateString: string | number | Date) => {
@@ -172,8 +161,6 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
       currency: "USD",
     }).format(numericAmount);
   };
-
-
 
   const handleStopFundraiser = async () => {
     try {
@@ -206,7 +193,6 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
     } finally {
       setIsStoppingFundraiser(false);
     }
-
   };
 
   return (
@@ -226,7 +212,7 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
         <div className="lg:col-span-2">
           {fundraiser.verify.isFundRaiseVerified === false && (
             <div className="flex items-center gap-4 p-1 border border-white/30 rounded-lg w-fit mb-6">
-              <span className="text-sm font-rajdhani text-[#f2bd74]">
+              <span className="text-sm pl-2 font-rajdhani text-[#f2bd74]">
                 please verify your fundraiser
               </span>
               <VerifyFundraising fundRaiseId={fundraiserId} />
@@ -242,11 +228,11 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-start gap-4 mb-4">
+              <div className="flex items-start flex-col gap-4 mb-4">
                 <Image
                   src={fundMetaData.imageUrl || "/placeholder.svg"}
                   alt={fundMetaData.title}
-                  className="rounded-2xl w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  className="rounded-2xl w-full h-[40vh] object-cover transition-transform duration-700 group-hover:scale-110"
                   width={1000}
                   height={1000}
                 />
@@ -266,7 +252,7 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">
-                    {formatCurrency(fundMetaData.currentAmount)}
+                    {formatCurrency(fundraiser.statics.totalRaised)}
                   </h3>
                   <p className="text-[ #ede4d3]">
                     raised of {formatCurrency(fundMetaData.goalAmount)}
@@ -382,7 +368,7 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
                         Total Raised
                       </p>
                       <p className="text-2xl font-bold">
-                        {formatCurrency(fundMetaData.currentAmount)}
+                        {formatCurrency(fundraiser.statics.totalRaised)}
                       </p>
                     </div>
 
@@ -390,21 +376,27 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
                       <p className="text-sm opacity-80 font-medium line-clamp-1">
                         Total Donors
                       </p>
-                      <p className="text-2xl font-bold">2</p>
+                      <p className="text-2xl font-bold">
+                        {fundraiser.statics.totalDonor}
+                      </p>
                     </div>
 
                     <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-start flex-col border-white/10">
                       <p className="text-sm opacity-80 font-medium line-clamp-1">
                         Average Amount
                       </p>
-                      <p className="text-2xl font-bold">$100</p>
+                      <p className="text-2xl font-bold">
+                        {formatCurrency(fundraiser.statics.averageDonation)}
+                      </p>
                     </div>
 
                     <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-start flex-col border-white/10">
                       <p className="text-sm opacity-80 font-medium line-clamp-1">
                         Largest Amount
                       </p>
-                      <p className="text-2xl font-bold">$500</p>
+                      <p className="text-2xl font-bold">
+                        {formatCurrency(fundraiser.statics.largestAmount)}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -431,7 +423,9 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
                 <p className="text-sm opacity-80 font-medium line-clamp-1">
                   Wallet Address
                 </p>
-                <p className="text-xs ">{fundMetaData.walletAddress}</p>
+                <p className="text-xs w-full line-clamp-1 ">
+                  {fundMetaData.walletAddress}
+                </p>
               </div>
 
               <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border flex items-start flex-col border-white/10">
@@ -439,18 +433,18 @@ export default function ManageFundraiserPage({ fundraiserId }: props) {
                   Available to Withdraw
                 </p>
                 <p className="text-2xl font-bold">
-                  {formatCurrency(fundMetaData.currentAmount)}
+                  {formatCurrency(fundraiser.statics.totalRaised)}
                 </p>
               </div>
-
-
 
               <Separator className="bg-[#f2bd74]/20" />
 
               <Button
                 variant="secondary"
                 className="w-full"
-                disabled={isStoppingFundraiser || fundraiser.isFundRaiseStarted}
+                disabled={
+                  isStoppingFundraiser || !fundraiser.isFundRaiseStarted
+                }
                 onClick={handleStopFundraiser}
               >
                 {isStoppingFundraiser ? (

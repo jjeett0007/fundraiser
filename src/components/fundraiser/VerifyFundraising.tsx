@@ -46,7 +46,6 @@ const VerifyFundraising = ({
   onVerified?: () => void;
   fundRaiseId: string;
 }) => {
-  console.log(fundRaiseId);
   const { toast } = useToast();
   const userData = useSelector((state: RootState) => state.userData);
   const country = userData.address?.country || "";
@@ -136,8 +135,6 @@ const VerifyFundraising = ({
           throw new Error(uploadResponse.message || "Upload failed");
         }
 
-        console.log(uploadResponse);
-        // Update state based on field
         switch (field) {
           case "selfie":
             setSelfie(uploadResponse.data.link);
