@@ -55,7 +55,11 @@ const SuccessDialog = ({
             </div>
           </div>
 
-          <Button className="w-full" variant={"outline"}>
+          <Button
+            onClick={() => {
+              onClose()
+            }}
+            className="w-full" variant={"outline"}>
             Close
           </Button>
         </div>
