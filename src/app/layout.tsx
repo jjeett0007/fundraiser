@@ -6,6 +6,7 @@ import { Wallet } from "@/walletAdapter/walletAdapterLib";
 import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers/reduxProvider";
+import OfflineDetector from "@/components/useables/OfflineDetector";
 
 export const metadata: Metadata = {
   title: "Emerg Funds Raising",
@@ -32,18 +33,22 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "https://www.emergfunds.org/logo.jpg" },
-      { url: "/logo.jpg" },
-      new URL('/logo.jpg', 'https://www.emergfunds.org'),
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png", sizes: "32x32" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: [
+      {
+        url: "/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
     ],
     shortcut: ["https://www.emergfunds.org/logo.jpg"],
-    apple: [
-      { url: "https://www.emergfunds.org/logo.jpg" }
-    ],
     other: [
       {
-        rel: 'apple-touch-icon-precomposed',
-        url: 'https://www.emergfunds.org/logo.jpg',
+        rel: "apple-touch-icon-precomposed",
+        url: "https://www.emergfunds.org/logo.jpg",
       },
     ],
   },
@@ -93,9 +98,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      </head>
       <Script src="https://api.tempo.new/proxy-asset?url=https://storage.googleapis.com/tempo-public-assets/error-handling.js" />
       <body className={`${rajdhani.variable} ${manrope.variable}`}>
         <Providers>
+          <OfflineDetector />
           <Wallet>{children}</Wallet>
           <Toaster />
           <Analytics />

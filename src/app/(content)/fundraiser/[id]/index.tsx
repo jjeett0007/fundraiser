@@ -24,13 +24,11 @@ import {
   Zap,
   Users,
   Shield,
-  X,
   Facebook,
-  Twitter,
   Linkedin,
   Link as LinkIcon,
-  MessageCircle,
 } from "lucide-react";
+import { PiXLogo, PiWhatsappLogo } from "react-icons/pi";
 import { useToast } from "@/hooks/use-toast";
 import apiRequest from "@/utils/apiRequest";
 import type {
@@ -270,8 +268,9 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
     isAnonymous: boolean;
   }) => {
     const amount = customAmount
-      ? Number.parseFloat(customAmount)
+      ? Number.parseFloat(customAmount.replace(/,/g, ""))
       : selectedAmount;
+
     if (amount <= 0) {
       toast({
         title: "Invalid amount",
@@ -305,6 +304,8 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
         note: userInfo.note,
         anonymous: userInfo.isAnonymous,
       };
+
+      console.log(payload);
 
       const response = await apiRequest(
         "POST",
@@ -348,7 +349,7 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
     switch (platform) {
       case "twitter":
         window.open(
-          `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`,
+          `https://x.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`,
           "_blank"
         );
         break;
@@ -428,7 +429,7 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
               className="flex flex-col items-center justify-center h-24 gap-2 border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10"
               onClick={() => handleShare("twitter")}
             >
-              <Twitter className="h-6 w-6" />
+              <PiXLogo className="h-6 w-6" />
               <span>
                 <s>Twitter</s> X
               </span>
@@ -457,7 +458,7 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
               className="flex flex-col items-center justify-center h-24 gap-2 border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10"
               onClick={() => handleShare("whatsapp")}
             >
-              <MessageCircle className="h-6 w-6" />
+              <PiWhatsappLogo className="h-6 w-6" />
               <span>WhatsApp</span>
             </Button>
           </div>
@@ -703,7 +704,7 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                     </CardContent>
                     <div className="w-full">
                       {donors.length > 0 && (
-                        <div className=" flex items-center justify-center">
+                        <div className="mb-4 flex items-center justify-center">
                           {donationPaginationLoading ? (
                             <Skeleton className="h-4 w-60" />
                           ) : (

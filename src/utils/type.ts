@@ -105,6 +105,7 @@ export interface FundraiserByIdData {
   isFundRaiseStarted: boolean;
   isFundRaisedStopped: boolean;
   isFundRaiseFundsComplete: boolean;
+  isFundRaiseDeactivated: boolean;
   isFundRaisedStartedDate: string;
 }
 

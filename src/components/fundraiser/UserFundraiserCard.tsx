@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PiMoney } from "react-icons/pi";
 import { Badge } from "@/components/ui/badge";
 import {
   Clock,
@@ -19,6 +20,7 @@ import {
   Users,
   DollarSign,
   ArrowBigUpDash,
+  AlertCircle,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -52,6 +54,7 @@ interface FundraiserCardProps {
   totalDonor: number;
   averageDonation: number;
   largestAmount: number;
+  isFundRaiseDeactivated: boolean;
 }
 
 const UserFundraiserCard = ({
@@ -69,6 +72,7 @@ const UserFundraiserCard = ({
   totalDonor,
   averageDonation,
   largestAmount,
+  isFundRaiseDeactivated,
 }: FundraiserCardProps) => {
   const { toast } = useToast();
 
@@ -105,6 +109,8 @@ const UserFundraiserCard = ({
   };
 
   const handleDelete = async () => {
+    if (isFundRaiseDeactivated) return;
+
     try {
       setIsLoading(true);
 
@@ -141,6 +147,8 @@ const UserFundraiserCard = ({
   };
 
   const handleLaunch = async () => {
+    if (isFundRaiseDeactivated) return;
+
     try {
       setLaunchIsLoading(true);
 
@@ -152,7 +160,7 @@ const UserFundraiserCard = ({
       if (response.status === 200) {
         toast({
           title: "Success",
-          description: response.message || " Fundraiser deleted successfully.",
+          description: response.message || " Fundraiser launched successfully.",
         });
         setLaunchIsLoading(false);
 
@@ -163,7 +171,7 @@ const UserFundraiserCard = ({
         toast({
           title: "Error",
           variant: "destructive",
-          description: response.message || "Failed to delete Fundraiser",
+          description: response.message || "Failed to launch Fundraiser",
         });
         setLaunchIsLoading(false);
       }
@@ -180,12 +188,12 @@ const UserFundraiserCard = ({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open && !isFundRaiseDeactivated} onOpenChange={setOpen}>
         <DialogContent className="md:max-w-[50%] max-w-[90%] h-[30vh] lg:max-w-[30%] md:h-fit">
           <DialogHeader>
             <DialogTitle> Delete? </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this fundraiser? This action
+              Are you sure you want to delete {title}? This action
               cannot be undone.
             </DialogDescription>
           </DialogHeader>
@@ -212,24 +220,28 @@ const UserFundraiserCard = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       <div className="relative group">
         <Card className="relative border-[#7b7b7b] bg-gradient-to-b from-[#0a1a2f] to-[#0c2240] text-white border overflow-hidden rounded-xl z-10">
-          <div className="absolute top-4 right-4 z-20">
+          <div className="absolute w-[92%] flex items-center justify-between top-4 right-4 z-20">
             {isFundRaiseVerified === true ? (
-              <div className="flex items-center gap-1.5">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                </span>
-                <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 border-0 text-white">
-                  Verified
-                </Badge>
-              </div>
+              <Badge className="bg-gradient-to-r from-[#256b25] to-emerald-600 border-0 text-white">
+                Verified
+              </Badge>
             ) : (
               <Badge className="bg-gradient-to-r from-gray-600 to-gray-700 border-0 text-white">
                 Not Verified
               </Badge>
             )}
+            <Button
+              variant="destructive"
+              size="icon"
+              onClick={() => !isFundRaiseDeactivated && setOpen(true)}
+              className="h-9 w-9 border border-[#fff0f2]/40 text-white"
+              disabled={isFundRaiseDeactivated}
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
           </div>
 
           <div className="relative h-48 w-full overflow-hidden">
@@ -242,12 +254,21 @@ const UserFundraiserCard = ({
               className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700"
             />
 
-            <div className="absolute bottom-4 left-4 z-20">
+            <div className="absolute w-[92%] flex items-center justify-between bottom-4 left-4 z-20">
               <Badge
                 className={`bg-[#bd0e2b]/80 backdrop-blur-sm border border-[#f2bd74]/30 text-white hover:bg-[#bd0e2b]`}
               >
                 {category}
               </Badge>
+              {/* <div className="flex items-center gap-1.5">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#0dd60d]"></span>
+                </span>
+                <Badge className="bg-gradient-to-r from-[#256b25] to-emerald-600 border-0 text-white">
+                  Active
+                </Badge>
+              </div> */}
             </div>
           </div>
 
@@ -268,7 +289,7 @@ const UserFundraiserCard = ({
                 </div>
               ) : (
                 <span className="text-xs py-1 px-2 bg-white/10 rounded-full text-gray-300 font-medium">
-                  Not Launched
+                  Not launched yet
                 </span>
               )}
             </div>
@@ -340,47 +361,73 @@ const UserFundraiserCard = ({
           <CardFooter className="pt-0">
             <div className="w-full space-y-3">
               <div className="flex justify-between">
-                <Link href={`/fundraiser/${id}`} className="flex-1 mr-2">
+                <Link
+                  href={
+                    isFundRaiseDeactivated ? "#" : `/fundraiser/manage/${id}`
+                  }
+                  className="flex-1 mr-2"
+                  style={{
+                    pointerEvents: isFundRaiseDeactivated ? "none" : "auto",
+                  }}
+                >
                   <Button
                     variant="outline"
                     className="w-full border border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10 hover:text-white transition-all duration-300"
+                    disabled={isFundRaiseDeactivated}
                   >
-                    <Shield className="h-4 w-4 mr-2" />
-                    View Details
+                    <PiMoney className="h-4 w-4 mr-2" />
+                    Manage Or Withdraw
                   </Button>
                 </Link>
 
                 <div className="flex space-x-2">
-                  <Link href={`/fundraiser/manage/${id}`}>
+                  <Link
+                    href={isFundRaiseDeactivated ? "#" : `/fundraiser/${id}`}
+                    style={{
+                      pointerEvents: isFundRaiseDeactivated ? "none" : "auto",
+                    }}
+                  >
                     <Button
                       variant="outline"
-                      size="icon"
-                      className="h-9 w-9 border border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10 hover:text-white"
+                      className="w-full border border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10 hover:text-white transition-all duration-300"
+                      disabled={isFundRaiseDeactivated}
                     >
-                      <Edit className="h-4 w-4" />
+                      <Shield className="h-4 w-4 mr-2" />
+                      View
                     </Button>
                   </Link>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setOpen(true)}
-                    className="h-9 w-9 border border-[#bd0e2b]/30 text-[#bd0e2b] hover:bg-[#bd0e2b]/10 hover:text-white"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
 
               <Button
                 onClick={handleLaunch}
                 variant="secondary"
-                className="w-full "
+                className="w-full"
+                disabled={isFundRaiseDeactivated}
               >
                 <Rocket className="h-4 w-4 mr-2" />
                 {launchIsLoading ? "Launching..." : " Launch Fundraiser"}
               </Button>
             </div>
           </CardFooter>
+
+          {isFundRaiseDeactivated && (
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 rounded-xl">
+              <div className="text-center p-6">
+                <div className="flex items-center justify-center mb-4">
+                  <AlertCircle className="h-12 w-12 text-red-400" />
+                </div>
+                <h3 className="text-xl font-rajdhani font-bold text-white mb-2">
+                  Fundraiser Deactivated
+                </h3>
+                <p className="text-gray-300 text-sm">
+                  This fundraiser has been deactivated.
+                  <br />
+                  Please contact support for assistance.
+                </p>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </>

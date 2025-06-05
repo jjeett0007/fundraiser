@@ -116,6 +116,18 @@ export default function CreateFundraiserPage() {
   const toggleInfoExpanded = () => {
     setInfoExpanded(!infoExpanded);
   };
+  const clearDataInput = () => {
+    localStorage.removeItem("fundraiserFormData");
+    setFormData({
+      title: "",
+      description: "",
+      goalAmount: "",
+      category: "Medical",
+      walletAddress: publicKey ? publicKey.toString() : "",
+      imagePreview: null,
+      videoPreview: null,
+    });
+  };
 
   const handleCategorySelect = (selectedCategory: string) => {
     updateFormData("category", selectedCategory);
@@ -334,7 +346,6 @@ export default function CreateFundraiserPage() {
         window.scrollTo({ top: 0, behavior: "smooth" });
         setFundRaiseId(response.data.fundRaiseId);
         setCurrentStep(4);
-
       } else {
         toast({
           title: "Error",
@@ -395,13 +406,14 @@ export default function CreateFundraiserPage() {
   return (
     <div className="min-h-screen relative">
       <div className="container mx-auto px-4 py-8 md:px-10 lg:px-14 relative z-10">
+        <Button variant={"outline"} className="mb-3" onClick={clearDataInput}>Clear All Input</Button>
         <div className="mx-auto rounded-lg shadow-lg bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white overflow-hidden">
           <div className="bg-gradient-to-r from-[#0a1a2f] to-[#0c2240] border-b border-[#f2bd74]/20 p-6">
             <div className="md:text-2xl text-xl font-rajdhani font-bold text-[#f2bd74]">
               Create Emergency Fundraiser
             </div>
             <div className="text-[#ede4d3] mb-10">
-              Set up your fundraiser quickly to receive immediate help
+              Set up your fundraiser with just 3 step and get the support you need.
             </div>
 
             <div className="flex justify-between gap-2 md:gap-4 items-center">

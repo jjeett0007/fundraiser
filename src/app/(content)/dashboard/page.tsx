@@ -53,7 +53,7 @@ export default function DashboardPage() {
 
       if (response.success) {
         setUserFundraisers(response.data.results);
-        console.log(response.data.results)
+        console.log(response.data.results);
         if (response?.data?.pagination) {
           setPaginationData(response.data.pagination);
         }
@@ -213,9 +213,9 @@ export default function DashboardPage() {
                   avatar || userData.profileImages.avatar || "/placeholder.svg"
                 }
                 alt={userData.profile.displayName}
-                width={112}
-                height={112}
-                className="object-cover"
+                width={1000}
+                height={1000}
+                className="object-cover w-full h-full"
               />
             </div>
           )}
@@ -328,7 +328,7 @@ export default function DashboardPage() {
 
       <div className="flex justify-between items-center mt-10 mb-6">
         <h2 className="md:text-2xl text-xl font-rajdhani font-bold text-[#f2bd74]">
-          Explore Fundraisers
+          My Fundraisers
         </h2>
         <Link href="/fundraiser/create">
           <Button size={"sm"}>
@@ -384,6 +384,7 @@ export default function DashboardPage() {
                   totalDonor={fundraiser.statics.totalDonor}
                   averageDonation={fundraiser.statics.averageDonation}
                   largestAmount={fundraiser.statics.largestAmount}
+                  isFundRaiseDeactivated={fundraiser.isFundRaiseDeactivated}
                 />
               ))}
             </div>
