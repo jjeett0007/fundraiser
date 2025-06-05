@@ -305,6 +305,8 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
         anonymous: userInfo.isAnonymous,
       };
 
+      console.log(payload);
+
       const response = await apiRequest(
         "POST",
         `/fundraise/donate/${fundraiserId}`,
