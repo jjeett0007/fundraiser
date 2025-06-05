@@ -41,7 +41,6 @@ export default function ExplorePage() {
   ) => {
     setPaginationLoading(true);
     try {
-      // Only add category to the URL if it's not "All"
       const url =
         category === "All"
           ? `/fundraise/get-fundraise?page=${page}`
@@ -197,11 +196,15 @@ export default function ExplorePage() {
 
             {fundraisers.length > 0 && (
               <div className="mt-8 flex justify-center">
-                <PaginationComp
-                  currentPage={paginationData.currentPage}
-                  totalPages={paginationData.totalPages}
-                  onPageChange={handlePageChange}
-                />
+                {paginationLoading ? (
+                  <Skeleton className="h-10 w-60" />
+                ) : (
+                  <PaginationComp
+                    currentPage={paginationData.currentPage}
+                    totalPages={paginationData.totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                )}
               </div>
             )}
           </>

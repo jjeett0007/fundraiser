@@ -6,93 +6,62 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, ChevronRight } from "lucide-react";
 import FundraiserCard from "@/components/fundraiser/FundraiserCard";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import landingBg from "@/assets/landing_bg.png";
 import AnimatedWord from "@/components/common/animated-word";
+import { FundraiserData } from "@/utils/type";
+import apiRequest from "@/utils/apiRequest";
+import { useToast } from "@/hooks/use-toast";
 
 export default function HomePage() {
   const router = useRouter();
+  const { toast } = useToast();
 
-  const activeFundraisers = [
-    {
-      id: "1",
-      title: "Medical Emergency Support",
-      description:
-        "Help with urgent medical expenses for life-saving treatment needed immediately.",
-      goalAmount: 5000,
-      amountRaised: 2750,
-      createdAt: new Date(Date.now() - 3600000 * 5), // 5 hours ago
-      category: "medical",
-      imageUrl:
-        "https://images.unsplash.com/photo-1584515933487-779824d29309?w=800&q=80",
-    },
-    {
-      id: "2",
-      title: "Family Crisis Relief",
-      description:
-        "Supporting a family who lost everything in a house fire last night.",
-      goalAmount: 10000,
-      amountRaised: 4200,
-      createdAt: new Date(Date.now() - 3600000 * 12), // 12 hours ago
-      category: "family",
-      imageUrl:
-        "https://images.unsplash.com/photo-1536856136534-bb679c52a9aa?w=800&q=80",
-    },
-    {
-      id: "3",
-      title: "Urgent Bill Assistance",
-      description:
-        "Help prevent utilities from being shut off for a vulnerable elderly couple.",
-      goalAmount: 1500,
-      amountRaised: 950,
-      createdAt: new Date(Date.now() - 3600000 * 24), // 24 hours ago
-      category: "urgent bills",
-      imageUrl:
-        "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80",
-    },
-    {
-      id: "4",
-      title: "Disaster Recovery Fund",
-      description:
-        "Supporting recovery efforts after the recent natural disaster in our community.",
-      goalAmount: 25000,
-      amountRaised: 15750,
-      createdAt: new Date(Date.now() - 3600000 * 36), // 36 hours ago
-      category: "crisis",
-      imageUrl:
-        "https://images.unsplash.com/photo-1498354178607-a79df2916198?w=800&q=80",
-    },
-    {
-      id: "5",
-      title: "Emergency Pet Surgery",
-      description:
-        "Help fund a life-saving surgery for a beloved pet with no insurance coverage.",
-      goalAmount: 3500,
-      amountRaised: 2100,
-      createdAt: new Date(Date.now() - 3600000 * 8), // 8 hours ago
-      category: "medical",
-      imageUrl:
-        "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=800&q=80",
-    },
-    {
-      id: "6",
-      title: "Temporary Housing Need",
-      description:
-        "Providing temporary shelter for a family displaced by unforeseen circumstances.",
-      goalAmount: 4500,
-      amountRaised: 1800,
-      createdAt: new Date(Date.now() - 3600000 * 18), // 18 hours ago
-      category: "family",
-      imageUrl:
-        "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80",
-    },
-  ];
-
+  const [activeFundraisers, setActiveFundraisers] = useState<FundraiserData[]>(
+    []
+  );
+  const [loading, setLoading] = useState<boolean>(true);
   const [disable, setDisable] = useState(true);
 
   // useEffect(() => {
   //   router.push("/wait-list");
   // });
+
+  const fetchActiveFundraisers = async () => {
+    setLoading(true);
+    try {
+      const response = await apiRequest(
+        "GET",
+        "/fundraise/get-fundraise?page=1"
+      );
+      if (response.success) {
+        setActiveFundraisers(response.data.results);
+        setLoading(false);
+      } else {
+        toast({
+          title: "Error",
+          description: response.message,
+          variant: "destructive",
+        });
+        setActiveFundraisers([]);
+      }
+    } catch (error) {
+      setLoading(false);
+    }
+  };
+  const initializeData = async () => {
+    setLoading(true);
+    await Promise.all([fetchActiveFundraisers()]);
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    if (mounted) {
+      initializeData();
+    }
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <>
@@ -308,11 +277,39 @@ export default function HomePage() {
                       View all <ArrowRight className="ml-1 h-4 w-4" />
                     </Link>
                   </div>
-                  <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3  justify-center lg:gap-8 flex-wrap mx-auto items-center">
-                    {activeFundraisers.map((fundraiser, index) => (
-                      <FundraiserCard key={index} {...fundraiser} />
-                    ))}
-                  </div>
+
+                  {loading ? (
+                    <div className="text-center py-10">
+                      <p className="text-gray-500">Loading...</p>
+                    </div>
+                  ) : activeFundraisers.length === 0 ? (
+                    <div className="text-center py-10">
+                      <p className="text-gray-500">
+                        No Active fundraisers found
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid sm:grid-cols-2 gap-6 lg:grid-cols-3  justify-center lg:gap-8 flex-wrap mx-auto items-center">
+                      {activeFundraisers
+                        .slice(0, 5)
+                        .map((fundraiser, index) => (
+                          <FundraiserCard
+                            key={index}
+                            _id={fundraiser._id}
+                            title={fundraiser.fundMetaData.title}
+                            description={fundraiser.fundMetaData.description}
+                            goalAmount={fundraiser.fundMetaData.goalAmount}
+                            currentAmount={fundraiser.statics.totalRaised}
+                            isFundRaisedStartedDate={
+                              fundraiser.isFundRaisedStartedDate
+                            }
+                            category={fundraiser.fundMetaData.category}
+                            isTotalDonor={fundraiser.statics.totalDonor}
+                            imageUrl={fundraiser.fundMetaData.imageUrl}
+                          />
+                        ))}
+                    </div>
+                  )}
                 </div>
               </section>
 

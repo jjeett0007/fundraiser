@@ -259,13 +259,17 @@ const UserFundraiserCard = ({
               <CardDescription className="line-clamp-1 text-[#ede4d3] mt-1">
                 {description}
               </CardDescription>
-              {createdAt && (
-                <div className="flex items-center mt-1 text-gray-300">
+              {createdAt ? (
+                <div className="flex py-1 px-2 bg-white/10 rounded-full items-center mt-1 text-gray-300">
                   <Clock className="h-4 w-4 mr-1" />
                   <span className="text-xs font-medium">
-                    Created on {getTimeSince(createdAt)}
+                    Launched {getTimeSince(createdAt)}
                   </span>
                 </div>
+              ) : (
+                <span className="text-xs py-1 px-2 bg-white/10 rounded-full text-gray-300 font-medium">
+                  Not Launched
+                </span>
               )}
             </div>
           </CardHeader>

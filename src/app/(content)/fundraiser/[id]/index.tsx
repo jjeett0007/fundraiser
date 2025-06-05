@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,11 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import apiRequest from "@/utils/apiRequest";
-import type { FundraiserByIdData, DonorByIdData } from "@/utils/type";
+import type {
+  FundraiserByIdData,
+  DonorByIdData,
+  PaginationData,
+} from "@/utils/type";
 import UserInfoDialog from "./components/UserInfoDialog";
 import {
   getRelativeTime,
@@ -49,6 +53,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import PaginationComp from "@/components/customs/PaginationComp";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type props = {
   fundraiserId: string;
@@ -69,6 +75,29 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
   const [isSuccessDialog, setIsSuccessDialog] = useState(false);
   const [openQRCode, setIsOpenQRCode] = useState(false);
   const [openShare, setOpenShare] = useState(false);
+  const [validationMessage, setValidationMessage] = useState("");
+  const [validationType, setValidationType] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const descriptionRef = useRef<HTMLDivElement>(null);
+  const [donationPaginationData, setDonationPaginationData] =
+    useState<PaginationData>({
+      totalItems: 0,
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: 9,
+    });
+  const [donationPaginationLoading, setDonationPaginationLoading] =
+    useState(false);
+
+  useEffect(() => {
+    if (descriptionRef.current) {
+      setIsOverflowing(
+        descriptionRef.current.scrollHeight >
+          descriptionRef.current.clientHeight
+      );
+    }
+  }, [fundraiser?.fundMetaData?.description]);
 
   const qrValue = `https://www.emergfunds.org/fundraiser/${fundraiserId}`;
 
@@ -81,14 +110,26 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
     }
   }, [searchParams]);
 
-  const fetchDonation = async () => {
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= donationPaginationData.totalPages) {
+      setDonationPaginationData((prev) => ({ ...prev, currentPage: newPage }));
+      fetchDonation(newPage);
+    }
+  };
+
+  const fetchDonation = async (page: number = 1) => {
+    setDonationPaginationLoading(true);
     try {
       const response = await apiRequest(
         "GET",
-        `/fundraise/donate/${fundraiserId}`
+        `/fundraise/donate/${fundraiserId}?page=${page}`
       );
       if (response.success) {
         setDonors(response.data.results);
+        if (response?.data?.pagination) {
+          setDonationPaginationData(response.data.pagination);
+        }
+        setDonationPaginationLoading(false);
       } else {
         toast({
           title: "Error",
@@ -151,11 +192,75 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
     setIsSuccessDialog(false);
   };
 
+  const handleCustomAmountOnChange = (e: { target: { value: string } }) => {
+    const rawValue = e.target.value.replace(/,/g, "");
+
+    if (/^\d*\.?\d*$/.test(rawValue)) {
+      const decimalCount = (rawValue.match(/\./g) || []).length;
+      if (decimalCount <= 1) {
+        let formattedValue = "";
+        if (rawValue) {
+          const parts = rawValue.split(".");
+          const integerPart = parts[0] ? formatNumberWithCommas(parts[0]) : "";
+          const decimalPart = parts[1] !== undefined ? parts[1] : "";
+
+          if (parts.length === 2) {
+            formattedValue = integerPart + "." + decimalPart;
+          } else {
+            formattedValue = integerPart;
+          }
+        }
+
+        setCustomAmount(formattedValue);
+        setSelectedAmount(0);
+
+        if (rawValue && fundraiser) {
+          const inputAmount = parseFloat(rawValue);
+          if (!isNaN(inputAmount)) {
+            const totalRaised = Number(fundraiser.statics.totalRaised);
+            const goalAmount = Number(fundraiser.fundMetaData.goalAmount);
+            const maxAllowed =
+              Math.round((goalAmount - totalRaised) * 100) / 100;
+            const inputAmountRounded = Math.round(inputAmount * 100) / 100;
+
+            if (inputAmountRounded <= 0) {
+              setValidationMessage("Please enter a positive amount");
+              setValidationType(false);
+            } else if (inputAmountRounded > maxAllowed) {
+              setValidationMessage(
+                `This amount exceeds the goal. Maximum allowed: ${formatCurrency(maxAllowed)}`
+              );
+              setValidationType(false);
+            } else if (Math.abs(inputAmountRounded - maxAllowed) < 0.01) {
+              setValidationMessage(
+                "Awesome! This will complete the fundraiser goal 🎉"
+              );
+              setValidationType(true);
+            } else {
+              setValidationMessage("");
+              setValidationType(true);
+            }
+          } else {
+            setValidationMessage("");
+            setValidationType(true);
+          }
+        } else {
+          setValidationMessage("");
+          setValidationType(true);
+        }
+      }
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
     }).format(amount);
+  };
+
+  const formatNumberWithCommas = (num: string) => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   const handleDonation = async (userInfo: {
@@ -174,6 +279,22 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
         variant: "destructive",
       });
       return;
+    }
+
+    if (fundraiser) {
+      const totalRaised = fundraiser.statics.totalRaised;
+      const goalAmount = fundraiser.fundMetaData.goalAmount;
+      const projectedTotal = totalRaised + amount;
+
+      if (projectedTotal > goalAmount) {
+        const maxAllowed = goalAmount - totalRaised;
+        toast({
+          title: "Amount exceeds goal",
+          description: `Maximum allowed donation: ${formatCurrency(maxAllowed)}`,
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     try {
@@ -308,7 +429,9 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
               onClick={() => handleShare("twitter")}
             >
               <Twitter className="h-6 w-6" />
-              <span><s>Twitter</s> X</span>
+              <span>
+                <s>Twitter</s> X
+              </span>
             </Button>
 
             <Button
@@ -455,11 +578,29 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                 )}
               </div>
 
+              <h3 className="text-xl mb-2 font-rajdhani font-semibold text-[#f2bd74]">
+                The Story
+              </h3>
               <Card className="mb-8 bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
                 <CardContent className="pt-6">
-                  <p className="text-lg whitespace-pre-line text-gray-300">
+                  <div
+                    ref={descriptionRef}
+                    className={`text-[14px] whitespace-pre-line overflow-hidden text-gray-300 ${
+                      isExpanded ? "" : "line-clamp-2"
+                    }`}
+                  >
                     {fundMetaData.description}
-                  </p>
+                  </div>
+                  {isOverflowing && (
+                    <Button
+                      variant={"ghost"}
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="p-0 h-auto text-[12px] text-[#eedfc2]"
+                      size={"sm"}
+                    >
+                      {isExpanded ? "Show Less" : "Show More"}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
 
@@ -481,12 +622,35 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                 <TabsContent value="donors" className="mt-4">
                   <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
                     <CardHeader>
-                      <h3 className="text-xl font-semibold text-[#f2bd74]">
+                      <h3 className="text-xl font-rajdhani font-semibold text-[#f2bd74]">
                         Recent Donors
                       </h3>
                     </CardHeader>
                     <CardContent>
-                      {donors && donors.length > 0 ? (
+                      {donationPaginationLoading ? (
+                        <div className="space-y-4">
+                          {[...Array(3)].map((_, index) => (
+                            <div
+                              key={index}
+                              className="flex items-start gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10"
+                            >
+                              <Skeleton className="h-10 w-10 rounded-full border-2 border-[#f2bd74]/20" />
+                              <div className="w-full space-y-2">
+                                <div className="flex justify-between">
+                                  <div className="space-y-2">
+                                    <Skeleton className="h-4 w-32" />
+                                    <Skeleton className="h-3 w-48" />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Skeleton className="h-4 w-20" />
+                                    <Skeleton className="h-3 w-24" />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : donors && donors.length > 0 ? (
                         <div className="space-y-4">
                           {donors.map((donor, index) => (
                             <div
@@ -511,7 +675,7 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                                     </p>
                                     {donor.note && (
                                       <p className="mt-1 text-sm text-gray-300 italic">
-                                        "{donor.note}"
+                                        "{donor.note || "No message"}"
                                       </p>
                                     )}
                                   </div>
@@ -537,12 +701,27 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                         </div>
                       )}
                     </CardContent>
+                    <div className="w-full">
+                      {donors.length > 0 && (
+                        <div className=" flex items-center justify-center">
+                          {donationPaginationLoading ? (
+                            <Skeleton className="h-4 w-60" />
+                          ) : (
+                            <PaginationComp
+                              currentPage={donationPaginationData.currentPage}
+                              totalPages={donationPaginationData.totalPages}
+                              onPageChange={handlePageChange}
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </Card>
                 </TabsContent>
                 <TabsContent value="updates" className="mt-4">
                   <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
                     <CardHeader>
-                      <h3 className="text-xl font-semibold text-[#f2bd74]">
+                      <h3 className="text-xl font-rajdhani font-semibold text-[#f2bd74]">
                         Recent Updates
                       </h3>
                     </CardHeader>
@@ -644,26 +823,53 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                         $50
                       </Button>
                     </div>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        placeholder="Custom amount"
-                        min="1"
-                        className="pl-6 bg-[#0a1a2f]/50 border-[#f2bd74]/30 text-white placeholder:text-gray-500"
-                        value={customAmount}
-                        onChange={(e) => {
-                          setCustomAmount(e.target.value);
-                          setSelectedAmount(0);
-                        }}
-                      />
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#f2bd74]">
-                        $
-                      </span>
+                    <div className="flex flex-col">
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          placeholder="Custom amount"
+                          className={`pl-6 bg-[#0a1a2f]/50 text-white placeholder:text-gray-500 ${
+                            validationType === false
+                              ? "border-red-500/50 focus:border-red-500"
+                              : "border-[#f2bd74]/30"
+                          }`}
+                          value={customAmount}
+                          onChange={handleCustomAmountOnChange}
+                          onPaste={(e) => {
+                            setTimeout(() => {
+                              const pastedValue = e.currentTarget.value;
+                              handleCustomAmountOnChange({
+                                target: { value: pastedValue },
+                              });
+                            }, 0);
+                          }}
+                        />
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#f2bd74]">
+                          $
+                        </span>
+                      </div>
+                      {validationMessage && (
+                        <p
+                          className={`mt-2 text-sm ${
+                            validationType === false
+                              ? "text-red-400"
+                              : validationType === true
+                                ? "text-green-400"
+                                : ""
+                          }`}
+                        >
+                          {validationMessage}
+                        </p>
+                      )}
                     </div>
                     <Separator className="bg-[#f2bd74]/20" />
                     <Button
-                      disabled={fundraiser.isFundRaisedStopped}
-                      className="w-full bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] hover:from-[#d01232] hover:to-[#f7ca8a] text-white border-0 shadow-lg shadow-[#bd0e2b]/20"
+                      disabled={
+                        fundraiser.isFundRaisedStopped ||
+                        validationType === false
+                      }
+                      variant={"secondary"}
+                      className="w-full "
                       onClick={() => {
                         const amount = customAmount
                           ? Number.parseFloat(customAmount)
