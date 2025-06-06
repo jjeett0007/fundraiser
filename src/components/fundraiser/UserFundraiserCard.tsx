@@ -55,6 +55,10 @@ interface FundraiserCardProps {
   averageDonation: number;
   largestAmount: number;
   isFundRaiseDeactivated: boolean;
+  isFundRaiseStarted: boolean;
+  isFundRaiseEnded: boolean;
+  isFundRaiseActive: boolean;
+  isFundRaisedStopped: boolean;
 }
 
 const UserFundraiserCard = ({
@@ -73,6 +77,10 @@ const UserFundraiserCard = ({
   averageDonation,
   largestAmount,
   isFundRaiseDeactivated,
+  isFundRaiseStarted,
+  isFundRaiseEnded,
+  isFundRaiseActive,
+  isFundRaisedStopped,
 }: FundraiserCardProps) => {
   const { toast } = useToast();
 
@@ -193,8 +201,8 @@ const UserFundraiserCard = ({
           <DialogHeader>
             <DialogTitle> Delete? </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {title}? This action
-              cannot be undone.
+              Are you sure you want to delete {title}? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
 
@@ -260,15 +268,17 @@ const UserFundraiserCard = ({
               >
                 {category}
               </Badge>
-              {/* <div className="flex items-center gap-1.5">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#0dd60d]"></span>
-                </span>
-                <Badge className="bg-gradient-to-r from-[#256b25] to-emerald-600 border-0 text-white">
-                  Active
-                </Badge>
-              </div> */}
+              {isFundRaiseActive && (
+                <div className="flex items-center gap-1.5">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#0dd60d]"></span>
+                  </span>
+                  <Badge className="bg-gradient-to-r from-[#256b25] to-emerald-600 border-0 text-white">
+                    Active
+                  </Badge>
+                </div>
+              )}
             </div>
           </div>
 
@@ -399,15 +409,17 @@ const UserFundraiserCard = ({
                 </div>
               </div>
 
-              <Button
-                onClick={handleLaunch}
-                variant="secondary"
-                className="w-full"
-                disabled={isFundRaiseDeactivated}
-              >
-                <Rocket className="h-4 w-4 mr-2" />
-                {launchIsLoading ? "Launching..." : " Launch Fundraiser"}
-              </Button>
+              {!isFundRaiseStarted && (
+                <Button
+                  onClick={handleLaunch}
+                  variant="secondary"
+                  className="w-full"
+                  disabled={isFundRaiseDeactivated}
+                >
+                  <Rocket className="h-4 w-4 mr-2" />
+                  {launchIsLoading ? "Launching..." : " Launch Fundraiser"}
+                </Button>
+              )}
             </div>
           </CardFooter>
 

@@ -94,6 +94,10 @@ export interface FundraiserData {
   statics: Statics;
   isFundRaiseDeactivated: boolean;
   isFundRaisedStartedDate: string;
+  isFundRaiseStarted: boolean;
+  isFundRaiseEnded: boolean;
+  isFundRaiseActive: boolean;
+  isFundRaisedStopped: boolean;
 }
 
 export interface FundraiserByIdData {
@@ -101,12 +105,19 @@ export interface FundraiserByIdData {
   fundMetaData: FundMetaData;
   verify: Verified;
   statics: Statics;
+  createdBy: FundraiserUserInfo;
   isInitialized: boolean;
   isFundRaiseStarted: boolean;
   isFundRaisedStopped: boolean;
   isFundRaiseFundsComplete: boolean;
   isFundRaiseDeactivated: boolean;
   isFundRaisedStartedDate: string;
+}
+
+export interface FundraiserUserInfo {
+  _id: string;
+  profile: Profile;
+  profileImages: ProfileImages;
 }
 
 export interface DonorByIdData {

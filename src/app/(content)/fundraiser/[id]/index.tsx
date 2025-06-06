@@ -305,8 +305,6 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
         anonymous: userInfo.isAnonymous,
       };
 
-      console.log(payload);
-
       const response = await apiRequest(
         "POST",
         `/fundraise/donate/${fundraiserId}`,
@@ -569,11 +567,10 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                   height={1000}
                 />
 
-                {/* Blockchain verification badge */}
                 {fundraiser.verify.isFundRaiseVerified && (
                   <div className="absolute top-4 right-4 z-20">
                     <Badge className="bg-[#0a1a2f]/80 backdrop-blur-sm border border-[#f2bd74]/30 text-[#f2bd74] flex items-center gap-1">
-                      <Shield className="h-3 w-3" /> Verified
+                      <Shield className="h-3 w-3" /> Approved & Verified
                     </Badge>
                   </div>
                 )}
@@ -605,8 +602,8 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                 </CardContent>
               </Card>
 
-              <Tabs defaultValue="donors" className="mb-8">
-                <TabsList className="w-full bg-transparent border border-[#f2bd74]/20">
+              {/* <Tabs defaultValue="donors" className="mb-8"> */}
+              {/* <TabsList className="w-full bg-transparent border border-[#f2bd74]/20">
                   <TabsTrigger
                     value="donors"
                     className="flex-1 data-[state=active]:bg-[#0a1a2f] data-[state=active]:border data-[state=active]:border-white/20 data-[state=active]:text-[#f2bd74] text-[#ede4d3]"
@@ -619,107 +616,103 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                   >
                     <Zap className="h-4 w-4 mr-2" /> Updates
                   </TabsTrigger>
-                </TabsList>
-                <TabsContent value="donors" className="mt-4">
-                  <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
-                    <CardHeader>
-                      <h3 className="text-xl font-rajdhani font-semibold text-[#f2bd74]">
-                        Recent Donors
-                      </h3>
-                    </CardHeader>
-                    <CardContent>
-                      {donationPaginationLoading ? (
-                        <div className="space-y-4">
-                          {[...Array(3)].map((_, index) => (
-                            <div
-                              key={index}
-                              className="flex items-start gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10"
-                            >
-                              <Skeleton className="h-10 w-10 rounded-full border-2 border-[#f2bd74]/20" />
-                              <div className="w-full space-y-2">
-                                <div className="flex justify-between">
-                                  <div className="space-y-2">
-                                    <Skeleton className="h-4 w-32" />
-                                    <Skeleton className="h-3 w-48" />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Skeleton className="h-4 w-20" />
-                                    <Skeleton className="h-3 w-24" />
-                                  </div>
-                                </div>
+                </TabsList> */}
+              {/* <TabsContent value="donors" className="mt-4"> */}
+              <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
+                <CardHeader>
+                  <h3 className="text-xl font-rajdhani font-semibold text-[#f2bd74]">
+                    Recent Donors
+                  </h3>
+                </CardHeader>
+                <CardContent>
+                  {donationPaginationLoading ? (
+                    <div className="space-y-4">
+                      {[...Array(3)].map((_, index) => (
+                        <div
+                          key={index}
+                          className="flex items-start gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10"
+                        >
+                          <Skeleton className="h-10 w-10 rounded-full border-2 border-[#f2bd74]/20" />
+                          <div className="w-full space-y-2">
+                            <div className="flex justify-between">
+                              <div className="space-y-2">
+                                <Skeleton className="h-4 w-32" />
+                                <Skeleton className="h-3 w-48" />
+                              </div>
+                              <div className="space-y-2">
+                                <Skeleton className="h-4 w-20" />
+                                <Skeleton className="h-3 w-24" />
                               </div>
                             </div>
-                          ))}
+                          </div>
                         </div>
-                      ) : donors && donors.length > 0 ? (
-                        <div className="space-y-4">
-                          {donors.map((donor, index) => (
-                            <div
-                              key={index}
-                              className="flex items-start gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10"
-                            >
-                              <Avatar className="border-2 border-[#f2bd74]/20">
-                                <AvatarImage
-                                  src={`https://api.dicebear.com/9.x/identicon/svg?seed=${donor.name}`}
-                                />
-                                <AvatarFallback className="bg-[#bd0e2b]/20 text-[#f2bd74]">
-                                  {donor.name.charAt(0)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="w-full">
-                                <div className="flex justify-between">
-                                  <div className="flex items-start flex-col gap-1 ">
-                                    <p className="font-medium font-rajdhani text-white">
-                                      {donor.anonymous
-                                        ? "Anonymous"
-                                        : donor.name}
-                                    </p>
-                                    {donor.note && (
-                                      <p className="mt-1 text-sm text-gray-300 italic">
-                                        "{donor.note || "No message"}"
-                                      </p>
-                                    )}
-                                  </div>
-                                  <div className="flex items-end flex-col gap-1 ">
-                                    <p className="text-[#f2bd74] font-semibold">
-                                      {formatCurrency(donor.amount)}
-                                    </p>
-                                    <p className="text-gray-400 text-sm flex items-center">
-                                      <Clock className="h-3 w-3 mr-1" />
-                                      {formatDate(donor.blockTime)}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center py-8 text-center">
-                          <p className="text-gray-400">
-                            No donors yet. Be the first to donate!
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                    <div className="w-full">
-                      {donors.length > 0 && (
-                        <div className="mb-4 flex items-center justify-center">
-                          {donationPaginationLoading ? (
-                            <Skeleton className="h-4 w-60" />
-                          ) : (
-                            <PaginationComp
-                              currentPage={donationPaginationData.currentPage}
-                              totalPages={donationPaginationData.totalPages}
-                              onPageChange={handlePageChange}
+                      ))}
+                    </div>
+                  ) : donors && donors.length > 0 ? (
+                    <div className="space-y-4">
+                      {donors.map((donor, index) => (
+                        <div
+                          key={index}
+                          className="flex items-start gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10"
+                        >
+                          <Avatar className="border-2 border-[#f2bd74]/20">
+                            <AvatarImage
+                              src={`https://api.dicebear.com/9.x/identicon/svg?seed=${donor.name}`}
                             />
-                          )}
+                            <AvatarFallback className="bg-[#bd0e2b]/20 text-[#f2bd74]">
+                              {donor.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="w-full">
+                            <div className="flex justify-between">
+                              <div className="flex items-start flex-col gap-1 ">
+                                <p className="font-medium font-rajdhani text-white">
+                                  {donor.anonymous ? "Anonymous" : donor.name}
+                                </p>
+                                <p className="mt-1 text-sm text-gray-300 italic">
+                                  "{donor.note || "No message"}"
+                                </p>
+                              </div>
+                              <div className="flex items-end flex-col gap-1 ">
+                                <p className="text-[#f2bd74] font-semibold">
+                                  {formatCurrency(donor.amount)}
+                                </p>
+                                <p className="text-gray-400 text-sm flex items-center">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {formatDate(donor.blockTime)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <p className="text-gray-400">
+                        No donors yet. Be the first to donate!
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+                <div className="w-full">
+                  {donors.length > 0 && (
+                    <div className="mb-4 flex items-center justify-center">
+                      {donationPaginationLoading ? (
+                        <Skeleton className="h-4 w-60" />
+                      ) : (
+                        <PaginationComp
+                          currentPage={donationPaginationData.currentPage}
+                          totalPages={donationPaginationData.totalPages}
+                          onPageChange={handlePageChange}
+                        />
                       )}
                     </div>
-                  </Card>
-                </TabsContent>
-                <TabsContent value="updates" className="mt-4">
+                  )}
+                </div>
+              </Card>
+              {/* </TabsContent> */}
+              {/* <TabsContent value="updates" className="mt-4">
                   <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
                     <CardHeader>
                       <h3 className="text-xl font-rajdhani font-semibold text-[#f2bd74]">
@@ -732,12 +725,12 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                       </div>
                     </CardContent>
                   </Card>
-                </TabsContent>
-              </Tabs>
+                </TabsContent> */}
+              {/* </Tabs> */}
             </div>
 
-            <div className="lg:col-span-1">
-              <Card className="sticky top-4 md:top-[6rem] bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white overflow-hidden">
+            <div className="lg:col-span-1 sticky top-4 md:top-[6rem]">
+              <Card className="bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white overflow-hidden">
                 <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
                   <div className="absolute transform rotate-45 bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] w-8 h-8 -top-4 -right-4 opacity-50"></div>
                 </div>
@@ -867,7 +860,8 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                     <Button
                       disabled={
                         fundraiser.isFundRaisedStopped ||
-                        validationType === false
+                        validationType === false ||
+                        fundraiser.isFundRaiseFundsComplete
                       }
                       variant={"secondary"}
                       className="w-full "
@@ -913,6 +907,30 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                   </div>
                 </CardFooter>
               </Card>
+
+              <h3 className="text-lg mt-3 font-rajdhani font-semibold text-[#f2bd74]">
+                The Creator
+              </h3>
+
+              <div className="flex mt-2 items-center gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10">
+                <Avatar className="border-2 w-16 h-16 border-[#f2bd74]/20">
+                  <AvatarImage
+                    src={fundraiser.createdBy.profileImages.avatar}
+                  />
+                  <AvatarFallback className="bg-[#bd0e2b]/20 text-[#f2bd74]">
+                    {fundraiser.createdBy.profile.firstName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex items-start flex-col gap-1 ">
+                  <p className="font-medium font-rajdhani text-white">
+                    {fundraiser.createdBy.profile.firstName}{" "}
+                    {fundraiser.createdBy.profile.lastName}
+                  </p>
+                  <p className=" text-sm text-gray-300 italic">
+                    {fundraiser.createdBy.profile.displayName}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

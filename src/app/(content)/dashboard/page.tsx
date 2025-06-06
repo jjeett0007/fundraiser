@@ -385,6 +385,10 @@ export default function DashboardPage() {
                   averageDonation={fundraiser.statics.averageDonation}
                   largestAmount={fundraiser.statics.largestAmount}
                   isFundRaiseDeactivated={fundraiser.isFundRaiseDeactivated}
+                  isFundRaiseEnded={fundraiser.isFundRaiseEnded}
+                  isFundRaiseStarted={fundraiser.isFundRaiseStarted}
+                  isFundRaiseActive={fundraiser.isFundRaiseActive}
+                  isFundRaisedStopped={fundraiser.isFundRaisedStopped}
                 />
               ))}
             </div>
