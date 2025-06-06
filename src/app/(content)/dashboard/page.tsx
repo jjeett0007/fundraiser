@@ -53,7 +53,6 @@ export default function DashboardPage() {
 
       if (response.success) {
         setUserFundraisers(response.data.results);
-        console.log(response.data.results);
         if (response?.data?.pagination) {
           setPaginationData(response.data.pagination);
         }
