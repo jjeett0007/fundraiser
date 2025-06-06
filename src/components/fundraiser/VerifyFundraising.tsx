@@ -291,7 +291,7 @@ const VerifyFundraising = ({
       <DialogTrigger asChild>
         <Button variant="secondary">Verify Fundraiser</Button>
       </DialogTrigger>
-      <DialogContent className="md:max-w-[80%] max-w-[100%] lg:max-w-[60%] md:h-fit max-h-[100dvh] overflow-y-auto">
+      <DialogContent className="md:max-w-[80%] max-w-[100%] lg:max-w-[60%] max-h-[100dvh] md:max-h-[80vh] overflow-y-auto">
         <DialogHeader className="space-y-2 items-start flex flex-col">
           <DialogTitle className="text-primaryGold font-rajdhani">
             Fundraiser Verification

@@ -2,8 +2,6 @@ import apiRequest from "@/utils/apiRequest";
 import type { Metadata } from "next";
 import FundraiserPageComp from ".";
 
-// Removed invalid import: PageProps is not exported from "next"
-
 export async function generateMetadata({
   params,
 }: {
