@@ -19,7 +19,7 @@ const SuccessDialog = ({
 }) => {
   if (!isOpen) return null;
 
- 
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className=" w-full max-w-md">
@@ -46,11 +46,11 @@ const SuccessDialog = ({
             </div>
           </div>
 
-          <Button 
-            className="w-full" 
-            onClick={onClose} 
-            variant={"outline"}
-          >
+          <Button
+            onClick={() => {
+              onClose()
+            }}
+            className="w-full" variant={"outline"}>
             Close
           </Button>
         </div>
