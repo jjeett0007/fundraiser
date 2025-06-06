@@ -1,17 +1,17 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { PiArrowLeft, PiArrowRight } from "react-icons/pi";
 import { ButtonProps, buttonVariants } from "@/components/ui/button";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DotsHorizontalIcon,
-} from "@radix-ui/react-icons";
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 
 const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
   <nav
     role="navigation"
     aria-label="pagination"
-    className={cn("mx-auto flex w-full justify-center", className)}
+    className={cn(
+      "mx-auto border border-[#f2bd74]/30 py-1 px-2 rounded-md flex w-fit justify-center",
+      className
+    )}
     {...props}
   />
 );
@@ -72,8 +72,7 @@ const PaginationPrevious = ({
     className={cn("gap-1 pl-2.5", className)}
     {...props}
   >
-    <ChevronLeftIcon className="h-4 w-4" />
-    <span>Previous</span>
+    <PiArrowLeft className="h-4 w-4" />
   </PaginationLink>
 );
 PaginationPrevious.displayName = "PaginationPrevious";
@@ -85,11 +84,10 @@ const PaginationNext = ({
   <PaginationLink
     aria-label="Go to next page"
     size="default"
-    className={cn("gap-1 pr-2.5", className)}
+    className={cn("gap-1 p-2.5", className)}
     {...props}
   >
-    <span>Next</span>
-    <ChevronRightIcon className="h-4 w-4" />
+    <PiArrowRight className="h-4 w-4" />
   </PaginationLink>
 );
 PaginationNext.displayName = "PaginationNext";

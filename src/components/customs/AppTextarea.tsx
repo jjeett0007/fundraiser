@@ -39,7 +39,7 @@ const AppTextarea = ({
           rows={4}
           disabled={disabled}
           {...props}
-          className={`flex-1 text-white border-0 bg-transparent outline-none text-[16px] resize-none appearance-none ${
+          className={`flex-1 text-white placeholder:text-gray-500 border-0 bg-transparent outline-none text-[16px] resize-none appearance-none ${
             disabled ? "cursor-not-allowed text-[#999] dark:text-[#666]" : ""
           }`}
         />

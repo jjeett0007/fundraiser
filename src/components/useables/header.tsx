@@ -167,6 +167,8 @@ function HeaderComp() {
                 alt={"white_wording_logo"}
                 height={1000}
                 width={1000}
+                priority
+                quality={100}
                 className="md:w-[6rem] w-[5rem] lg:w-[8rem] "
               />
             </Link>

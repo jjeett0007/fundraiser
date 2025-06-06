@@ -47,7 +47,7 @@ export default async function apiRequest(
           message:
             error.response?.data?.message ||
             error.response?.data.errorMessage ||
-            "Unknown Error",
+            "Unknown Error, Try again later.",
         };
       } else if (error.response?.status === 500) {
         return {
@@ -56,7 +56,7 @@ export default async function apiRequest(
           message:
             error.response?.data?.message ||
             error.response?.data.errorMessage ||
-            "Internal Server Error",
+            "Internal Server Error, Please contact support.",
         };
       }
     }

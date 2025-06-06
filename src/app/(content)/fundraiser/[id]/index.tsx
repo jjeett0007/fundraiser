@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -24,16 +24,18 @@ import {
   Zap,
   Users,
   Shield,
-  X,
   Facebook,
-  Twitter,
   Linkedin,
   Link as LinkIcon,
-  MessageCircle,
 } from "lucide-react";
+import { PiXLogo, PiWhatsappLogo } from "react-icons/pi";
 import { useToast } from "@/hooks/use-toast";
 import apiRequest from "@/utils/apiRequest";
-import type { FundraiserByIdData, DonorByIdData } from "@/utils/type";
+import type {
+  FundraiserByIdData,
+  DonorByIdData,
+  PaginationData,
+} from "@/utils/type";
 import UserInfoDialog from "./components/UserInfoDialog";
 import {
   getRelativeTime,
@@ -49,6 +51,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import PaginationComp from "@/components/customs/PaginationComp";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type props = {
   fundraiserId: string;
@@ -69,6 +73,29 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
   const [isSuccessDialog, setIsSuccessDialog] = useState(false);
   const [openQRCode, setIsOpenQRCode] = useState(false);
   const [openShare, setOpenShare] = useState(false);
+  const [validationMessage, setValidationMessage] = useState("");
+  const [validationType, setValidationType] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const descriptionRef = useRef<HTMLDivElement>(null);
+  const [donationPaginationData, setDonationPaginationData] =
+    useState<PaginationData>({
+      totalItems: 0,
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: 9,
+    });
+  const [donationPaginationLoading, setDonationPaginationLoading] =
+    useState(false);
+
+  useEffect(() => {
+    if (descriptionRef.current) {
+      setIsOverflowing(
+        descriptionRef.current.scrollHeight >
+          descriptionRef.current.clientHeight
+      );
+    }
+  }, [fundraiser?.fundMetaData?.description]);
 
   const qrValue = `https://www.emergfunds.org/fundraiser/${fundraiserId}`;
 
@@ -81,14 +108,26 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
     }
   }, [searchParams]);
 
-  const fetchDonation = async () => {
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= donationPaginationData.totalPages) {
+      setDonationPaginationData((prev) => ({ ...prev, currentPage: newPage }));
+      fetchDonation(newPage);
+    }
+  };
+
+  const fetchDonation = async (page: number = 1) => {
+    setDonationPaginationLoading(true);
     try {
       const response = await apiRequest(
         "GET",
-        `/fundraise/donate/${fundraiserId}`
+        `/fundraise/donate/${fundraiserId}?page=${page}`
       );
       if (response.success) {
         setDonors(response.data.results);
+        if (response?.data?.pagination) {
+          setDonationPaginationData(response.data.pagination);
+        }
+        setDonationPaginationLoading(false);
       } else {
         toast({
           title: "Error",
@@ -151,11 +190,75 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
     setIsSuccessDialog(false);
   };
 
+  const handleCustomAmountOnChange = (e: { target: { value: string } }) => {
+    const rawValue = e.target.value.replace(/,/g, "");
+
+    if (/^\d*\.?\d*$/.test(rawValue)) {
+      const decimalCount = (rawValue.match(/\./g) || []).length;
+      if (decimalCount <= 1) {
+        let formattedValue = "";
+        if (rawValue) {
+          const parts = rawValue.split(".");
+          const integerPart = parts[0] ? formatNumberWithCommas(parts[0]) : "";
+          const decimalPart = parts[1] !== undefined ? parts[1] : "";
+
+          if (parts.length === 2) {
+            formattedValue = integerPart + "." + decimalPart;
+          } else {
+            formattedValue = integerPart;
+          }
+        }
+
+        setCustomAmount(formattedValue);
+        setSelectedAmount(0);
+
+        if (rawValue && fundraiser) {
+          const inputAmount = parseFloat(rawValue);
+          if (!isNaN(inputAmount)) {
+            const totalRaised = Number(fundraiser.statics.totalRaised);
+            const goalAmount = Number(fundraiser.fundMetaData.goalAmount);
+            const maxAllowed =
+              Math.round((goalAmount - totalRaised) * 100) / 100;
+            const inputAmountRounded = Math.round(inputAmount * 100) / 100;
+
+            if (inputAmountRounded <= 0) {
+              setValidationMessage("Please enter a positive amount");
+              setValidationType(false);
+            } else if (inputAmountRounded > maxAllowed) {
+              setValidationMessage(
+                `This amount exceeds the goal. Maximum allowed: ${formatCurrency(maxAllowed)}`
+              );
+              setValidationType(false);
+            } else if (Math.abs(inputAmountRounded - maxAllowed) < 0.01) {
+              setValidationMessage(
+                "Awesome! This will complete the fundraiser goal 🎉"
+              );
+              setValidationType(true);
+            } else {
+              setValidationMessage("");
+              setValidationType(true);
+            }
+          } else {
+            setValidationMessage("");
+            setValidationType(true);
+          }
+        } else {
+          setValidationMessage("");
+          setValidationType(true);
+        }
+      }
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
     }).format(amount);
+  };
+
+  const formatNumberWithCommas = (num: string) => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   const handleDonation = async (userInfo: {
@@ -165,8 +268,9 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
     isAnonymous: boolean;
   }) => {
     const amount = customAmount
-      ? Number.parseFloat(customAmount)
+      ? Number.parseFloat(customAmount.replace(/,/g, ""))
       : selectedAmount;
+
     if (amount <= 0) {
       toast({
         title: "Invalid amount",
@@ -174,6 +278,22 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
         variant: "destructive",
       });
       return;
+    }
+
+    if (fundraiser) {
+      const totalRaised = fundraiser.statics.totalRaised;
+      const goalAmount = fundraiser.fundMetaData.goalAmount;
+      const projectedTotal = totalRaised + amount;
+
+      if (projectedTotal > goalAmount) {
+        const maxAllowed = goalAmount - totalRaised;
+        toast({
+          title: "Amount exceeds goal",
+          description: `Maximum allowed donation: ${formatCurrency(maxAllowed)}`,
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     try {
@@ -227,7 +347,7 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
     switch (platform) {
       case "twitter":
         window.open(
-          `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`,
+          `https://x.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`,
           "_blank"
         );
         break;
@@ -307,8 +427,10 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
               className="flex flex-col items-center justify-center h-24 gap-2 border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10"
               onClick={() => handleShare("twitter")}
             >
-              <Twitter className="h-6 w-6" />
-              <span><s>Twitter</s> X</span>
+              <PiXLogo className="h-6 w-6" />
+              <span>
+                <s>Twitter</s> X
+              </span>
             </Button>
 
             <Button
@@ -334,7 +456,7 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
               className="flex flex-col items-center justify-center h-24 gap-2 border-[#f2bd74]/30 text-[#f2bd74] hover:bg-[#f2bd74]/10"
               onClick={() => handleShare("whatsapp")}
             >
-              <MessageCircle className="h-6 w-6" />
+              <PiWhatsappLogo className="h-6 w-6" />
               <span>WhatsApp</span>
             </Button>
           </div>
@@ -445,26 +567,43 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                   height={1000}
                 />
 
-                {/* Blockchain verification badge */}
                 {fundraiser.verify.isFundRaiseVerified && (
                   <div className="absolute top-4 right-4 z-20">
                     <Badge className="bg-[#0a1a2f]/80 backdrop-blur-sm border border-[#f2bd74]/30 text-[#f2bd74] flex items-center gap-1">
-                      <Shield className="h-3 w-3" /> Verified
+                      <Shield className="h-3 w-3" /> Approved & Verified
                     </Badge>
                   </div>
                 )}
               </div>
 
+              <h3 className="text-xl mb-2 font-rajdhani font-semibold text-[#f2bd74]">
+                The Story
+              </h3>
               <Card className="mb-8 bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
                 <CardContent className="pt-6">
-                  <p className="text-lg whitespace-pre-line text-gray-300">
+                  <div
+                    ref={descriptionRef}
+                    className={`text-[14px] whitespace-pre-line overflow-hidden text-gray-300 ${
+                      isExpanded ? "" : "line-clamp-2"
+                    }`}
+                  >
                     {fundMetaData.description}
-                  </p>
+                  </div>
+                  {isOverflowing && (
+                    <Button
+                      variant={"ghost"}
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="p-0 h-auto text-[12px] text-[#eedfc2]"
+                      size={"sm"}
+                    >
+                      {isExpanded ? "Show Less" : "Show More"}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
 
-              <Tabs defaultValue="donors" className="mb-8">
-                <TabsList className="w-full bg-transparent border border-[#f2bd74]/20">
+              {/* <Tabs defaultValue="donors" className="mb-8"> */}
+              {/* <TabsList className="w-full bg-transparent border border-[#f2bd74]/20">
                   <TabsTrigger
                     value="donors"
                     className="flex-1 data-[state=active]:bg-[#0a1a2f] data-[state=active]:border data-[state=active]:border-white/20 data-[state=active]:text-[#f2bd74] text-[#ede4d3]"
@@ -477,72 +616,106 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                   >
                     <Zap className="h-4 w-4 mr-2" /> Updates
                   </TabsTrigger>
-                </TabsList>
-                <TabsContent value="donors" className="mt-4">
-                  <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
-                    <CardHeader>
-                      <h3 className="text-xl font-semibold text-[#f2bd74]">
-                        Recent Donors
-                      </h3>
-                    </CardHeader>
-                    <CardContent>
-                      {donors && donors.length > 0 ? (
-                        <div className="space-y-4">
-                          {donors.map((donor, index) => (
-                            <div
-                              key={index}
-                              className="flex items-start gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10"
-                            >
-                              <Avatar className="border-2 border-[#f2bd74]/20">
-                                <AvatarImage
-                                  src={`https://api.dicebear.com/9.x/identicon/svg?seed=${donor.name}`}
-                                />
-                                <AvatarFallback className="bg-[#bd0e2b]/20 text-[#f2bd74]">
-                                  {donor.name.charAt(0)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="w-full">
-                                <div className="flex justify-between">
-                                  <div className="flex items-start flex-col gap-1 ">
-                                    <p className="font-medium font-rajdhani text-white">
-                                      {donor.anonymous
-                                        ? "Anonymous"
-                                        : donor.name}
-                                    </p>
-                                    {donor.note && (
-                                      <p className="mt-1 text-sm text-gray-300 italic">
-                                        "{donor.note}"
-                                      </p>
-                                    )}
-                                  </div>
-                                  <div className="flex items-end flex-col gap-1 ">
-                                    <p className="text-[#f2bd74] font-semibold">
-                                      {formatCurrency(donor.amount)}
-                                    </p>
-                                    <p className="text-gray-400 text-sm flex items-center">
-                                      <Clock className="h-3 w-3 mr-1" />
-                                      {formatDate(donor.blockTime)}
-                                    </p>
-                                  </div>
-                                </div>
+                </TabsList> */}
+              {/* <TabsContent value="donors" className="mt-4"> */}
+              <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
+                <CardHeader>
+                  <h3 className="text-xl font-rajdhani font-semibold text-[#f2bd74]">
+                    Recent Donors
+                  </h3>
+                </CardHeader>
+                <CardContent>
+                  {donationPaginationLoading ? (
+                    <div className="space-y-4">
+                      {[...Array(3)].map((_, index) => (
+                        <div
+                          key={index}
+                          className="flex items-start gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10"
+                        >
+                          <Skeleton className="h-10 w-10 rounded-full border-2 border-[#f2bd74]/20" />
+                          <div className="w-full space-y-2">
+                            <div className="flex justify-between">
+                              <div className="space-y-2">
+                                <Skeleton className="h-4 w-32" />
+                                <Skeleton className="h-3 w-48" />
+                              </div>
+                              <div className="space-y-2">
+                                <Skeleton className="h-4 w-20" />
+                                <Skeleton className="h-3 w-24" />
                               </div>
                             </div>
-                          ))}
+                          </div>
                         </div>
+                      ))}
+                    </div>
+                  ) : donors && donors.length > 0 ? (
+                    <div className="space-y-4">
+                      {donors.map((donor, index) => (
+                        <div
+                          key={index}
+                          className="flex items-start gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10"
+                        >
+                          <Avatar className="border-2 border-[#f2bd74]/20">
+                            <AvatarImage
+                              src={`https://api.dicebear.com/9.x/identicon/svg?seed=${donor.name}`}
+                            />
+                            <AvatarFallback className="bg-[#bd0e2b]/20 text-[#f2bd74]">
+                              {donor.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="w-full">
+                            <div className="flex justify-between">
+                              <div className="flex items-start flex-col gap-1 ">
+                                <p className="font-medium font-rajdhani text-white">
+                                  {donor.anonymous ? "Anonymous" : donor.name}
+                                </p>
+                                <p className="mt-1 text-sm text-gray-300 italic">
+                                  "{donor.note || "No message"}"
+                                </p>
+                              </div>
+                              <div className="flex items-end flex-col gap-1 ">
+                                <p className="text-[#f2bd74] font-semibold">
+                                  {formatCurrency(donor.amount)}
+                                </p>
+                                <p className="text-gray-400 text-sm flex items-center">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {formatDate(donor.blockTime)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <p className="text-gray-400">
+                        No donors yet. Be the first to donate!
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+                <div className="w-full">
+                  {donors.length > 0 && (
+                    <div className="mb-4 flex items-center justify-center">
+                      {donationPaginationLoading ? (
+                        <Skeleton className="h-4 w-60" />
                       ) : (
-                        <div className="flex flex-col items-center justify-center py-8 text-center">
-                          <p className="text-gray-400">
-                            No donors yet. Be the first to donate!
-                          </p>
-                        </div>
+                        <PaginationComp
+                          currentPage={donationPaginationData.currentPage}
+                          totalPages={donationPaginationData.totalPages}
+                          onPageChange={handlePageChange}
+                        />
                       )}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                <TabsContent value="updates" className="mt-4">
+                    </div>
+                  )}
+                </div>
+              </Card>
+              {/* </TabsContent> */}
+              {/* <TabsContent value="updates" className="mt-4">
                   <Card className="bg-[#0a1a2f]/50 border border-[#f2bd74]/20 backdrop-blur-sm text-white">
                     <CardHeader>
-                      <h3 className="text-xl font-semibold text-[#f2bd74]">
+                      <h3 className="text-xl font-rajdhani font-semibold text-[#f2bd74]">
                         Recent Updates
                       </h3>
                     </CardHeader>
@@ -552,12 +725,12 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                       </div>
                     </CardContent>
                   </Card>
-                </TabsContent>
-              </Tabs>
+                </TabsContent> */}
+              {/* </Tabs> */}
             </div>
 
-            <div className="lg:col-span-1">
-              <Card className="sticky top-4 md:top-[6rem] bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white overflow-hidden">
+            <div className="lg:col-span-1 sticky top-4 md:top-[6rem]">
+              <Card className="bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white overflow-hidden">
                 <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
                   <div className="absolute transform rotate-45 bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] w-8 h-8 -top-4 -right-4 opacity-50"></div>
                 </div>
@@ -644,26 +817,54 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                         $50
                       </Button>
                     </div>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        placeholder="Custom amount"
-                        min="1"
-                        className="pl-6 bg-[#0a1a2f]/50 border-[#f2bd74]/30 text-white placeholder:text-gray-500"
-                        value={customAmount}
-                        onChange={(e) => {
-                          setCustomAmount(e.target.value);
-                          setSelectedAmount(0);
-                        }}
-                      />
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#f2bd74]">
-                        $
-                      </span>
+                    <div className="flex flex-col">
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          placeholder="Custom amount"
+                          className={`pl-6 bg-[#0a1a2f]/50 text-white placeholder:text-gray-500 ${
+                            validationType === false
+                              ? "border-red-500/50 focus:border-red-500"
+                              : "border-[#f2bd74]/30"
+                          }`}
+                          value={customAmount}
+                          onChange={handleCustomAmountOnChange}
+                          onPaste={(e) => {
+                            setTimeout(() => {
+                              const pastedValue = e.currentTarget.value;
+                              handleCustomAmountOnChange({
+                                target: { value: pastedValue },
+                              });
+                            }, 0);
+                          }}
+                        />
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#f2bd74]">
+                          $
+                        </span>
+                      </div>
+                      {validationMessage && (
+                        <p
+                          className={`mt-2 text-sm ${
+                            validationType === false
+                              ? "text-red-400"
+                              : validationType === true
+                                ? "text-green-400"
+                                : ""
+                          }`}
+                        >
+                          {validationMessage}
+                        </p>
+                      )}
                     </div>
                     <Separator className="bg-[#f2bd74]/20" />
                     <Button
-                      disabled={fundraiser.isFundRaisedStopped}
-                      className="w-full bg-gradient-to-r from-[#bd0e2b] to-[#f2bd74] hover:from-[#d01232] hover:to-[#f7ca8a] text-white border-0 shadow-lg shadow-[#bd0e2b]/20"
+                      disabled={
+                        fundraiser.isFundRaisedStopped ||
+                        validationType === false ||
+                        fundraiser.isFundRaiseFundsComplete
+                      }
+                      variant={"secondary"}
+                      className="w-full "
                       onClick={() => {
                         const amount = customAmount
                           ? Number.parseFloat(customAmount)
@@ -706,6 +907,30 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                   </div>
                 </CardFooter>
               </Card>
+
+              <h3 className="text-lg mt-3 font-rajdhani font-semibold text-[#f2bd74]">
+                The Creator
+              </h3>
+
+              <div className="flex mt-2 items-center gap-4 p-3 rounded-lg bg-[#0a1a2f]/50 border border-[#f2bd74]/10">
+                <Avatar className="border-2 w-16 h-16 border-[#f2bd74]/20">
+                  <AvatarImage
+                    src={fundraiser.createdBy.profileImages.avatar}
+                  />
+                  <AvatarFallback className="bg-[#bd0e2b]/20 text-[#f2bd74]">
+                    {fundraiser.createdBy.profile.firstName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex items-start flex-col gap-1 ">
+                  <p className="font-medium font-rajdhani text-white">
+                    {fundraiser.createdBy.profile.firstName}{" "}
+                    {fundraiser.createdBy.profile.lastName}
+                  </p>
+                  <p className=" text-sm text-gray-300 italic">
+                    {fundraiser.createdBy.profile.displayName}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

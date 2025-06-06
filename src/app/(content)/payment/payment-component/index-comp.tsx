@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,13 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,6 +26,7 @@ import {
   AlertCircle,
   Shield,
   ArrowRight,
+  QrCode,
 } from "lucide-react";
 import { WalletNotConnectedError } from "@solana/wallet-adapter-base";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
@@ -31,10 +39,13 @@ import {
   getAssociatedTokenAddressSync,
   getAccount,
 } from "@solana/spl-token";
+import QRCodeStyling from "qr-code-styling";
 import apiRequest from "@/utils/apiRequest";
 import { useToast } from "@/hooks/use-toast";
 import { GetDonorInfoData } from "@/utils/type";
 import { Skeleton } from "@/components/ui/skeleton";
+import CountDownIllustration from "@/components/customs/CountDownIllustration";
+import QRCode from "react-qr-code";
 
 const USDC_DEVNET_MINT = new PublicKey(
   "Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"
@@ -56,9 +67,15 @@ export default function PaymentPageComponent() {
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [transactionHash, setTransactionHash] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [countdown, setCountdown] = useState(15);
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
 
   const [manualPaymentLoading, setManualPaymentLoading] = useState(false);
   const [donateId, setDonateId] = useState("");
+
+  const qrCodeRef = useRef<HTMLDivElement>(null);
+  const qrCodeInstance = useRef<QRCodeStyling | null>(null);
 
   const [fundraiser, setFundraiser] = useState({
     title: "",
@@ -76,7 +93,9 @@ export default function PaymentPageComponent() {
     anonymous: false,
   });
 
-  const handleReRoutePaymentComplete = async () => {
+  const qrValue = donorInfo.walletAddress;
+
+  useEffect(() => {
     if (paymentCompleted && fundraiser.fundraiserId) {
       const timer = setTimeout(() => {
         router.push(
@@ -90,7 +109,11 @@ export default function PaymentPageComponent() {
 
       return () => clearTimeout(timer);
     }
-  };
+  }, [paymentCompleted, fundraiser.fundraiserId, router]);
+
+  useEffect(() => {
+    localStorage.removeItem("walletName");
+  }, []);
 
   useEffect(() => {
     const donateIdFromStorage = localStorage.getItem("donateId");
@@ -198,7 +221,8 @@ export default function PaymentPageComponent() {
           description: response.message || "Payment confirmed successfully",
         });
         setPaymentCompleted(true);
-        handleReRoutePaymentComplete();
+        // Removed the direct call to handleReRoutePaymentComplete
+        // The redirect will now be handled by the useEffect above
       } else {
         toast({
           title: "Error",
@@ -207,10 +231,10 @@ export default function PaymentPageComponent() {
         });
       }
     } catch (error) {
-      setManualPaymentLoading(false);
       toast({
         title: "Error",
         description: "An error occurred while confirming payment",
+        variant: "destructive",
       });
     } finally {
       setManualPaymentLoading(false);
@@ -239,9 +263,9 @@ export default function PaymentPageComponent() {
       );
 
       const createRecipientATAIx = createAssociatedTokenAccountInstruction(
-        senderPublicKey, // payer
-        recipientATA, // ATA to create
-        recipientPublicKey, // owner of the new ATA
+        senderPublicKey,
+        recipientATA,
+        recipientPublicKey,
         USDC_DEVNET_MINT
       );
 
@@ -249,7 +273,7 @@ export default function PaymentPageComponent() {
         senderATA,
         recipientATA,
         senderPublicKey,
-        Number(donorInfo.amount) * 1_000_000 // USDC has 6 decimals
+        Number(donorInfo.amount) * 1_000_000
       );
 
       let recipientAccountInfo = await connection.getAccountInfo(recipientATA);
@@ -270,18 +294,30 @@ export default function PaymentPageComponent() {
       const txid = await connection.sendRawTransaction(signedTx.serialize());
       await connection.confirmTransaction(txid, "confirmed");
       setTransactionHash(txid);
-      setPaymentProcessing(false);
-      try {
-        await handlePaymentComplete();
-      } catch (error) {
-        toast({
-          title: `Click "I've Made the Payment" button to confirm your payment`,
+
+      // Show countdown before completing payment
+      setShowCountdown(true);
+      setCountdown(15);
+
+      // Start countdown timer
+      const countdownInterval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            setShowCountdown(false);
+            setPaymentProcessing(false);
+            handlePaymentComplete();
+            return 0;
+          }
+          return prev - 1;
         });
-      }
+      }, 1000);
+
       return txid;
     } catch (error) {
       console.error("Transaction failed", error);
       setPaymentProcessing(false);
+      setShowCountdown(false);
     }
   };
 
@@ -292,6 +328,13 @@ export default function PaymentPageComponent() {
       <Skeleton className="h-4 w-5/6 bg-[#f2bd74]/10" />
     </div>
   );
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  };
 
   return (
     <div className="min-h-screen relative">
@@ -339,7 +382,7 @@ export default function PaymentPageComponent() {
                       <p className="text-sm text-gray-300">
                         Contribution Amount:{" "}
                         <span className="font-semibold text-[#f2bd74]">
-                          ${donorInfo.amount} USDC
+                          {formatCurrency(donorInfo.amount)} USDC
                         </span>
                       </p>
                     </div>
@@ -403,7 +446,7 @@ export default function PaymentPageComponent() {
                     <p className="text-sm text-gray-300 mb-2">
                       Send exactly{" "}
                       <span className="font-semibold text-[#f2bd74]">
-                        ${donorInfo.amount} USDC
+                        {formatCurrency(donorInfo.amount)} USDC
                       </span>{" "}
                       to the following address:
                     </p>
@@ -414,20 +457,31 @@ export default function PaymentPageComponent() {
                         <code className="text-xs md:text-sm break-all text-white/80">
                           {donorInfo.walletAddress}
                         </code>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="ml-2 text-[#f2bd74] hover:text-white hover:bg-[#f2bd74]/10"
-                          onClick={() =>
-                            copyToClipboard(donorInfo.walletAddress)
-                          }
-                        >
-                          {copiedAddress ? (
-                            <CheckCircle2 className="h-4 w-4" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                        </Button>
+                        <div className="flex gap-2 ml-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[#f2bd74] hover:text-white hover:bg-[#f2bd74]/10"
+                            onClick={() => setQrDialogOpen(true)}
+                            disabled={!donorInfo.walletAddress}
+                          >
+                            <QrCode className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[#f2bd74] hover:text-white hover:bg-[#f2bd74]/10"
+                            onClick={() =>
+                              copyToClipboard(donorInfo.walletAddress)
+                            }
+                          >
+                            {copiedAddress ? (
+                              <CheckCircle2 className="h-4 w-4" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -482,7 +536,9 @@ export default function PaymentPageComponent() {
 
                   {connected && (
                     <div className="space-y-4">
-                      {!paymentCompleted ? (
+                      {showCountdown ? (
+                        <CountDownIllustration countdown={countdown} />
+                      ) : !paymentCompleted ? (
                         <div className="space-y-4">
                           <Button
                             className="w-full bg-[#0a1a2f] hover:bg-[#0a1a2f]/80 text-[#f2bd74] border border-[#f2bd74]/30 hover:text-white"
@@ -513,11 +569,11 @@ export default function PaymentPageComponent() {
                             {paymentProcessing ? (
                               <>
                                 <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin mr-2"></div>
-                                Processing...
+                                Processing Transaction...
                               </>
                             ) : (
                               <>
-                                Send ${donorInfo.amount} USDC{" "}
+                                Send {formatCurrency(donorInfo.amount)} USDC{" "}
                                 <ArrowRight className="ml-2 h-4 w-4" />
                               </>
                             )}
@@ -564,10 +620,21 @@ export default function PaymentPageComponent() {
                               </div>
                             )}
 
-                            <p className="text-sm text-white/60">
+                            <p className="text-sm font-rajdhani font-medium text-white">
                               Redirecting you back to the fundraiser in 5
                               seconds...
                             </p>
+                            <div className="flex justify-center space-x-1 mt-2">
+                              <div className="w-2 h-2 bg-[#f2bd74] rounded-full animate-bounce"></div>
+                              <div
+                                className="w-2 h-2 bg-[#f2bd74] rounded-full animate-bounce"
+                                style={{ animationDelay: "0.1s" }}
+                              ></div>
+                              <div
+                                className="w-2 h-2 bg-[#f2bd74] rounded-full animate-bounce"
+                                style={{ animationDelay: "0.2s" }}
+                              ></div>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -606,6 +673,62 @@ export default function PaymentPageComponent() {
           </div>
         </div>
       </div>
+
+      {/* QR Code Dialog */}
+      <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
+        <DialogContent className="md:max-w-[50%] max-w-[90%] lg:max-w-[30%] bg-[#0a1a2f] border border-[#f2bd74]/20 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-[#f2bd74] font-rajdhani">
+              Payment QR Code
+            </DialogTitle>
+            <DialogDescription className="text-white/70">
+              Scan this QR code with your Solana wallet to send{" "}
+              {formatCurrency(donorInfo.amount)} USDC
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col items-center space-y-4 py-4">
+            <div className="p-4 bg-white rounded-lg">
+              <QRCode
+                value={qrValue}
+                size={200}
+                level="H"
+                fgColor="#000000"
+                bgColor="#ffffff"
+              />
+            </div>
+            <div className="w-full bg-[#0c2240] p-3 rounded-md border border-[#f2bd74]/20">
+              <p className="text-xs text-gray-400 mb-1">Wallet Address:</p>
+              <div className="flex items-center justify-between">
+                <code className="text-xs break-all text-white/80 mr-2">
+                  {donorInfo.walletAddress}
+                </code>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-[#f2bd74] hover:text-white hover:bg-[#f2bd74]/10 flex-shrink-0"
+                  onClick={() => copyToClipboard(donorInfo.walletAddress)}
+                >
+                  {copiedAddress ? (
+                    <CheckCircle2 className="h-4 w-4" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <p className="text-sm text-[#f2bd74] font-semibold">
+                Amount: {formatCurrency(donorInfo.amount)} USDC
+              </p>
+              <p className="text-xs text-white/60 mt-1">
+                Please send the exact amount to complete your contribution
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

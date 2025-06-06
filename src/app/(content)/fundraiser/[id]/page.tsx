@@ -1,21 +1,17 @@
-
 import apiRequest from "@/utils/apiRequest";
 import type { Metadata } from "next";
 import FundraiserPageComp from ".";
 
 // Removed invalid import: PageProps is not exported from "next"
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
 
-
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-
-  const { id } = await params
-
-
-  const response = await apiRequest(
-    "GET",
-    `/fundraise/get-fundraise/${id}`
-  );
+  const response = await apiRequest("GET", `/fundraise/get-fundraise/${id}`);
 
   if (!response.success) {
     return {
@@ -31,18 +27,19 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title: `${responseData.fundMetaData.title} | Emerg Funds`,
     description: responseData.fundMetaData.description,
     icons: {
-      icon: [{ url: responseData.fundMetaData.imageUrl }, { url: "https://www.emergfunds.org/logo.jpg" },],
+      icon: [
+        { url: responseData.fundMetaData.imageUrl },
+        { url: "https://www.emergfunds.org/logo.jpg" },
+      ],
       apple: [{ url: responseData.fundMetaData.imageUrl }],
-      other: [
-        { rel: "mask-icon", url: responseData.fundMetaData.imageUrl }
-      ]
+      other: [{ rel: "mask-icon", url: responseData.fundMetaData.imageUrl }],
     },
     openGraph: {
       title: responseData.fundMetaData.title,
       description: responseData.fundMetaData.description,
       images: responseData.fundMetaData
         ? [responseData.fundMetaData.imageUrl]
-        : []
+        : [],
     },
     twitter: {
       card: "summary_large_image",
@@ -52,20 +49,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         ? [responseData.fundMetaData.imageUrl]
         : [],
       creator: "@emergfunds_",
-    }
+    },
   };
 }
-
 
 export default async function FundraiserPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params
-  return (
-    <FundraiserPageComp fundraiserId={id} />
-  )
+  const { id } = await params;
+  return <FundraiserPageComp fundraiserId={id} />;
 }
-
-
