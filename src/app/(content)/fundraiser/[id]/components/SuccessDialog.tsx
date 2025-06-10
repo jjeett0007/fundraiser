@@ -19,7 +19,6 @@ const SuccessDialog = ({
 }) => {
   if (!isOpen) return null;
 
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className=" w-full max-w-md">
