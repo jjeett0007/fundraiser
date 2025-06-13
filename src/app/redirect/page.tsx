@@ -17,7 +17,6 @@ const Redirect = () => {
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
   const { toast } = useToast();
-  const [authToken, setAuthToken] = useState("");
 
   useEffect(() => {
     const handleRedirect = async () => {
@@ -67,7 +66,7 @@ const Redirect = () => {
 
                 toast({
                   title: "Success",
-                  description: `Logging in as ${email}!`,
+                  description: `Welcome back, ${email}!`,
                 });
 
                 router.push("/");
@@ -86,7 +85,35 @@ const Redirect = () => {
               });
             }
           } else if (type === "signup") {
-            router.push("/signup");
+            try {
+              dispatch(
+                setData({
+                  email: email,
+                  _id: id,
+                })
+              );
+
+              dispatch(
+                setToken({
+                  token: token,
+                  expiresIn: expiresIn,
+                  isAuthenticated: true,
+                })
+              );
+
+              toast({
+                title: "Success",
+                description: `Welcome to the platform, ${email}!`,
+              });
+
+              router.push("/");
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "Failed to complete signup. Please try again.",
+                variant: "destructive",
+              });
+            }
           }
         }
       } catch (error) {
@@ -100,6 +127,7 @@ const Redirect = () => {
     };
     handleRedirect();
   }, [searchParams, dispatch, router, toast]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a1a2f] to-[#0c2240] text-white relative">
       <div className="absolute inset-0 w-full h-full opacity-[0.05] pointer-events-none">
@@ -141,7 +169,11 @@ const Redirect = () => {
           </div>
         </div>
 
-        <p className="text-lg text-primaryGold font-rajdhani">Redirecting...</p>
+        <p className="text-lg text-primaryGold font-rajdhani">
+          {searchParams.get("type") === "signup"
+            ? "Setting up your account..."
+            : "Redirecting..."}
+        </p>
       </div>
     </div>
   );
