@@ -7,6 +7,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers/reduxProvider";
 import OfflineDetector from "@/components/useables/OfflineDetector";
+import CookieConsentModal from "@/components/useables/CookieConsentModal";
 
 export const metadata: Metadata = {
   title: "Emerg Funds Raising",
@@ -56,7 +57,7 @@ export const metadata: Metadata = {
     "fundraising for organizations in need",
     "fundraising for charitable organizations",
     "fundraising for community initiatives",
-    "fundraising for emergency situations", 
+    "fundraising for emergency situations",
     "fundraising for urgent medical needs",
     "fundraising for disaster recovery",
     "fundraising for urgent community support",
@@ -276,7 +277,7 @@ export const metadata: Metadata = {
     "blockchain fundraising for urgent community needs",
     "blockchain fundraising for emergency medical needs",
     "blockchain fundraising for urgent disaster relief",
-    "solaana",
+    "solana",
     "solana crowdfunding",
     "solana fundraising",
     "solana donations",
@@ -383,7 +384,7 @@ export const metadata: Metadata = {
     "snap raise fundraising",
     "justgiving",
     "gofundme",
-    "just giving page"
+    "just giving page",
   ],
   robots: {
     index: true,
@@ -430,7 +431,7 @@ export const metadata: Metadata = {
     siteName: "Emergency Funds Raising",
     images: [
       {
-        url: "https://www.emergfunds.org/twitter-banner.jpeg",
+        url: "https://www.emergfunds.org/twitter-banner.jpg",
         width: 1200,
         height: 630,
         alt: "Emerg Fund Raising Platform",
@@ -444,14 +445,13 @@ export const metadata: Metadata = {
     ],
     locale: "en_US",
     type: "website",
-    
   },
   twitter: {
     card: "summary_large_image",
     title: "Emerg Funds Raising",
     description:
       "Emerg Funds Raising is a dedicated platform designed to help individuals and organizations quickly raise emergency funds for urgent needs. Easily create, share, and support fundraising campaigns for medical emergencies, disaster relief, and other critical situations.",
-    images: ["https://www.emergfunds.org/twitter-banner.jpeg"],
+    images: ["https://www.emergfunds.org/twitter-banner.jpg"],
     creator: "@emergfunds_",
   },
 };
@@ -474,6 +474,7 @@ export default function RootLayout({
         <Providers>
           <OfflineDetector />
           <Wallet>{children}</Wallet>
+          <CookieConsentModal />
           <Toaster />
           <Analytics />
         </Providers>

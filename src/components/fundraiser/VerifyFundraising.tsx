@@ -132,7 +132,11 @@ const VerifyFundraising = ({
         });
 
         if (!uploadResponse.success) {
-          throw new Error(uploadResponse.message || "Upload failed");
+          toast({
+            title: "Error",
+            description: uploadResponse.message || "Upload failed",
+            variant: "destructive",
+          });
         }
 
         switch (field) {
@@ -245,7 +249,11 @@ const VerifyFundraising = ({
         setOpen(false);
         onVerified?.();
       } else {
-        throw new Error(response.message || "Verification failed!");
+        toast({
+          title: "Error",
+          description: response.message || "Verification failed!",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       toast({
@@ -466,7 +474,8 @@ const VerifyFundraising = ({
               Fundraiser Proofs (Image)
             </h3>
             <p className="text-sm text-white/80 mb-4">
-              Upload supporting documents for your fundraiser (e.g., medical bills, invoices, etc.)
+              Upload supporting documents for your fundraiser (e.g., medical
+              bills, invoices, etc.)
             </p>
 
             {/* Grid of uploaded proofs */}
@@ -491,12 +500,16 @@ const VerifyFundraising = ({
                 onChange={(e) => handleFileUpload(e, "image", "proof")}
                 className="hidden"
               />
-              <Label htmlFor="proof-upload" className="cursor-pointer">  {/* Add cursor-pointer */}
+              <Label htmlFor="proof-upload" className="cursor-pointer">
+                {" "}
+                {/* Add cursor-pointer */}
                 <Button
                   variant="outline"
                   className="w-full"
                   disabled={loadingStates.proof}
-                  onClick={() => document.getElementById("proof-upload")?.click()}  // Fallback
+                  onClick={() =>
+                    document.getElementById("proof-upload")?.click()
+                  } // Fallback
                 >
                   {loadingStates.proof ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

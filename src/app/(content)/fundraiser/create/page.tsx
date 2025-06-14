@@ -209,7 +209,11 @@ export default function CreateFundraiserPage() {
       });
 
       if (!uploadResponse.success) {
-        throw new Error("Failed to upload");
+        toast({
+          title: "Error",
+          description: "Failed to upload",
+          variant: "destructive",
+        });
       }
       updateFormData(
         type === "image" ? "imagePreview" : "videoPreview",
@@ -406,14 +410,17 @@ export default function CreateFundraiserPage() {
   return (
     <div className="min-h-screen relative">
       <div className="container mx-auto px-4 py-8 md:px-10 lg:px-14 relative z-10">
-        <Button variant={"outline"} className="mb-3" onClick={clearDataInput}>Clear All Input</Button>
+        <Button variant={"outline"} className="mb-3" onClick={clearDataInput}>
+          Clear All Input
+        </Button>
         <div className="mx-auto rounded-lg shadow-lg bg-[#0a1a2f]/70 border border-[#f2bd74]/20 backdrop-blur-sm text-white overflow-hidden">
           <div className="bg-gradient-to-r from-[#0a1a2f] to-[#0c2240] border-b border-[#f2bd74]/20 p-6">
             <div className="md:text-2xl text-xl font-rajdhani font-bold text-[#f2bd74]">
               Create Emergency Fundraiser
             </div>
             <div className="text-[#ede4d3] mb-10">
-              Set up your fundraiser with just 3 step and get the support you need.
+              Set up your fundraiser with just 3 step and get the support you
+              need.
             </div>
 
             <div className="flex justify-between gap-2 md:gap-4 items-center">

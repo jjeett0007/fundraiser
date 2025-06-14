@@ -6,12 +6,9 @@ import Image from "next/image";
 import {
   Activity,
   Calendar,
-  Edit,
   Heart,
-  Loader2,
   Mail,
   MapPin,
-  Phone,
   Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,7 +19,6 @@ import EditProfile from "./components/EditProfile";
 import { useToast } from "@/hooks/use-toast";
 import apiRequest from "@/utils/apiRequest";
 import { useAppDispatch } from "@/store/hooks";
-import { setData } from "@/store/slice/userDataSlice";
 import { PaginationData, FundraiserData } from "@/utils/type";
 import PaginationComp from "@/components/customs/PaginationComp";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,10 +27,6 @@ export default function DashboardPage() {
   const userData = useSelector((state: RootState) => state.userData);
   const { toast } = useToast();
 
-  const [avatarLoading, setAvatarLoading] = useState(false);
-  const [avatar, setAvatar] = useState<string | null>(null);
-  const [avatarUpload, setAvatarUpload] = useState("");
-  const dispatch = useAppDispatch();
 
   const [userFundraisers, setUserFundraisers] = useState<FundraiserData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -99,81 +91,11 @@ export default function DashboardPage() {
     }
   };
 
-  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      toast({
-        title: "Upload Error",
-        description: "Please select an image file to upload",
-      });
-      return;
-    }
-
-    setAvatarLoading(true);
-
-    try {
-      const base64String = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
-
-      const uploadResponse = await apiRequest("POST", "/upload/file", {
-        file: base64String,
-      });
-
-      if (!uploadResponse.success) {
-        throw new Error(uploadResponse.message || "Failed to upload image");
-      }
-
-      setAvatar(base64String);
-      setAvatarUpload(uploadResponse.data.link);
-
-      const payload = {
-        profileInfo: {
-          firstName: userData.profile.firstName,
-          lastName: userData.profile.lastName,
-          displayName: userData.profile.displayName,
-        },
-        avatar: uploadResponse.data.link,
-        address: {
-          country: userData.address?.country,
-          state: userData.address?.state,
-          city: userData.address?.city,
-        },
-      };
-
-      const response = await apiRequest("PATCH", "/user", payload);
-
-      if (response.status === 200) {
-        toast({
-          title: "Success",
-          description: response.message || "Avatar updated successfully",
-        });
-        const res = await apiRequest("GET", "/user");
-        dispatch(setData({ ...res.data }));
-      } else {
-        throw new Error(response.message || "Failed to update profile");
-      }
-    } catch (error: any) {
-      toast({
-        title: "Upload Failed",
-        variant: "destructive",
-        description: error.message || "Failed to update avatar",
-      });
-
-      setAvatar(null);
-      setAvatarUpload("");
-    } finally {
-      setAvatarLoading(false);
-    }
-  };
-
   function formatDateToMonthYear(isoDateString: string): string {
     const date = new Date(isoDateString);
 
     if (isNaN(date.getTime())) {
-      throw new Error("Invalid date string provided");
+      console.log("Invalid date string provided");
     }
 
     const options: Intl.DateTimeFormatOptions = {
@@ -208,36 +130,13 @@ export default function DashboardPage() {
           ) : (
             <div className="w-28 h-28 rounded-full border border-primaryGold overflow-hidden">
               <Image
-                src={
-                  avatar || userData.profileImages.avatar || "/placeholder.svg"
-                }
-                alt={userData.profile.displayName}
+                src={userData.profileImages.avatar || "/placeholder.svg"}
+                alt={userData.profile.firstName}
                 width={1000}
                 height={1000}
                 className="object-cover w-full h-full"
               />
             </div>
-          )}
-
-          {avatarLoading ? (
-            <div className="absolute flex items-center justify-center bottom-0 right-0 h-8 w-8 bg-primary border border-primaryGold rounded-full shadow-md">
-              <Loader2 className="w-5 h-5 text-primaryGold animate-spin" />
-            </div>
-          ) : (
-            !loading && (
-              <div className="absolute flex items-center justify-center bottom-0 right-0 h-8 w-8 bg-primary border border-primaryGold rounded-full shadow-md">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/gif,image/webp,image/jpg"
-                  className="hidden"
-                  id="avatarUpload"
-                  onChange={handleImageChange}
-                />
-                <label htmlFor="avatarUpload" className="cursor-pointer">
-                  <Edit className="h-4 w-4 text-primaryGold" />
-                </label>
-              </div>
-            )
           )}
         </div>
 
@@ -262,7 +161,7 @@ export default function DashboardPage() {
 
                   <div className="p-2.5 py-0.5 rounded-full bg-white/5 backdrop-blur-sm border flex items-center justify-center flex-col border-white/10">
                     <span className="text-sm">
-                      @{userData.profile.displayName}
+                      @{userData.profile.displayName || "No Display Name"}
                     </span>
                   </div>
                 </div>
