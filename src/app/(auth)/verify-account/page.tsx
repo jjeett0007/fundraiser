@@ -21,6 +21,9 @@ import apiRequest from "@/utils/apiRequest";
 import { isValidInput, validateInputs } from "@/utils/formValidation";
 import { ValidationErrors } from "@/utils/type";
 import { useToast } from "@/hooks/use-toast";
+import { useAppDispatch } from "@/store/hooks";
+import { setData } from "@/store/slice/userDataSlice";
+import { setToken } from "@/store/slice/userTokenSlice";
 
 export default function VerifyAccount() {
   const router = useRouter();
@@ -30,18 +33,9 @@ export default function VerifyAccount() {
   const [isLoading, setIsLoading] = useState(false);
   const [resendDisabled, setResendDisabled] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const [email, setEmail] = useState("");
 
   const { toast } = useToast();
-
-  // useEffect(() => {
-  //   const storedEmail = localStorage.getItem("verificationEmail");
-  //   if (!storedEmail) {
-  //     router.push("/signup");
-  //     return;
-  //   }
-  //   setEmail(storedEmail);
-  // }, [router]);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (countdown > 0) {
@@ -73,8 +67,25 @@ export default function VerifyAccount() {
       const response = await apiRequest("POST", "/otp/verify", payload);
 
       if (response.status === 200) {
-        localStorage.removeItem("verificationEmail");
-        router.push("/dashboard");
+        try {
+          dispatch(
+            setToken({
+              isAuthenticated: true,
+            })
+          );
+
+          const userResponse = await apiRequest("GET", "/user");
+          if (userResponse.success) {
+            dispatch(setData(userResponse.data));
+            router.push("/dashboard");
+          }
+        } catch (userError) {
+          toast({
+            title: "Error",
+            variant: "destructive",
+            description: "Failed to fetch user data, verify again.",
+          });
+        }
         toast({
           title: "success",
           description: response.message,
@@ -102,14 +113,10 @@ export default function VerifyAccount() {
     setResendDisabled(true);
     setCountdown(60);
 
-    const payload = {
-      email: email,
-    };
-
     try {
-      const response = await apiRequest("POST", "/otp/resend", payload);
+      const response = await apiRequest("GET", "/otp/resend");
 
-      if (response.status === 200) {
+      if (response.success) {
         setCode("");
         toast({
           title: "success",

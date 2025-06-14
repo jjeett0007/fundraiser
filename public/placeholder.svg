@@ -1,0 +1,62 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient definitions using your color scheme -->
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:hsl(214, 65%, 11%);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:hsl(214, 65%, 25%);stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:hsl(35, 83%, 70%);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:hsl(35, 83%, 55%);stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:hsl(350, 86%, 40%);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:hsl(350, 86%, 30%);stop-opacity:1" />
+    </linearGradient>
+    
+    <radialGradient id="circleGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:hsl(35, 83%, 70%);stop-opacity:0.9" />
+      <stop offset="70%" style="stop-color:hsl(35, 83%, 55%);stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:hsl(214, 65%, 11%);stop-opacity:0.3" />
+    </radialGradient>
+    
+    <linearGradient id="backgroundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:hsl(214, 65%, 8%);stop-opacity:1" />
+      <stop offset="50%" style="stop-color:hsl(214, 65%, 11%);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:hsl(214, 65%, 15%);stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="300" fill="url(#backgroundGradient)"/>
+  
+  <!-- Abstract geometric shapes -->
+  <!-- Large triangle -->
+  <polygon points="50,250 200,80 350,250" fill="url(#primaryGradient)" opacity="0.8"/>
+  
+  <!-- Overlapping triangle -->
+  <polygon points="150,200 280,100 380,220" fill="url(#redGradient)" opacity="0.7"/>
+  
+  <!-- Circle -->
+  <circle cx="120" cy="90" r="45" fill="url(#circleGradient)"/>
+  
+  <!-- Smaller geometric elements -->
+  <polygon points="300,50 320,80 280,80" fill="url(#goldGradient)" opacity="0.9"/>
+  
+  <!-- Diamond shape -->
+  <polygon points="80,180 100,160 120,180 100,200" fill="url(#goldGradient)" opacity="0.8"/>
+  
+  <!-- Additional triangular elements -->
+  <polygon points="320,160 340,190 300,190" fill="url(#redGradient)" opacity="0.6"/>
+  
+  <!-- Subtle accent lines -->
+  <line x1="60" y1="120" x2="160" y2="120" stroke="url(#goldGradient)" stroke-width="2" opacity="0.5"/>
+  <line x1="240" y1="180" x2="340" y2="180" stroke="url(#goldGradient)" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Floating elements for depth -->
+  <circle cx="320" cy="80" r="8" fill="url(#goldGradient)" opacity="0.7"/>
+  <circle cx="60" cy="220" r="6" fill="url(#redGradient)" opacity="0.6"/>
+  <circle cx="280" cy="240" r="4" fill="url(#goldGradient)" opacity="0.8"/>
+</svg>

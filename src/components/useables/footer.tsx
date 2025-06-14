@@ -92,6 +92,14 @@ function FooterComp() {
                     href="#"
                     className="text-[#ede4d3] hover:text-primaryGold"
                   >
+                    Telegram
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="#"
+                    className="text-[#ede4d3] hover:text-primaryGold"
+                  >
                     Discord
                   </Link>
                 </li>

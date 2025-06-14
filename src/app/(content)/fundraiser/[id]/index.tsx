@@ -11,7 +11,6 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -483,7 +482,7 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
       </Dialog>
 
       <Dialog open={openQRCode} onOpenChange={setIsOpenQRCode}>
-        <DialogContent className="md:max-w-[50%] max-w-[90%] h-fit lg:max-w-[30%]">
+        <DialogContent className="md:max-w-[50%] flex flex-col items-center justify-center max-w-[90%] h-fit lg:max-w-[30%]">
           <DialogHeader>
             <DialogTitle> QR Code</DialogTitle>
             <DialogDescription>
@@ -492,8 +491,8 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col items-center justify-center py-4">
-            <div className="p-4 bg-white rounded-lg">
+          <div className="flex flex-col items-center justify-center p-4">
+            <div className="p-4 bg-white rounded-lg w-fit">
               <QRCode
                 value={qrValue}
                 size={200}
@@ -502,36 +501,34 @@ export default function FundraiserPageComp({ fundraiserId }: props) {
                 bgColor="#ffffff"
               />
             </div>
-            <p className="mt-4 text-sm text-center text-gray-500">
+            <p className="mt-4 text-sm text-center text-gray-500 break-all px-2">
               Or copy this link: {qrValue}
             </p>
           </div>
 
-          <DialogFooter>
-            <div className="flex items-center justify-center gap-2 w-full">
-              <Button
-                onClick={() => setIsOpenQRCode(false)}
-                className="w-full sm:w-auto"
-                variant="ghost"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  navigator.clipboard.writeText(qrValue);
-                  toast({
-                    title: "Link copied",
-                    description:
-                      "The fundraiser link has been copied to clipboard",
-                    variant: "default",
-                  });
-                }}
-                className="w-full sm:w-auto"
-                variant="outline"
-              >
-                Copy Link
-              </Button>
-            </div>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 px-4 pb-4">
+            <Button
+              onClick={() => setIsOpenQRCode(false)}
+              className="w-full"
+              variant="ghost"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                navigator.clipboard.writeText(qrValue);
+                toast({
+                  title: "Link copied",
+                  description:
+                    "The fundraiser link has been copied to clipboard",
+                  variant: "default",
+                });
+              }}
+              className="w-full"
+              variant="outline"
+            >
+              Copy Link
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

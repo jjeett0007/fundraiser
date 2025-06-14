@@ -61,51 +61,64 @@ export default function LoginPage() {
 
       if (response.status === 203) {
         router.push("/verify-account");
-        localStorage.setItem("verificationEmail", response.data.email);
-        document.cookie = `Access=${
-          response.data.token.access
-        }; path=/; secure; max-age=${2 * 24 * 60 * 60}; samesite=strict`;
-      } else {
-        if (response.status === 200) {
-          document.cookie = `Access=${
-            response.data.token.access
-          }; path=/; secure; max-age=${2 * 24 * 60 * 60}; samesite=strict`;
 
-          const expirationInSeconds =
-            Math.floor(Date.now() / 1000) + response.data.token.expiresIn;
-          document.cookie = `expiresIn=${expirationInSeconds}; path=/; secure; max-age=${response.data.token.expiresIn}; samesite=strict`;
+        document.cookie = `Access=${response.data.token.access}; path=/; secure; max-age=${2 * 24 * 60 * 60}; samesite=strict`;
+        const expirationInSeconds =
+          Math.floor(Date.now() / 1000) + response.data.token.expiresIn;
+        document.cookie = `expiresIn=${expirationInSeconds}; path=/; secure; max-age=${response.data.token.expiresIn}; samesite=strict`;
 
-          dispatch(
-            setToken({
-              token: response.data.token.access,
-              expiresIn: response.data.token.expiresIn,
-              isAuthenticated: true,
-            })
-          );
+        toast({
+          title: "Account Verification Required",
+          description: "Please verify your account to continue.",
+        });
 
-          const res = await apiRequest("GET", "/user");
+        router.push("/verify-account");
+      } else if (response.status === 200) {
+        document.cookie = `Access=${response.data.token.access}; path=/; secure; max-age=${2 * 24 * 60 * 60}; samesite=strict`;
 
-          dispatch(
-            setData({
-              ...res.data,
-            })
-          );
+        const expirationInSeconds =
+          Math.floor(Date.now() / 1000) + response.data.token.expiresIn;
+        document.cookie = `expiresIn=${expirationInSeconds}; path=/; secure; max-age=${response.data.token.expiresIn}; samesite=strict`;
 
-          router.push("/dashboard");
-        } else {
+        dispatch(
+          setToken({
+            token: response.data.token.access,
+            expiresIn: response.data.token.expiresIn,
+            isAuthenticated: true,
+          })
+        );
+
+        try {
+          const userResponse = await apiRequest("GET", "/user");
+          if (userResponse.status === 200) {
+            dispatch(setData(userResponse.data));
+          }
+        } catch (userError) {
           toast({
             title: "Error",
-            description: response.message,
             variant: "destructive",
+            description: "Failed to fetch user data:",
           });
         }
+
+        toast({
+          title: "Success",
+          description: "Login successful! Welcome back.",
+        });
+
+        router.push("/dashboard");
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Login failed. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (err) {
-      setIsLoading(false);
-
+      console.error("Login error:", err);
       toast({
         title: "Error",
-        description: "An unexpected error occurred.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -219,7 +232,10 @@ export default function LoginPage() {
         <CardFooter className="flex flex-col space-y-4">
           <p className="text-sm text-[#ede4d3]">
             Don't have an account?{" "}
-            <Link href="/signup" className="text-primaryGold font-rajdhani hover:underline">
+            <Link
+              href="/signup"
+              className="text-primaryGold font-rajdhani hover:underline"
+            >
               Sign up
             </Link>
           </p>
