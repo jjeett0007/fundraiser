@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, CheckCircle2 } from "lucide-react";
@@ -19,9 +19,9 @@ import {
 } from "@/components/ui/card";
 
 const ResetPassword = () => {
-  const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const token = params.token as string;
+  const token = searchParams.get("token") as string;
   const { toast } = useToast();
 
   const [newPassword, setNewPassword] = useState("");
@@ -118,10 +118,10 @@ const ResetPassword = () => {
         <Card className="w-full max-w-md bg-primary border border-white/20">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center font-rajdhani text-primaryGold">
-              Forgot your password?
+              Reset Your Password
             </CardTitle>
             <CardDescription className="text-center text-[#ede4d3]">
-              Enter your email to receive reset password link.
+              Enter your new password below.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -173,10 +173,9 @@ const ResetPassword = () => {
                 onClick={handleResetPassword}
                 className="w-full"
                 disabled={isLoading}
-              variant={"secondary"}
-
+                variant={"secondary"}
               >
-                {isLoading ? "Loading..." : "Continue"}
+                {isLoading ? "Loading..." : "Reset Password"}
               </Button>
             </div>
           </CardContent>

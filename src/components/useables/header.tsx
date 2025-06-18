@@ -92,6 +92,10 @@ function HeaderComp() {
       name: "About",
     },
     {
+      link: "/blogs",
+      name: "Blogs",
+    },
+    {
       link: "/dashboard",
       name: "My Dashboard",
     },

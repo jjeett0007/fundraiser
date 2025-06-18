@@ -58,7 +58,7 @@ const OfflineDetector = () => {
       ) : (
         <div className="bg-primary rounded-lg p-3 shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
           <CheckCircle2 className="w-6 h-6 text-green-500" />
-          <span className="text-[#86e686] font-medium">Great!, Back Online</span>
+          <span className="text-[#86e686] font-rajdhani">Great!, Back Online</span>
         </div>
       )}
     </div>
