@@ -24,6 +24,7 @@ import { isValidInput, validateInputs } from "@/utils/formValidation";
 import { setToken } from "@/store/slice/userTokenSlice";
 import { useAppDispatch } from "@/store/hooks";
 import { setData } from "@/store/slice/userDataSlice";
+import white_wording_logo from "@/assets/white_wording_logo.svg";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -132,7 +133,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex-col flex items-center justify-center p-4">
+      <Link href="/">
+        <Image
+          src={white_wording_logo}
+          alt={"white_wording_logo"}
+          height={1000}
+          width={1000}
+          priority
+          quality={100}
+          className="md:w-[6rem] w-[5rem] lg:w-[8rem] "
+        />
+      </Link>
       <Card className="w-full max-w-md bg-primary border border-white/20">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center font-rajdhani text-primaryGold">

@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers/reduxProvider";
 import OfflineDetector from "@/components/useables/OfflineDetector";
 import CookieConsentModal from "@/components/useables/CookieConsentModal";
+import SignUpModal from "@/components/useables/SignUpModal";
 
 export const metadata: Metadata = {
   title: "Emerg Funds Raising",
@@ -474,7 +475,8 @@ export default function RootLayout({
         <Providers>
           <OfflineDetector />
           <Wallet>{children}</Wallet>
-          <CookieConsentModal />
+          <SignUpModal />
+          {/* <CookieConsentModal /> */}
           <Toaster />
           <Analytics />
         </Providers>
