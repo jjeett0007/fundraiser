@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import React, { useState, useEffect } from "react";
+import { X } from "lucide-react";
+import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -21,10 +21,22 @@ import google_logo from "@/assets/google_icon.svg";
 import { ValidationErrors } from "@/utils/type";
 import { isValidInput, validateInputs } from "@/utils/formValidation";
 import AppInput from "@/components/customs/AppInput";
-import white_wording_logo from "@/assets/white_wording_logo.svg";
+import Link from "next/link";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { setToken } from "@/store/slice/userTokenSlice";
 
-export default function SignupPage() {
+const SignUpModal = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [logged, setLogged] = useState(false);
+
   const router = useRouter();
+  const { toast } = useToast();
+  const dispatch = useAppDispatch();
+
+  const isAuthenticated = useAppSelector(
+    (state) => state.userToken.isAuthenticated
+  );
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -35,7 +47,41 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const { toast } = useToast();
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (isAuthenticated || logged) {
+      setIsVisible(false);
+      return;
+    }
+
+    const modalClosed = sessionStorage.getItem("signupModalClosed");
+
+    if (!modalClosed) {
+      timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 10000);
+    } else {
+      const closedTime = parseInt(modalClosed);
+      const currentTime = Date.now();
+      const timePassed = currentTime - closedTime;
+      const remainingTime = 30000 - timePassed;
+
+      if (remainingTime <= 0) {
+        setIsVisible(true);
+        sessionStorage.removeItem("signupModalClosed");
+      } else {
+        timer = setTimeout(() => {
+          setIsVisible(true);
+          sessionStorage.removeItem("signupModalClosed");
+        }, remainingTime);
+      }
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isAuthenticated, logged]);
 
   const handleSignup = async () => {
     try {
@@ -86,6 +132,18 @@ export default function SignupPage() {
           Math.floor(Date.now() / 1000) + response.data.token.expiresIn;
         document.cookie = `expiresIn=${expirationInSeconds}; path=/; secure; max-age=${response.data.token.expiresIn}; samesite=strict`;
 
+        dispatch(
+          setToken({
+            isAuthenticated: true,
+          })
+        );
+
+        setLogged(true);
+
+        setIsVisible(false);
+
+        sessionStorage.removeItem("signupModalClosed");
+
         router.push("/verify-account");
         localStorage.setItem("verificationEmail", email.trim());
         toast({
@@ -116,20 +174,24 @@ export default function SignupPage() {
     window.location.href = "/api/google";
   };
 
+  const handleClose = () => {
+    setIsVisible(false);
+
+    sessionStorage.setItem("signupModalClosed", Date.now().toString());
+  };
+
+  if (!isVisible || isAuthenticated || logged) return null;
+
   return (
-    <div className="min-h-screen flex-col flex items-center justify-center px-4 md:px-10 lg:px-14">
-      <Link href="/">
-        <Image
-          src={white_wording_logo}
-          alt={"white_wording_logo"}
-          height={1000}
-          width={1000}
-          priority
-          quality={100}
-          className="md:w-[6rem] w-[5rem] lg:w-[8rem] "
-        />
-      </Link>
-      <Card className="w-full max-w-md bg-primary border border-white/20">
+    <div className="fixed inset-0 z-[700] flex items-end justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <Card className="w-full max-w-md bg-primary border border-white/20 relative">
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center font-rajdhani text-primaryGold">
             Create an Account
@@ -297,4 +359,6 @@ export default function SignupPage() {
       </Card>
     </div>
   );
-}
+};
+
+export default SignUpModal;

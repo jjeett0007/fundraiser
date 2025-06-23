@@ -3,19 +3,25 @@
 import React, { useState, useEffect } from "react";
 import { X, Cookie } from "lucide-react";
 import { Button } from "../ui/button";
+import { useAppSelector } from "@/store/hooks";
 
 const CookieConsentModal = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const isAuthenticated = useAppSelector(
+    (state) => state.userToken.isAuthenticated
+  );
 
   useEffect(() => {
-    const consentGiven = sessionStorage.getItem("cookieConsentShown");
-    if (!consentGiven) {
-      const timer = setTimeout(() => {
-        setIsVisible(true);
-      }, 5000);
-      return () => clearTimeout(timer);
+    if (!isAuthenticated) {
+      const consentGiven = sessionStorage.getItem("cookieConsentShown");
+      if (!consentGiven) {
+        const timer = setTimeout(() => {
+          setIsVisible(true);
+        }, 5000);
+        return () => clearTimeout(timer);
+      }
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const handleAccept = () => {
     const consentData = {
@@ -54,10 +60,10 @@ const CookieConsentModal = () => {
     }
   };
 
-  if (!isVisible) return null;
+  if (isAuthenticated || !isVisible) return null;
 
   return (
-    <div className="fixed inset-0 z-[700] flex items-end justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[500] flex items-end justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-2xl bg-gradient-to-br from-[#0a1a2f] to-[#0c2240] border border-primaryGold/20 rounded-lg shadow-2xl transform transition-all duration-500 ease-out animate-in slide-in-from-bottom-4">
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-3">

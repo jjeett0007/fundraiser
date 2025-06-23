@@ -10,6 +10,7 @@ export function middleware(request: NextRequest) {
     "/signup",
     "/explore",
     "/about",
+    "/blogs",
     "/wait-list",
     "/forgot-password",
     "/reset-password",
@@ -22,8 +23,10 @@ export function middleware(request: NextRequest) {
 
   const isPublicPath =
     publicPaths.includes(path) ||
-    path.startsWith("/fundraiser/") && !path.startsWith("/fundraiser/create") && !path.startsWith("/fundraiser/manage");
-
+    (path.startsWith("/fundraiser/") &&
+      !path.startsWith("/fundraiser/create") &&
+      !path.startsWith("/fundraiser/manage")) ||
+    path.startsWith("/blogs/");
 
   const token = request.cookies.get("Access")?.value;
   const expirationDate = request.cookies.get("expiresIn")?.value;

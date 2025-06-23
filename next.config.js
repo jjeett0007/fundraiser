@@ -7,7 +7,8 @@ const nextConfig = {
       "lh3.googleusercontent.com",
       "encrypted-tbn3.gstatic.com",
       "miro.medium.com",
-      "res.cloudinary.com"
+      "res.cloudinary.com",
+      "thegivingblock.com",
     ],
   },
 };
