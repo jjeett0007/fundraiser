@@ -7,7 +7,6 @@ import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers/reduxProvider";
 import OfflineDetector from "@/components/useables/OfflineDetector";
-import CookieConsentModal from "@/components/useables/CookieConsentModal";
 import SignUpModal from "@/components/useables/SignUpModal";
 
 export const metadata: Metadata = {
@@ -15,6 +14,12 @@ export const metadata: Metadata = {
   description:
     "Emerg Funds Raising is a dedicated platform designed to help individuals and organizations quickly raise emergency funds for urgent needs. Easily create, share, and support fundraising campaigns for medical emergencies, disaster relief, and other critical situations.",
   keywords: [
+    "bitcoin giveaway",
+    "what's crypto",
+    "what's giveaway",
+    "bitcoin web3",
+    "airdrop",
+    "solana giveaway",
     "raise money",
     "emergency funds",
     "easy funding",
