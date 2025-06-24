@@ -37,6 +37,7 @@
     "framer-motion": "^12.10.5",
     "helius-sdk": "^1.5.0",
     "input-otp": "^1.4.2",
+    "jet-packages": "^1.0.1",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.468.0",
     "next": "^15.3.1",

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
-import ContentJsonInterpreter from "@/components/customs/ContentJsonInterpreter";
+import ContentJsonInterpreter from "jet-packages";
 import apiRequest from "@/utils/apiRequest";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
