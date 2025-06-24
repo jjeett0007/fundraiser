@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 import ContentJsonInterpreter from "jet-packages";
