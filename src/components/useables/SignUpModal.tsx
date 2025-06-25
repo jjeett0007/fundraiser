@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
-// import { Button } from "../ui/button";
+import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import {
@@ -24,7 +24,6 @@ import AppInput from "@/components/customs/AppInput";
 import Link from "next/link";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { setToken } from "@/store/slice/userTokenSlice";
-import { Button } from "jet-packages";
 
 const SignUpModal = () => {
   const [isVisible, setIsVisible] = useState(false);
